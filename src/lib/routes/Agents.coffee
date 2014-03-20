@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.routes.Agents
+@class joukou-api.routes.Agents
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @author Ben Braband <ben.brabant@joukou.co>
 @author Sebastian Berlein <sebastian.berlein@joukou.co>
@@ -25,20 +25,20 @@ module.exports = self = new class
   ###*
   @private
   @static
-  @property {joukou-server.AuthN} AuthN
+  @property {joukou-api.AuthN} AuthN
   ###
   AuthN = require( '../AuthN' )
 
   ###*
   @private
   @static
-  @property {joukou-server.AuthZ} AuthZ
+  @property {joukou-api.AuthZ} AuthZ
   ###
   AuthZ = require( '../AuthZ' )
 
   ###*
   @method registerRoutes
-  @param {joukou-server.server} server
+  @param {joukou-api.server} server
   ###
   registerRoutes: ( server ) ->
     server.post( '/agents', _.bind( @create, @ ) )

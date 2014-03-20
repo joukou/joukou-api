@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.hal.Link
+@class joukou-api.hal.Link
 @requires lodash
 @requires assert
 @author Isaac Johnston <isaac.johnston@joukou.co>

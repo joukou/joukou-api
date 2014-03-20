@@ -1,5 +1,6 @@
-Joukou Middleware Network Service
-=================================
+Joukou platform API
+===================
+
 
 ## License
 

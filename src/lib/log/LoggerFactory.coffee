@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.log.LoggerFactory
+@class joukou-api.log.LoggerFactory
 @requires bunyan
 @requires path
 @author Isaac Johnston <isaac.johnston@joukou.co>

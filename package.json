@@ -1,20 +1,20 @@
 {
-  "name": "joukou-server",
-  "version": "0.7.1",
+  "name": "joukou-api",
+  "version": "0.0.1",
   "private": true,
-  "description": "Joukou middleware network service.",
+  "description": "Joukou platform API.",
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joukou/server.git"
+    "url": "https://github.com/joukou/joukou-api.git"
   },
   "author": "Joukou Ltd",
   "license": "MPL-2.0",
   "bugs": {
-    "url": "https://github.com/joukou/server/issues"
+    "url": "https://www.blossom.io/app/blay4k3jubf3vkmdvlhxczig7q/czy6duayiba4djv3pbsayoscta/board"
   },
   "homepage": "https://joukou.co",
   "dependencies": {

@@ -1,14 +1,14 @@
 "use strict"
 ###*
-@class joukou-server.AuthN
+@class joukou-api.AuthN
 @requires lodash
 @requires bcrypt
-@requires joukou-server.error.BcryptError
+@requires joukou-api.error.BcryptError
 @requires passport
 @requires passport-http
 @requires util
-@requires joukou-server.riak.Client
-@requires joukou-server.error.RiakError
+@requires joukou-api.riak.Client
+@requires joukou-api.error.RiakError
 
 Authentication singleton based on Passport.
 ###

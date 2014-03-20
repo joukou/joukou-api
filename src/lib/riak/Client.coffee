@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.riak.Client
+@class joukou-api.riak.Client
 @requires riak-js
 
 Pre-configured riak-js client.

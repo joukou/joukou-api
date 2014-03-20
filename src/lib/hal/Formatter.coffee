@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.hal.Formatter
+@class joukou-api.hal.Formatter
 @requires lodash
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.

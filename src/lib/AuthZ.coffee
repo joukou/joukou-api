@@ -1,5 +1,5 @@
 ###*
-@class joukou-server.AuthZ
+@class joukou-api.AuthZ
 
 Authorization.
 ###

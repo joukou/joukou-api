@@ -1,5 +1,5 @@
 ###*
-@class joukou-server.error.RiakError
+@class joukou-api.error.RiakError
 @extends restify.RestError
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.

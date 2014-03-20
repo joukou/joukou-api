@@ -1,9 +1,9 @@
 "use strict"
 ###*
-@class joukou-server.server
+@class joukou-api.server
 @requires source-map-support
 @requires restify
-@requires joukou-server.log.LoggerFactory
+@requires joukou-api.log.LoggerFactory
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
 ###

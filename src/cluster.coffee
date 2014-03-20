@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.cluster
+@class joukou-api.cluster
 @requires lodash
 @requires cluster
 @requires os

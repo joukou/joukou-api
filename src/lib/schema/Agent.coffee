@@ -1,6 +1,6 @@
 "use strict"
 ###*
-@class joukou-server.schema.Agent
+@class joukou-api.schema.Agent
 @requires schemajs
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
