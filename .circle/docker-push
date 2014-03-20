@@ -1,0 +1,2 @@
+#!/bin/sh
+docker push $DOCKER_IMAGE_NAME:`docker-tag-name`

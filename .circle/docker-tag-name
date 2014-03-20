@@ -1,0 +1,8 @@
+#!/bin/bash
+if [[ $CIRCLE_BRANCH = "master" ]]; then
+  echo -n "production"
+elif [[ $CIRCLE_BRANCH = "develop" ]]; then
+  echo -n "latest"
+else
+  echo -n $CIRCLE_SHA1
+fi
