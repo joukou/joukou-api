@@ -18,7 +18,7 @@
   },
   "homepage": "https://joukou.co",
   "dependencies": {
-    "restify": "2.6.1",
+    "restify": "2.6.3",
     "source-map-support": "0.2.5",
     "async": "0.2.10",
     "passport": "0.2.0",
@@ -35,9 +35,9 @@
   "devDependencies": {
     "chai": "1.9.0",
     "chai-http": "0.4.0",
-    "sinon": "1.8.1",
+    "sinon": "1.9.0",
     "sinon-chai": "2.5.0",
     "rewire": "2.0.0",
-    "replay": "1.9.1"
+    "replay": "1.9.2"
   }
 }
