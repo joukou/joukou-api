@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectCodeStyleSettingsManager">
+    <option name="PER_PROJECT_SETTINGS">
+      <value>
+        <CoffeeScriptCodeStyleSettings>
+          <option name="SPACE_WITHIN_INDEX_BRACKETS" value="true" />
+          <option name="SPACE_WITHIN_RANGE_BRACKETS" value="true" />
+          <option name="SPACE_WITHIN_OBJECT_BRACES" value="true" />
+        </CoffeeScriptCodeStyleSettings>
+        <codeStyleSettings language="CoffeeScript">
+          <option name="SPACE_WITHIN_METHOD_CALL_PARENTHESES" value="true" />
+          <option name="SPACE_WITHIN_METHOD_PARENTHESES" value="true" />
+          <option name="SPACE_WITHIN_ARRAY_INITIALIZER_BRACES" value="true" />
+        </codeStyleSettings>
+      </value>
+    </option>
+    <option name="USE_PER_PROJECT_SETTINGS" value="true" />
+  </component>
+</project>
+
