@@ -10,6 +10,11 @@ coffee      = require( 'gulp-coffee' )
 coffeelint  = require( 'gulp-coffeelint' )
 clean       = require( 'gulp-clean' )
 nodemon     = require( 'gulp-nodemon' )
+watch       = require( 'gulp-watch' )
+
+#
+# Single-pass build related tasks
+#
 
 gulp.task( 'clean', ->
   gulp.src( 'dist', read: false )
@@ -32,3 +37,34 @@ gulp.task( 'coffee', [ 'clean' ], ->
 )
 
 gulp.task( 'build', [ 'coffeelint', 'coffee' ] )
+
+#
+# Develop-mode continuous compilation and auto server restart related tasks
+#
+
+gulp.task( 'watch', ->
+  gulp.src( 'src/**/*.coffee', read: false )
+    .pipe( watch( emit: 'all', ( files ) ->
+      files
+        .pipe( changed( 'dist' ) )
+        .pipe( coffee( bare: true, sourceMap: true ) )
+        .pipe( gulp.dest( 'dist' ) )
+        .on( 'error', gutil.log )
+      files
+        .pipe( coffeelint( optFile: 'coffeelint.json' ) )
+        .pipe( coffeelint.reporter() )
+    ) )
+)
+
+gulp.task( 'nodemon', ->
+  nodemon(
+    script: 'dist/server.js'
+    ext: 'js'
+    watch: [ 'dist', 'node_modules' ]
+  )
+  .on( 'restart', ->
+      console.log( 'Restarted!' )
+    )
+)
+
+gulp.task( 'develop', [ 'watch', 'nodemon' ] )
