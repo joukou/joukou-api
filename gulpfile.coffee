@@ -9,8 +9,12 @@ changed     = require( 'gulp-changed' )
 coffee      = require( 'gulp-coffee' )
 coffeelint  = require( 'gulp-coffeelint' )
 clean       = require( 'gulp-clean' )
+grep        = require( 'gulp-grep-stream' )
+mocha       = require( 'gulp-mocha' )
 nodemon     = require( 'gulp-nodemon' )
+plumber     = require( 'gulp-plumber' )
 watch       = require( 'gulp-watch' )
+print       = require( 'gulp-print' )
 
 #
 # Single-pass build related tasks
@@ -38,21 +42,48 @@ gulp.task( 'coffee', [ 'clean' ], ->
 
 gulp.task( 'build', [ 'coffeelint', 'coffee' ] )
 
+gulp.task( 'mocha', ->
+  gulp.src( 'test/**/*.coffee')
+    .pipe( mocha(
+      ui: 'bdd'
+      reporter: 'spec'
+      colors: true
+      compilers: 'coffee:coffee-script/register'
+    ) )
+    .on( 'error', gutil.log )
+)
+
 #
 # Develop-mode continuous compilation and auto server restart related tasks
 #
 
-gulp.task( 'watch', ->
-  gulp.src( 'src/**/*.coffee', read: false )
+gulp.task( 'coffeewatch', ->
+  changes = gulp.src( 'src/**/*.coffee', read: false )
+    .pipe( watch( ) )
+
+  changes
+    .pipe( changed( 'dist' ) )
+    .pipe( coffee( bare: true, sourceMap: true ) )
+    .pipe( gulp.dest( 'dist' ) )
+    .on( 'error', gutil.log )
+
+  changes
+    .pipe( coffeelint( optFile: 'coffeelint.json' ) )
+    .pipe( coffeelint.reporter( ) )
+)
+
+gulp.task( 'mochawatch', ->
+  gulp.src( [ 'dist/**/*.js', 'test/**/*.coffee' ], read: false )
     .pipe( watch( emit: 'all', ( files ) ->
       files
-        .pipe( changed( 'dist' ) )
-        .pipe( coffee( bare: true, sourceMap: true ) )
-        .pipe( gulp.dest( 'dist' ) )
+        .pipe( grep( '**/test/**/*.coffee' ) )
+        .pipe( mocha(
+          ui: 'bdd'
+          reporter: 'spec'
+          colors: true
+          compilers: 'coffee:coffee-script/register'
+        ) )
         .on( 'error', gutil.log )
-      files
-        .pipe( coffeelint( optFile: 'coffeelint.json' ) )
-        .pipe( coffeelint.reporter() )
     ) )
 )
 
@@ -67,4 +98,4 @@ gulp.task( 'nodemon', ->
     )
 )
 
-gulp.task( 'develop', [ 'watch', 'nodemon' ] )
+gulp.task( 'develop', [ 'coffeewatch', 'mochawatch', 'nodemon' ] )
