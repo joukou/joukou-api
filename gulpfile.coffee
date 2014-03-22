@@ -5,6 +5,7 @@
 
 gulp        = require( 'gulp' )
 plugins     = require( 'gulp-load-plugins' )( lazy: false )
+fs          = require( 'fs' )
 
 #
 # Single-pass build related tasks
@@ -19,6 +20,10 @@ gulp.task( 'clean', ->
   gulp.src( 'dist', read: false )
     .pipe( plugins.clean( force: true ) )
     .on( 'error', plugins.util.log )
+    .on( 'error', plugins.notify.onError(
+      title: 'joukou/api: gulp clean'
+      message: '<%= error.message %>'
+    ) )
 )
 
 gulp.task( 'coffeelint', [ 'sloc' ], ->
@@ -30,14 +35,32 @@ gulp.task( 'coffeelint', [ 'sloc' ], ->
 
 gulp.task( 'coffee', [ 'clean' ], ->
   gulp.src( 'src/**/*.coffee' )
-  .pipe( plugins.coffee( bare: true, sourceMap: true ) )
-  .pipe( gulp.dest( 'dist' ) )
-  .on( 'error', plugins.util.log )
+    .pipe( plugins.coffee( bare: true, sourceMap: true ) )
+    .pipe( gulp.dest( 'dist' ) )
+    .pipe( plugins.notify(
+      title: 'joukou/api: gulp coffee'
+      message: 'CoffeeScript compiled successfully.'
+      onLast: true
+    ) )
+    .on( 'error', plugins.util.log )
+    .on( 'error', plugins.notify.onError(
+      title: 'joukou/api: gulp coffee'
+      message: '<%= error.message %>'
+    ))
+    .on( 'end', ->
+      fs.mkdirSync( './dist/log' )
+    )
 )
 
 gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee' ] )
 
-gulp.task( 'mocha', [ 'build' ], ->
+gulp.task( 'cover', [ 'build' ], ->
+  gulp.src( 'dist/**/*.js' )
+    .pipe( plugins.istanbul() )
+    .on( 'error', plugins.util.log )
+)
+
+gulp.task( 'test', [ 'cover' ], ->
   gulp.src( 'test/**/*.coffee')
     .pipe( plugins.mocha(
       ui: 'bdd'
@@ -45,10 +68,19 @@ gulp.task( 'mocha', [ 'build' ], ->
       colors: true
       compilers: 'coffee:coffee-script/register'
     ) )
+    .pipe( plugins.istanbul.writeReports( './coverage' ) )
+    .pipe( plugins.notify(
+      title: 'joukou/api: gulp test'
+      message: 'Tests complete!'
+      onLast: true
+    ) )
     .on( 'error', plugins.util.log )
 )
 
-gulp.task( 'test', [ 'mocha' ] )
+gulp.task( 'ci', [ 'test' ], ->
+  gulp.src( 'coverage/lcov.info' )
+    .pipe( plugins.coveralls() )
+)
 
 #
 # Release related tasks
