@@ -39,23 +39,82 @@ module.exports = self = new class
   @param {joukou-server.server} server
   ###
   registerRoutes: ( server ) ->
-    server.post(  '/personas', AuthN.authenticate, self.create.bind( @ ) )
-    server.get(   '/personas/:personaKey', AuthN.authenticate, self.show.bind( @ ) )
-    server.post(  '/personas/:personaKey/agents', AuthN.authenticate, self.linkToAgents.bind( @ ) )
-    server.get(   '/personas/:personaKey/agents', AuthN.authenticate, self.linkedAgentsSearch.bind( @ ) )
-    server.post(  '/personas/:personaKey/personas', AuthN.authenticate, self.linkToPersonas.bind( @ ) )
-    server.get(   '/personas/:personaKey/personas', AuthN.authenticate, self.linkedPersonasSearch.bind( @ ) )
-    server.get(   '/personas/:personaKey/personas/facets', AuthN.authenticate, self.linkedPersonasSearchFacets.bind( @ ) )
-    server.get(   '/personas/:personaKey/personas/terms', AuthN.authenticate, self.linkedPersonasSearchTerms.bind( @ ) )
+    server.post(
+      '/personas',
+      AuthN.authenticate,
+      self.create.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey',
+      AuthN.authenticate,
+      self.show.bind( @ )
+    )
+    server.post(
+      '/personas/:personaKey/agents',
+      AuthN.authenticate,
+      self.linkToAgents.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/agents',
+      AuthN.authenticate,
+      self.linkedAgentsSearch.bind( @ )
+    )
+    server.post(  '/personas/:personaKey/personas',
+      AuthN.authenticate,
+      self.linkToPersonas.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/personas',
+      AuthN.authenticate,
+      self.linkedPersonasSearch.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/personas/facets',
+      AuthN.authenticate,
+      self.linkedPersonasSearchFacets.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/personas/terms',
+      AuthN.authenticate,
+      self.linkedPersonasSearchTerms.bind( @ )
+    )
 
-    server.post(  '/personas/:personaKey/cases', AuthN.authenticate, self.createCase.bind( @ ) )
-    server.get(   '/personas/:personaKey/cases/:caseKey', AuthN.authenticate, self.showCase.bind( @  ) )
-    #server.get(  '/personas/:personaKey/cases', auth.authenticate, self.myCases.bind( @ ) )
-    #server.get(  '/personas/:personaKey/personas/cases', auth.authenticate, self.linkedPersonasCases.bind( @ ) )
+    server.post(
+      '/personas/:personaKey/cases',
+      AuthN.authenticate,
+      self.createCase.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/cases/:caseKey',
+      AuthN.authenticate,
+      self.showCase.bind( @  )
+    )
+    #server.get(
+    # '/personas/:personaKey/cases',
+    # auth.authenticate,
+    # self.myCases.bind( @ )
+    # )
+    #server.get(
+    # '/personas/:personaKey/personas/cases',
+    # auth.authenticate,
+    # self.linkedPersonasCases.bind( @ )
+    # )
 
-    server.get(   '/personas/:personaKey/items', AuthN.authenticate, self.itemsSearch.bind( @ ) )
-    server.get(   '/personas/:personaKey/items/facets', AuthN.authenticate, self.itemsSearchFacets.bind( @ ) )
-    server.get(   '/personas/:personaKey/items/terms', AuthN.authenticate, self.itemsSearchTerms.bind( @ ) )
+    server.get(
+      '/personas/:personaKey/items',
+      AuthN.authenticate,
+      self.itemsSearch.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/items/facets',
+      AuthN.authenticate,
+      self.itemsSearchFacets.bind( @ )
+    )
+    server.get(
+      '/personas/:personaKey/items/terms',
+      AuthN.authenticate,
+      self.itemsSearchTerms.bind( @ )
+    )
 
   ###*
   @method create

@@ -35,6 +35,14 @@ server.on( 'after', restify.auditLogger(
   log: LoggerFactory.getLogger( name: 'audit' )
 ) )
 
-server.listen( process.env.JOUKOU_PORT or 3000, process.env.JOUKOU_HOST or 'localhost', ->
-  server.log.info( '%s-%s listening at %s', server.name, require('../package.json').version, server.url )
+server.listen(
+  process.env.JOUKOU_PORT or 3000,
+  process.env.JOUKOU_HOST or 'localhost',
+  ->
+    server.log.info(
+      '%s-%s listening at %s',
+      server.name,
+      require('../package.json').version,
+      server.url
+    )
 )

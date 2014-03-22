@@ -50,7 +50,11 @@ module.exports = new class
         else
           bcrypt.compare( password, agent.password, ( err, authenticated ) ->
             return next( new BcryptError( err ) ) if err
-            return next( null, _.extend( _.omit( agent, 'password' ), key: key ) ) if authenticated
+            if authenticated
+              return next(
+                null,
+                _.extend( _.omit( agent, 'password' ), key: key )
+              )
             next( null, false )
           )
       )

@@ -42,11 +42,27 @@ module.exports = self = new class
   ###
   registerRoutes: ( server ) ->
     server.post( '/agents', _.bind( @create, @ ) )
-    server.post( '/agents/authenticate', AuthN.authenticate, _.bind( @authenticate, @ ) )
+    server.post(
+      '/agents/authenticate',
+      AuthN.authenticate,
+      _.bind( @authenticate, @ )
+    )
     server.get(  '/agents/:agentKey', AuthN.authenticate, _.bind( @show, @ ) )
-    server.post( '/agents/:agentKey/personas', AuthN.authenticate, _.bind( @linkToPersonas, @ ) )
-    server.get(  '/agents/:agentKey/personas', AuthN.authenticate, _.bind( @linkedPersonasSearch, @ ) )
-    server.get(  '/agents/:agentKey/personas/facets', AuthN.authenticate, _.bind( @linkedPersonasSearchFacets, @ ) )
+    server.post(
+      '/agents/:agentKey/personas',
+      AuthN.authenticate,
+      _.bind( @linkToPersonas, @ )
+    )
+    server.get(
+      '/agents/:agentKey/personas',
+      AuthN.authenticate,
+      _.bind( @linkedPersonasSearch, @ )
+    )
+    server.get(
+      '/agents/:agentKey/personas/facets',
+      AuthN.authenticate,
+      _.bind( @linkedPersonasSearchFacets, @ )
+    )
 
   ###*
   @method create

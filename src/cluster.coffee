@@ -26,7 +26,11 @@ if cluster.isMaster # If this is the master process
 
   # Fork a new worker process on worker death
   cluster.on( 'exit', ( worker, code, signal ) ->
-    log.warn( 'joukou.co middleware network service worker process %s died (%s / %s). Restarting...', worker.process.pid, code, signal )
+    log.warn(
+      'joukou.co middleware network service worker process %s died (%s / %s).' +
+      'Restarting...',
+      worker.process.pid, code, signal
+    )
     cluster.fork()
   )
 else # Otherwise if this is the child process
