@@ -37,7 +37,7 @@ gulp.task( 'coffee', [ 'clean' ], ->
 
 gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee' ] )
 
-gulp.task( 'mocha', ->
+gulp.task( 'mocha', [ 'build' ], ->
   gulp.src( 'test/**/*.coffee')
     .pipe( plugins.mocha(
       ui: 'bdd'
@@ -47,6 +47,8 @@ gulp.task( 'mocha', ->
     ) )
     .on( 'error', plugins.util.log )
 )
+
+gulp.task( 'test', [ 'mocha' ] )
 
 #
 # Release related tasks
