@@ -4,17 +4,7 @@
 ###
 
 gulp        = require( 'gulp' )
-gutil       = require( 'gulp-util' )
-changed     = require( 'gulp-changed' )
-coffee      = require( 'gulp-coffee' )
-coffeelint  = require( 'gulp-coffeelint' )
-clean       = require( 'gulp-clean' )
-grep        = require( 'gulp-grep-stream' )
-mocha       = require( 'gulp-mocha' )
-nodemon     = require( 'gulp-nodemon' )
-plumber     = require( 'gulp-plumber' )
-sloc        = require( 'gulp-sloc' )
-watch       = require( 'gulp-watch' )
+plugins     = require( 'gulp-load-plugins' )( lazy: false )
 
 #
 # Single-pass build related tasks
@@ -22,40 +12,40 @@ watch       = require( 'gulp-watch' )
 
 gulp.task( 'sloc', ->
   gulp.src( 'src/**/*.coffee' )
-    .pipe( sloc( ) )
+    .pipe( plugins.sloc( ) )
 )
 
 gulp.task( 'clean', ->
   gulp.src( 'dist', read: false )
-    .pipe( clean( force: true ) )
-    .on( 'error', gutil.log )
+    .pipe( plugins.clean( force: true ) )
+    .on( 'error', plugins.util.log )
 )
 
-gulp.task( 'coffeelint', ->
+gulp.task( 'coffeelint', [ 'sloc' ], ->
   gulp.src( 'src/**/*.coffee' )
-    .pipe( coffeelint( optFile: 'coffeelint.json' ) )
-    .pipe( coffeelint.reporter() )
-    .pipe( coffeelint.reporter( 'fail' ) )
+    .pipe( plugins.coffeelint( optFile: 'coffeelint.json' ) )
+    .pipe( plugins.coffeelint.reporter() )
+    .pipe( plugins.coffeelint.reporter( 'fail' ) )
 )
 
 gulp.task( 'coffee', [ 'clean' ], ->
   gulp.src( 'src/**/*.coffee' )
-  .pipe( coffee( bare: true, sourceMap: true ) )
+  .pipe( plugins.coffee( bare: true, sourceMap: true ) )
   .pipe( gulp.dest( 'dist' ) )
-  .on( 'error', gutil.log )
+  .on( 'error', plugins.util.log )
 )
 
 gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee' ] )
 
 gulp.task( 'mocha', ->
   gulp.src( 'test/**/*.coffee')
-    .pipe( mocha(
+    .pipe( plugins.mocha(
       ui: 'bdd'
       reporter: 'spec'
       colors: true
       compilers: 'coffee:coffee-script/register'
     ) )
-    .on( 'error', gutil.log )
+    .on( 'error', plugins.util.log )
 )
 
 #
@@ -64,42 +54,42 @@ gulp.task( 'mocha', ->
 
 gulp.task( 'coffeewatch', ->
   changes = gulp.src( 'src/**/*.coffee', read: false )
-    .pipe( watch( ) )
+    .pipe( plugins.watch( ) )
 
   changes
-    .pipe( changed( 'dist' ) )
-    .pipe( coffee( bare: true, sourceMap: true ) )
+    .pipe( plugins.changed( 'dist' ) )
+    .pipe( plugins.coffee( bare: true, sourceMap: true ) )
     .pipe( gulp.dest( 'dist' ) )
-    .on( 'error', gutil.log )
+    .on( 'error', plugins.util.log )
 
   changes
-    .pipe( coffeelint( optFile: 'coffeelint.json' ) )
-    .pipe( coffeelint.reporter( ) )
+    .pipe( plugins.coffeelint( optFile: 'coffeelint.json' ) )
+    .pipe( plugins.coffeelint.reporter( ) )
 )
 
 gulp.task( 'mochawatch', ->
   gulp.src( [ 'dist/**/*.js', 'test/**/*.coffee' ], read: false )
-    .pipe( watch( emit: 'all', ( files ) ->
+    .pipe( plugins.watch( emit: 'all', ( files ) ->
       files
-        .pipe( grep( '**/test/**/*.coffee' ) )
-        .pipe( mocha(
+        .pipe( plugins.grepStream( '**/test/**/*.coffee' ) )
+        .pipe( plugins.mocha(
           ui: 'bdd'
           reporter: 'spec'
           colors: true
           compilers: 'coffee:coffee-script/register'
         ) )
-        .on( 'error', gutil.log )
+        .on( 'error', plugins.util.log )
     ) )
 )
 
 gulp.task( 'nodemon', ->
-  nodemon(
+  plugins.nodemon(
     script: 'dist/server.js'
     ext: 'js'
     watch: [ 'dist', 'node_modules' ]
   )
   .on( 'restart', ->
-      console.log( 'Restarted!' )
+      plugins.util.log( 'Restarted!' )
     )
 )
 
