@@ -49,6 +49,16 @@ gulp.task( 'mocha', ->
 )
 
 #
+# Release related tasks
+#
+
+gulp.task( 'contribs', ->
+  gulp.src( 'README.md' )
+    .pipe( plugins.contribs( '## Contributors', '## License' ) )
+    .pipe( gulp.dest( './' ) )
+)
+
+#
 # Develop-mode continuous compilation and auto server restart related tasks
 #
 
