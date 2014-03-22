@@ -13,12 +13,17 @@ grep        = require( 'gulp-grep-stream' )
 mocha       = require( 'gulp-mocha' )
 nodemon     = require( 'gulp-nodemon' )
 plumber     = require( 'gulp-plumber' )
+sloc        = require( 'gulp-sloc' )
 watch       = require( 'gulp-watch' )
-print       = require( 'gulp-print' )
 
 #
 # Single-pass build related tasks
 #
+
+gulp.task( 'sloc', ->
+  gulp.src( 'src/**/*.coffee' )
+    .pipe( sloc( ) )
+)
 
 gulp.task( 'clean', ->
   gulp.src( 'dist', read: false )
@@ -40,7 +45,7 @@ gulp.task( 'coffee', [ 'clean' ], ->
   .on( 'error', gutil.log )
 )
 
-gulp.task( 'build', [ 'coffeelint', 'coffee' ] )
+gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee' ] )
 
 gulp.task( 'mocha', ->
   gulp.src( 'test/**/*.coffee')
