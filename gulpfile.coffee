@@ -17,13 +17,15 @@ gulp.task( 'sloc', ->
 )
 
 gulp.task( 'clean', ->
-  gulp.src( 'dist', read: false )
+  stream = gulp.src( 'dist', read: false )
     .pipe( plugins.clean( force: true ) )
     .on( 'error', plugins.util.log )
-    .on( 'error', plugins.notify.onError(
+  unless process.env.CIRCLECI is 'true'
+    stream.on( 'error', plugins.notify.onError(
       title: 'joukou/api: gulp clean'
       message: '<%= error.message %>'
     ) )
+  stream
 )
 
 gulp.task( 'coffeelint', [ 'sloc' ], ->
@@ -34,22 +36,24 @@ gulp.task( 'coffeelint', [ 'sloc' ], ->
 )
 
 gulp.task( 'coffee', [ 'clean' ], ->
-  gulp.src( 'src/**/*.coffee' )
+  stream = gulp.src( 'src/**/*.coffee' )
     .pipe( plugins.coffee( bare: true, sourceMap: true ) )
     .pipe( gulp.dest( 'dist' ) )
-    .pipe( plugins.notify(
-      title: 'joukou/api: gulp coffee'
-      message: 'CoffeeScript compiled successfully.'
-      onLast: true
-    ) )
     .on( 'error', plugins.util.log )
-    .on( 'error', plugins.notify.onError(
-      title: 'joukou/api: gulp coffee'
-      message: '<%= error.message %>'
-    ))
     .on( 'end', ->
       fs.mkdirSync( './dist/log' )
     )
+  unless process.env.CIRCLECI is 'true'
+    stream.pipe( plugins.notify(
+        title: 'joukou/api: gulp coffee'
+        message: 'CoffeeScript compiled successfully.'
+        onLast: true
+      ) )
+    .on( 'error', plugins.notify.onError(
+        title: 'joukou/api: gulp coffee'
+        message: '<%= error.message %>'
+      ))
+  stream
 )
 
 gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee' ] )
@@ -61,7 +65,7 @@ gulp.task( 'cover', [ 'build' ], ->
 )
 
 gulp.task( 'test', [ 'cover' ], ->
-  gulp.src( 'test/**/*.coffee')
+  stream = gulp.src( 'test/**/*.coffee')
     .pipe( plugins.mocha(
       ui: 'bdd'
       reporter: 'spec'
@@ -69,12 +73,14 @@ gulp.task( 'test', [ 'cover' ], ->
       compilers: 'coffee:coffee-script/register'
     ) )
     .pipe( plugins.istanbul.writeReports( './coverage' ) )
-    .pipe( plugins.notify(
-      title: 'joukou/api: gulp test'
-      message: 'Tests complete!'
-      onLast: true
-    ) )
     .on( 'error', plugins.util.log )
+  unless process.env.CIRCLECI is 'true'
+    stream.pipe( plugins.notify(
+        title: 'joukou/api: gulp test'
+        message: 'Tests complete!'
+        onLast: true
+      ) )
+  stream
 )
 
 gulp.task( 'ci', [ 'test' ], ->
