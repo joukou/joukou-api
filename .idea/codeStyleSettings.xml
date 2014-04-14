@@ -9,6 +9,9 @@
           <option name="SPACE_WITHIN_RANGE_BRACKETS" value="true" />
           <option name="SPACE_WITHIN_OBJECT_BRACES" value="true" />
         </CoffeeScriptCodeStyleSettings>
+        <XML>
+          <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
+        </XML>
         <codeStyleSettings language="CoffeeScript">
           <option name="SPACE_WITHIN_METHOD_CALL_PARENTHESES" value="true" />
           <option name="SPACE_WITHIN_METHOD_PARENTHESES" value="true" />
