@@ -13,7 +13,7 @@ require( 'source-map-support' ).install()
 restify       = require( 'restify' )
 LoggerFactory = require( './lib/log/LoggerFactory' )
 
-server  = restify.createServer(
+module.exports = server = restify.createServer(
   name: 'joukou.co'
   version: require( '../package.json' ).version
   log: LoggerFactory.getLogger( name: 'server' )
