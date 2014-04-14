@@ -5,7 +5,7 @@
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
   "scripts": {
-    "test": "./node_modules/gulp/bin/gulp.js test"
+    "test": "./node_modules/gulp/bin/gulp.js ci"
   },
   "repository": {
     "type": "git",
