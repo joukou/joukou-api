@@ -9,9 +9,8 @@
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @author Ben Brabant <ben.brabant@joukou.co>
 
-Launches a cluster of Joukou middleware network service processes to take
-advantage of multi-core systems and restarting failed worker processes for
-reliability.
+Launches a cluster of Joukou API processes to take advantage of multi-core
+systems and restarting failed worker processes for reliability.
 ###
 
 _         = require( 'lodash' )
@@ -27,7 +26,7 @@ if cluster.isMaster # If this is the master process
   # Fork a new worker process on worker death
   cluster.on( 'exit', ( worker, code, signal ) ->
     log.warn(
-      'joukou.co middleware network service worker process %s died (%s / %s).' +
+      'joukou-api worker process %s died (%s / %s).' +
       'Restarting...',
       worker.process.pid, code, signal
     )

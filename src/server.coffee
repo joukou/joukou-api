@@ -12,14 +12,10 @@ require( 'source-map-support' ).install()
 
 restify       = require( 'restify' )
 LoggerFactory = require( './lib/log/LoggerFactory' )
-HalFormatter  = require( './lib/hal/Formatter' )
-HalLink       = require( './lib/hal/Link' )
 
 server  = restify.createServer(
   name: 'joukou.co'
   version: require( '../package.json' ).version
-  formatters:
-    'application/hal+json': HalFormatter
   log: LoggerFactory.getLogger( name: 'server' )
 )
 
@@ -29,7 +25,6 @@ server.use( restify.queryParser() )
 server.use( restify.jsonp() )
 server.use( restify.gzipResponse() )
 server.use( restify.bodyParser( mapParams: false ) )
-server.use( HalLink )
 
 server.on( 'after', restify.auditLogger(
   log: LoggerFactory.getLogger( name: 'audit' )
