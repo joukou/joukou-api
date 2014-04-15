@@ -5,6 +5,8 @@
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
 ###
 
+{ RestError } = require( 'restify' )
+
 module.exports = self = class extends RestError
   constructor: ( @originalError ) ->
     super(
