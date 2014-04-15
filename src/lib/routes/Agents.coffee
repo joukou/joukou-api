@@ -14,6 +14,8 @@ Latin: qui facit per alium, facit per se, i.e. the one who acts through
 another, acts in his or her own interests.
 ###
 
+jwt = require( 'jsonwebtoken' )
+
 module.exports = self = new class
   ###*
   @private
@@ -79,6 +81,8 @@ module.exports = self = new class
   @param {Function} next
   ###
   authenticate: ( req, res, next ) ->
+    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 ) # TODO get secret from config.yaml
+    res.send( 200, token: token )
 
   ###*
   @method show

@@ -37,6 +37,18 @@ module.exports = new class
   @param {Function} next
   ###
   verify: ( username, password, next ) ->
+    credentials =
+      username: 'username'
+      password: 'password'
+
+    if username is credentials.username and password is credentials.password
+      return next( null, { username: username, password: password } )
+    else
+      return next( null, false )
+
+
+
+    ###
     riak.query( 'agents', email: username, ( err, keys, meta ) ->
       return next( new RiakError(err) ) if err
       return next( null, false ) if _.isEmpty( keys )
@@ -59,6 +71,7 @@ module.exports = new class
           )
       )
     )
+    ###
 
   ###*
   @method middleware

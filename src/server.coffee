@@ -12,6 +12,8 @@ require( 'source-map-support' ).install()
 
 restify       = require( 'restify' )
 LoggerFactory = require( './lib/log/LoggerFactory' )
+AuthN         = require( './lib/AuthN' )
+routes        = require( './lib/routes' )
 
 module.exports = server = restify.createServer(
   name: 'joukou.co'
@@ -25,10 +27,13 @@ server.use( restify.queryParser() )
 server.use( restify.jsonp() )
 server.use( restify.gzipResponse() )
 server.use( restify.bodyParser( mapParams: false ) )
+server.use( AuthN.middleware( ) )
 
 server.on( 'after', restify.auditLogger(
   log: LoggerFactory.getLogger( name: 'audit' )
 ) )
+
+routes.registerRoutes(server)
 
 server.listen(
   process.env.JOUKOU_PORT or 3000,
