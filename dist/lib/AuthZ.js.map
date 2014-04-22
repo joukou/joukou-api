@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "AuthZ.js",
+  "sourceRoot": "",
+  "sources": [
+    "AuthZ.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA;AAAA;;;;GAAA;AAAA"
+}
