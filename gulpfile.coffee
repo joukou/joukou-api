@@ -102,7 +102,7 @@ gulp.task( 'contribs', ->
 # Develop-mode continuous compilation and auto server restart related tasks
 #
 
-gulp.task( 'coffeewatch', ->
+gulp.task( 'coffeewatch', [ 'build' ], ->
   changes = gulp.src( 'src/**/*.coffee', read: false )
     .pipe( plugins.watch( ) )
 
@@ -117,7 +117,7 @@ gulp.task( 'coffeewatch', ->
     .pipe( plugins.coffeelint.reporter( ) )
 )
 
-gulp.task( 'mochawatch', ->
+gulp.task( 'mochawatch', [ 'build' ], ->
   gulp.src( [ 'dist/**/*.js', 'test/**/*.coffee' ], read: false )
     .pipe( plugins.watch( emit: 'all', ( files ) ->
       files
@@ -132,9 +132,11 @@ gulp.task( 'mochawatch', ->
     ) )
 )
 
-gulp.task( 'nodemon', ->
+gulp.task( 'nodemon', [ 'build' ], ->
   plugins.nodemon(
     script: 'dist/server.js'
+    env:
+      JOUKOU_PORT: 3010
     ext: 'js'
     watch: [ 'dist', 'node_modules' ]
   )
