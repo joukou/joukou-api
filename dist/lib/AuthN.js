@@ -4,33 +4,52 @@
 @class joukou-api.AuthN
 @requires lodash
 @requires bcrypt
-@requires joukou-api.error.BcryptError
 @requires passport
 @requires passport-http
 @requires util
-@requires joukou-api.riak.Client
+@requires joukou-api.riakpbc.client
+@requires joukou-api.error.BcryptError
 @requires joukou-api.error.RiakError
 
 Authentication singleton based on Passport.
  */
 module.exports = new ((function() {
-  var BasicStrategy, BcryptError, RiakError, bcrypt, passport, riak, util, _;
+
+  /**
+  @private
+  @static
+  @property {lodash} _
+   */
+  var BasicStrategy, passport, riakpbc, _;
 
   _ = require('lodash');
 
-  bcrypt = require('bcrypt');
 
-  BcryptError = require('./error/BcryptError');
+  /**
+  @private
+  @static
+  @property {passport} passport
+   */
 
   passport = require('passport');
 
+
+  /**
+  @private
+  @static
+  @property {passport-http.BasicStrategy} BasicStrategy
+   */
+
   BasicStrategy = require('passport-http').BasicStrategy;
 
-  util = require('util');
 
-  riak = require('./riak/Client');
+  /**
+  @private
+  @static
+  @property {joukou-api.riakpbc.client} riakpbc
+   */
 
-  RiakError = require('./error/RiakError');
+  riakpbc = require('./riakpbc/client');
 
 
   /**
@@ -50,39 +69,42 @@ module.exports = new ((function() {
    */
 
   _Class.prototype.verify = function(username, password, next) {
-    return riak.query('agents', {
-      email: username
-    }, function(err, keys, meta) {
-      var key;
-      if (err) {
-        return next(new RiakError(err));
-      }
-      if (_.isEmpty(keys)) {
+    var user;
+    user = UserModel.load(username);
+    return user.verifyPassword(password).then(function(authenticated) {
+      if (authenticated) {
+        return next(null, user);
+      } else {
         return next(null, false);
       }
-      key = _.first(keys);
-      return riak.get('agents', key, function(err, agent, meta) {
-        if (err) {
-          if (err.notFound) {
-            return next(null, false);
-          } else {
-            return next(new RiakError(err));
-          }
-        } else {
-          return bcrypt.compare(password, agent.password, function(err, authenticated) {
-            if (err) {
-              return next(new BcryptError(err));
-            }
-            if (authenticated) {
-              return next(null, _.extend(_.omit(agent, 'password'), {
-                key: key
-              }));
-            }
-            return next(null, false);
-          });
-        }
-      });
+    }).fail(function(err) {
+      return next(err);
     });
+
+    /*
+    riak.query( 'agents', email: username, ( err, keys, meta ) ->
+      return next( new RiakError(err) ) if err
+      return next( null, false ) if _.isEmpty( keys )
+      key = _.first( keys )
+      riak.get( 'agents', key, ( err, agent, meta ) ->
+        if err
+          if err.notFound
+            return next( null, false )
+          else
+            return next( new RiakError( err ) )
+        else
+          bcrypt.compare( password, agent.password, ( err, authenticated ) ->
+            return next( new BcryptError( err ) ) if err
+            if authenticated
+              return next(
+                null,
+                _.extend( _.omit( agent, 'password' ), key: key )
+              )
+            next( null, false )
+          )
+      )
+    )
+     */
   };
 
 

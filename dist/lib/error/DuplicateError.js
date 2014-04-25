@@ -1,6 +1,7 @@
+"use strict";
 
 /**
-@class joukou-api.error.RiakError
+@class joukou-api.error.DuplicateError
 @extends restify.RestError
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
@@ -27,16 +28,16 @@ module.exports = (function(_super) {
 
   /**
   @method constructor
-  @param {Error} originalError
+  @param {String} indexName
    */
 
-  function _Class(originalError) {
-    this.originalError = originalError;
+  function _Class(indexName) {
+    this.indexName = indexName;
     _Class.__super__.constructor.call(this, {
-      restCode: 'InternalError',
-      statusCode: 503,
-      message: '',
-      constructorOpt: self
+      restCode: 'DuplicateError',
+      statusCode: 409,
+      message: this.indexName,
+      constructorOpt: self.DuplicateError
     });
   }
 
@@ -45,5 +46,5 @@ module.exports = (function(_super) {
 })(RestError);
 
 /*
-//# sourceMappingURL=RiakError.js.map
+//# sourceMappingURL=DuplicateError.js.map
 */

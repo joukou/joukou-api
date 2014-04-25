@@ -1,5 +1,7 @@
+"use strict"
+
 ###*
-@class joukou-api.error.RiakError
+@class joukou-api.error.DuplicateError
 @extends restify.RestError
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
@@ -18,12 +20,12 @@ module.exports = class extends RestError
 
   ###*
   @method constructor
-  @param {Error} originalError
+  @param {String} indexName
   ###
-  constructor: ( @originalError ) ->
+  constructor: (@indexName) ->
     super(
-      restCode: 'InternalError'
-      statusCode: 503
-      message: '' # TODO
-      constructorOpt: self
+      restCode: 'DuplicateError'
+      statusCode: 409
+      message: @indexName
+      constructorOpt: self.DuplicateError
     )

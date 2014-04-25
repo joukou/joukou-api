@@ -1,10 +1,13 @@
 "use strict"
+
 ###*
-@class joukou-api.routes.Agents
+@class joukou-api.routes.Users
 @author Isaac Johnston <isaac.johnston@joukou.co>
-@author Ben Braband <ben.brabant@joukou.co>
+@author Ben Brabant <ben.brabant@joukou.co>
 @author Sebastian Berlein <sebastian.berlein@joukou.co>
-@copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
+@copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
+
+A user is an agent.
 
 An agent is authorized to act on behalf of a persona (called the principal).
 By way of a relationship between the principal and an agent the principal
@@ -15,6 +18,7 @@ another, acts in his or her own interests.
 ###
 
 jwt = require( 'jsonwebtoken' )
+
 
 module.exports = self = new class
   ###*
@@ -39,29 +43,38 @@ module.exports = self = new class
   AuthZ = require( '../AuthZ' )
 
   ###*
+  @private
+  @static
+  @property {joukou-api.model.User} Model
+  ###
+  UserModel = require( '../model/User' )
+
+  ###*
   @method registerRoutes
   @param {joukou-api.server} server
   ###
   registerRoutes: ( server ) ->
-    server.post( '/agents', _.bind( @create, @ ) )
+    server.post( '/users', _.bind( @create, @ ) )
+    
+    server.post( '/authenticate', AuthN.authenticate,
+      _.bind( @authenticate, @ ) )
+    
+    server.get(  '/users/:username', AuthN.authenticate, _.bind( @show, @ ) )
+
     server.post(
-      '/agents/authenticate',
-      AuthN.authenticate,
-      _.bind( @authenticate, @ )
-    )
-    server.get(  '/agents/:agentKey', AuthN.authenticate, _.bind( @show, @ ) )
-    server.post(
-      '/agents/:agentKey/personas',
+      '/users/:username/personas',
       AuthN.authenticate,
       _.bind( @linkToPersonas, @ )
     )
+    
     server.get(
-      '/agents/:agentKey/personas',
+      '/users/:username/personas',
       AuthN.authenticate,
       _.bind( @linkedPersonasSearch, @ )
     )
+
     server.get(
-      '/agents/:agentKey/personas/facets',
+      '/users/:username/personas/facets',
       AuthN.authenticate,
       _.bind( @linkedPersonasSearchFacets, @ )
     )
@@ -73,6 +86,11 @@ module.exports = self = new class
   @param {Function} next
   ###
   create: ( req, res, next ) ->
+    UserModel.create( req.body ).save().then( ->
+      res.send( 201 )
+    ).fail( ( err ) ->
+      res.send( err )
+    )
 
   ###*
   @method authenticate
@@ -81,7 +99,8 @@ module.exports = self = new class
   @param {Function} next
   ###
   authenticate: ( req, res, next ) ->
-    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 ) # TODO get secret from config.yaml
+    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
+    # TODO get secret from config.yaml
     res.send( 200, token: token )
 
   ###*

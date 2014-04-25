@@ -3,11 +3,11 @@
 @class joukou-api.AuthN
 @requires lodash
 @requires bcrypt
-@requires joukou-api.error.BcryptError
 @requires passport
 @requires passport-http
 @requires util
-@requires joukou-api.riak.Client
+@requires joukou-api.riakpbc.client
+@requires joukou-api.error.BcryptError
 @requires joukou-api.error.RiakError
 
 Authentication singleton based on Passport.
@@ -15,14 +15,35 @@ Authentication singleton based on Passport.
 
 module.exports = new class
 
-  _                 = require( 'lodash' )
-  bcrypt            = require( 'bcrypt' )
-  BcryptError       = require( './error/BcryptError' )
-  passport          = require( 'passport' )
+  ###*
+  @private
+  @static
+  @property {lodash} _
+  ###
+  _ = require( 'lodash' )
+
+  ###*
+  @private
+  @static
+  @property {passport} passport
+  ###
+  passport = require( 'passport' )
+
+  ###*
+  @private
+  @static
+  @property {passport-http.BasicStrategy} BasicStrategy
+  ###
   { BasicStrategy } = require( 'passport-http' )
-  util              = require( 'util' )
-  riak              = require( './riak/Client' )
-  RiakError         = require( './error/RiakError' )
+
+  ###*
+  @private
+  @static
+  @property {joukou-api.riakpbc.client} riakpbc
+  ###
+  riakpbc = require( './riakpbc/client' )
+
+
 
   ###*
   @method constructor
@@ -37,14 +58,15 @@ module.exports = new class
   @param {Function} next
   ###
   verify: ( username, password, next ) ->
-    credentials =
-      username: 'username'
-      password: 'password'
-
-    if username is credentials.username and password is credentials.password
-      return next( null, { username: username, password: password } )
-    else
-      return next( null, false )
+    user = UserModel.load( username )
+    user.verifyPassword( password ).then( ( authenticated ) ->
+      if authenticated
+        next( null, user )
+      else
+        next( null, false )
+    ).fail( ( err ) ->
+      next( err )
+    )
 
 
 

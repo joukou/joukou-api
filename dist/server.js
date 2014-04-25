@@ -8,13 +8,17 @@
 @author Isaac Johnston <isaac.johnston@joukou.co>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
  */
-var LoggerFactory, restify, server;
+var AuthN, LoggerFactory, restify, routes, server;
 
 require('source-map-support').install();
 
 restify = require('restify');
 
 LoggerFactory = require('./lib/log/LoggerFactory');
+
+AuthN = require('./lib/AuthN');
+
+routes = require('./lib/routes');
 
 module.exports = server = restify.createServer({
   name: 'joukou.co',
@@ -38,11 +42,15 @@ server.use(restify.bodyParser({
   mapParams: false
 }));
 
+server.use(AuthN.middleware());
+
 server.on('after', restify.auditLogger({
   log: LoggerFactory.getLogger({
     name: 'audit'
   })
 }));
+
+routes.registerRoutes(server);
 
 server.listen(process.env.JOUKOU_PORT || 3000, process.env.JOUKOU_HOST || 'localhost', function() {
   return server.log.info('%s-%s listening at %s', server.name, require('../package.json').version, server.url);

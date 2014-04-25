@@ -4,7 +4,7 @@
 @requires bunyan
 @requires path
 @author Isaac Johnston <isaac.johnston@joukou.co>
-@copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
+@copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 module.exports = new class
 

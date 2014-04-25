@@ -1,10 +1,11 @@
 "use strict"
+
 ###*
 @class joukou-server.routes.Personas
 @author Isaac Johnston <isaac.johnston@joukou.co>
-@author Ben Braband <ben.brabant@joukou.co>
+@author Ben Brabant <ben.brabant@joukou.co>
 @author Sebastian Berlein <sebastian.berlein@joukou.co>
-@copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
+@copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 
 persona is from greek prosōpon meaning "mask" or "character". Personas are a
 legal person (Latin: persona ficta) or a natural person
