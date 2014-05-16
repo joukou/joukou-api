@@ -1,10 +1,10 @@
 {
   "version": 3,
-  "file": "AuthZ.js",
+  "file": "authz.js",
   "sourceRoot": "",
   "sources": [
-    "AuthZ.coffee"
+    "authz.coffee"
   ],
   "names": [],
-  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;GAFA;AAAA"
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;;;GAFA;AAAA,MAUM,CAAC,OAAP,GAEE;AAAA;AAAA;;KAAA;AAAA,EAGA,aAAA,EAAe,SAAE,KAAF,EAAS,UAAT,GAAA,CAHf;CAZF,CAAA"
 }

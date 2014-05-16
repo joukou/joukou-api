@@ -1,8 +1,8 @@
 
 /**
-@class joukou-api.error.BcryptError
-@extends restify.RestError
-@author Isaac Johnston <isaac.johnston@joukou.co>
+@class joukou-api/error/BcryptError
+@extends restify/RestError
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
  */
 var RestError, self,

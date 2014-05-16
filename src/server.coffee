@@ -1,22 +1,22 @@
 "use strict"
+
 ###*
-@class joukou-api.server
+@module joukou-api/server
 @requires source-map-support
 @requires restify
-@requires joukou-api.log.LoggerFactory
-@author Isaac Johnston <isaac.johnston@joukou.co>
-@copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
+@author Isaac Johnston <isaac.johnston@joukou.com>
+@copyright &copy; 2009-2013 Joukou Ltd. All rights reserved.
 ###
 
 require( 'source-map-support' ).install()
 
 restify       = require( 'restify' )
-LoggerFactory = require( './lib/log/LoggerFactory' )
-AuthN         = require( './lib/AuthN' )
+authn         = require( './lib/authn' )
 routes        = require( './lib/routes' )
+LoggerFactory = require( './lib/log/LoggerFactory' )
 
 module.exports = server = restify.createServer(
-  name: 'joukou.co'
+  name: 'joukou.com'
   version: require( '../package.json' ).version
   log: LoggerFactory.getLogger( name: 'server' )
 )
@@ -27,13 +27,13 @@ server.use( restify.queryParser() )
 server.use( restify.jsonp() )
 server.use( restify.gzipResponse() )
 server.use( restify.bodyParser( mapParams: false ) )
-server.use( AuthN.middleware( ) )
+server.use( authn.middleware( ) )
 
 server.on( 'after', restify.auditLogger(
   log: LoggerFactory.getLogger( name: 'audit' )
 ) )
 
-routes.registerRoutes(server)
+routes.registerRoutes( server )
 
 server.listen(
   process.env.JOUKOU_PORT or 3000,

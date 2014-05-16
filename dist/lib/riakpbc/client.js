@@ -1,10 +1,10 @@
 "use strict";
 
 /**
-@class joukou-api.riakpbc.client
-@requires riakpbc
-
 Pre-configured Riak protocol buffer client.
+
+@module joukou-api/riakpbc/client
+@requires riakpbc
  */
 var riakpbc;
 

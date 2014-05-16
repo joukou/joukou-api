@@ -1,16 +1,16 @@
 "use strict"
+
 ###*
-@class joukou-api.cluster
+Launches a cluster of Joukou API processes to take advantage of multi-core
+systems and restarting failed worker processes for reliability.
+@module joukou-api/cluster
 @requires lodash
 @requires cluster
 @requires os
 @requires path
 @copyright (c) 2009-2013 Joukou Ltd. All rights reserved.
-@author Isaac Johnston <isaac.johnston@joukou.co>
-@author Ben Brabant <ben.brabant@joukou.co>
-
-Launches a cluster of Joukou API processes to take advantage of multi-core
-systems and restarting failed worker processes for reliability.
+@author Isaac Johnston <isaac.johnston@joukou.com>
+@author Ben Brabant <ben.brabant@joukou.com>
 ###
 
 _         = require( 'lodash' )

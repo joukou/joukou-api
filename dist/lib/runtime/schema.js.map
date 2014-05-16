@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "schema.js",
+  "sourceRoot": "",
+  "sources": [
+    "schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAW+B"
+}

@@ -1,9 +1,9 @@
 "use strict"
 
 ###*
-@class joukou-api.error.DuplicateError
-@extends restify.RestError
-@author Isaac Johnston <isaac.johnston@joukou.co>
+@class joukou-api/error/DuplicateError
+@extends restify/RestError
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
