@@ -5,6 +5,22 @@ Joukou platform API
 [![Coverage Status](https://coveralls.io/repos/joukou/joukou-api/badge.png?branch=develop)](https://coveralls.io/r/joukou/joukou-api?branch=develop)
 [![MPL-2.0 Licensed](http://img.shields.io/badge/license-MPL--2.0-red.png)](#license)
 
+## Getting Started
+
+For supporting tools:
+
+1. `$ npm -g install http-console gulp`
+
+For the project iself:
+
+1. `$ cd joukou-api`
+1. `$ npm install`
+1. `$ gulp build` for a single build or `$ gulp develop` for watch mode. Single
+builds are currently more stable as watch mode continues to be refined.
+1. `$ node dist/server.js`
+
+JavaScript documentation is generated in `dist/docs`.
+
 ## License
 
 Copyright &copy; Joukou Ltd. All rights reserved.
