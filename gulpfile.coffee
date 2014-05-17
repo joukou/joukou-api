@@ -34,7 +34,7 @@ utils =
 @namespace
 ###
 lazypipes =
-  mocha = lazypipe().pipe( plugins.mocha,
+  mocha: lazypipe().pipe( plugins.mocha,
     ui: 'bdd'
     reporter: 'spec'
     compilers: 'coffee:coffee-script/register'
@@ -97,7 +97,7 @@ tasks =
     .pipe( plugins.istanbul() )
     .on( 'finish', ->
       gulp.src( [ paths.test.coffee ], read: false )
-      .pipe( mocha( ) )
+      .pipe( lazypipes.mocha( ) )
       .pipe( plugins.istanbul.writeReports( paths.test.coverage ) )
       .on( 'end', done )
     )
@@ -150,7 +150,7 @@ gulp.task( 'test:develop', [ 'build' ], ->
     .pipe( plugins.watch( emit: 'all', ( files ) ->
       files
         .pipe( plugins.grepStream( '**/test/**/*.coffee' ) )
-        .pipe( mocha() )
+        .pipe( lazypipes.mocha() )
         .on( 'error', plugins.util.log )
     ) )
 )
