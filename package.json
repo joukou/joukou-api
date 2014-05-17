@@ -5,13 +5,13 @@
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
   "scripts": {
-    "test": "./node_modules/gulp/bin/gulp.js ci"
+    "test": "gulp ci"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/joukou/joukou-api.git"
   },
-  "author": "Joukou Ltd",
+  "author": "Joukou Ltd <team@joukou.co>",
   "license": "MPL-2.0",
   "bugs": {
     "url": "https://joukou.tpondemand.com"
@@ -49,6 +49,7 @@
     "gulp-istanbul": "0.2.0",
     "gulp-jsdoc": "0.1.4",
     "gulp-load-plugins": "0.5.1",
+    "gulp-mocha": "0.4.1",
     "gulp-nodemon": "1.0.2",
     "gulp-notify": "1.2.5",
     "gulp-plumber": "0.6.1",
@@ -63,7 +64,6 @@
     "sinon-chai": "2.5.0",
     "rewire": "2.0.0",
     "replay": "1.10.2",
-    "lazypipe": "0.2.1",
-    "gulp-mocha": "~0.4.1"
+    "lazypipe": "0.2.1"
   }
 }
