@@ -33,7 +33,8 @@
     "assert-plus": "0.1.5",
     "jsonwebtoken": "0.4.0",
     "schemajs": "0.1.10",
-    "js-yaml": "3.0.2"
+    "js-yaml": "3.0.2",
+    "nodemailer": "0.6.5"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
