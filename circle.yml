@@ -13,3 +13,4 @@ machine:
   post:
     - cp joukou-api/.circle/riak.conf /etc/riak/riak.conf
     - sudo service riak start
+    - sleep 5
