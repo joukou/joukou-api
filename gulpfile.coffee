@@ -1,5 +1,5 @@
 ###*
-@author Isaac Johnston <isaac.johnston@joukou.co>
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright 2014 Joukou Ltd. All rights reserved.
 ###
 
@@ -7,163 +7,155 @@ gulp        = require( 'gulp' )
 lazypipe    = require( 'lazypipe' )
 plugins     = require( 'gulp-load-plugins' )( lazy: false )
 fs          = require( 'fs' )
+path        = require( 'path' )
 
-isCI = process.env.CI is 'true'
+###*
+@namespace
+###
+paths =
+  src:
+    coffee: path.join( 'src', '**', '*.coffee' )
+  dist:
+    dest: 'dist'
+    js: path.join( 'dist', '**', '*.js' )
+    docs: path.join( 'dist', 'docs' )
+  test:
+    coffee: path.join( 'test', '**', '*.coffee' )
+    coverage: './coverage'
 
-mocha = lazypipe().pipe( plugins.spawnMocha,
-  ui: 'bdd'
-  reporter: 'spec'
-  compilers: 'coffee:coffee-script/register'
-)
+###*
+@namespace
+###
+utils =
+  isCI: ->
+    process.env.CI is 'true'
 
-#
-# Single-pass build related tasks
-#
+###*
+@namespace
+###
+lazypipes =
+  mocha = lazypipe().pipe( plugins.mocha,
+    ui: 'bdd'
+    reporter: 'spec'
+    compilers: 'coffee:coffee-script/register'
+  )
 
-gulp.task( 'sloc', ->
-  gulp.src( 'src/**/*.coffee' )
-    .pipe( plugins.sloc( ) )
-)
+###*
+Task functions are defined independently of dependencies to enable re-use in
+different lifecycles; e.g. single pass build vs watch based develop mode.
+@namespace
+###
+tasks =
+  sloc: ->
+    gulp.src( paths.src.coffee )
+      .pipe( plugins.sloc() )
 
-gulp.task( 'clean', ->
-  stream = gulp.src( 'dist', read: false )
-    .pipe( plugins.clean( force: true ) )
-    .on( 'error', plugins.util.log )
-  unless isCI
-    stream.on( 'error', plugins.notify.onError(
-      title: 'joukou-api: gulp clean'
-      message: '<%= error.message %>'
-    ) )
-  stream
-)
+  clean: ->
+    gulp.src( paths.dist.dest, read: false )
+      .pipe( plugins.clean( force: true ) )
+      .on( 'error', plugins.util.log )
 
-gulp.task( 'coffeelint', [ 'sloc' ], ->
-  gulp.src( 'src/**/*.coffee' )
-    .pipe( plugins.coffeelint( optFile: 'coffeelint.json' ) )
-    .pipe( plugins.coffeelint.reporter() )
-    .pipe( plugins.coffeelint.reporter( 'fail' ) )
-)
+  coffeelint: ->
+    gulp.src( paths.src.coffee )
+      .pipe( plugins.coffeelint( optFile: 'coffeelint.json' ) )
+      .pipe( plugins.coffeelint.reporter() )
+      .pipe( plugins.coffeelint.reporter( 'fail' ) )
 
-gulp.task( 'coffee', [ 'clean' ], ->
-  stream = gulp.src( 'src/**/*.coffee' )
-    .pipe( plugins.coffee( bare: true, sourceMap: true ) )
-    .pipe( gulp.dest( 'dist' ) )
-    .on( 'error', plugins.util.log )
-  unless isCI
-    stream.pipe( plugins.notify(
-        title: 'joukou-api: gulp coffee'
-        message: 'CoffeeScript compiled successfully.'
-        onLast: true
+  coffee: ->
+    gulp.src( paths.src.coffee )
+      .pipe( plugins.coffee( bare: true, sourceMap: true ) )
+      .pipe( gulp.dest( paths.dist.dest ) )
+      .on( 'error', plugins.util.log )
+
+  jsdoc: ->
+    gulp.src( paths.dist.js )
+      .pipe( plugins.jsdoc.parser(
+        description: require( './package.json' ).description
+        version: require( './package.json' ).version
+        licenses: [ require( './package.json').license ]
+        plugins: [ 'plugins/markdown' ]
       ) )
-    .on( 'error', plugins.notify.onError(
-        title: 'joukou-api: gulp coffee'
-        message: '<%= error.message %>'
-      ))
-  stream
-)
+      .pipe( plugins.jsdoc.generator( paths.dist.docs,
+        path: 'ink-docstrap'
+        systemName: 'Joukou Platform API.'
+        footer: 'A simple and intuitive way to web enable and monetize your data.'
+        copyright: 'Joukou Ltd. All rights reserved.'
+        navType: 'vertical'
+        theme: 'cerulean'
+        linenums: true
+        collapseSymbols: false
+        inverseNav: false
+      ,
+        private: false
+        monospaceLinks: false
+        cleverLinks: false
+        outputSourceFiles: false
+      ) )
 
-gulp.task( 'jsdoc', [ 'coffee' ], ->
-  gulp.src( 'dist/**/*.js' )
-    .pipe( plugins.jsdoc.parser(
-      description: 'Description here'
-      version: 'verison here'
-      licenses: [ 'license here' ]
-      plugins: [ 'plugins/markdown' ]
-    ) )
-    .pipe( plugins.jsdoc.generator( './dist/docs',
-      path: 'ink-docstrap'
-      systemName: 'Joukou Platform API'
-      footer: 'What could you do with data ?'
-      copyright: 'Joukou Ltd. All rights reserved.'
-      navType: 'vertical'
-      theme: 'cerulean'
-      linenums: true
-      collapseSymbols: false
-      inverseNav: false
-    ,
-      private: false
-      monospaceLinks: false
-      cleverLinks: false
-      outputSourceFiles: false
-    ) )
-)
-
-gulp.task( 'build', [ 'sloc', 'coffeelint', 'coffee', 'jsdoc' ] )
-
-gulp.task( 'cover', [ 'build' ], ->
-  gulp.src( 'dist/**/*.js' )
+  test: ( done ) ->
+    gulp.src( paths.dist.js )
     .pipe( plugins.istanbul() )
-    .on( 'error', plugins.util.log )
-)
-
-
-gulp.task( 'test', [ 'cover' ], ->
-  stream = gulp.src( [ 'test/**/*.coffee' ], read: false )
-    .pipe( mocha() )
-    .pipe( plugins.istanbul.writeReports( './coverage' ) )
-    .on( 'error', ( err ) ->
-      process.exit( 1 )
+    .on( 'finish', ->
+      gulp.src( [ paths.test.coffee ], read: false )
+      .pipe( mocha( ) )
+      .pipe( plugins.istanbul.writeReports( paths.test.coverage ) )
+      .on( 'end', done )
     )
-  unless isCI
-    stream.pipe( plugins.notify(
-      title: 'joukou-api: gulp test'
-      message: 'Tests complete.'
-      onLast: true
-    ) )
-  stream
-)
+    return
 
-gulp.task( 'ci', [ 'test' ], ->
-  gulp.src( 'coverage/lcov.info' )
-    .pipe( plugins.coveralls() )
+  coveralls: ->
+    gulp.src( 'coverage/lcov.info' )
+      .pipe( plugins.coveralls() )
+      .on( 'end', ->
+        process.exit(0)
+      )
+
+#
+# General tasks.
+#
+
+gulp.task( 'sloc', tasks.sloc )
+gulp.task( 'coffeelint', tasks.coffeelint )
+
+#
+# Build tasks.
+#
+
+gulp.task( 'clean:build', tasks.clean )
+gulp.task( 'coffee:build', [ 'clean:build' ], tasks.coffee )
+gulp.task( 'jsdoc:build', [ 'coffee:build' ], tasks.jsdoc )
+gulp.task( 'build', [ 'sloc', 'coffeelint', 'jsdoc:build' ] )
+
+gulp.task( 'test:build', [ 'build' ], tasks.test )
+gulp.task( 'test', [ 'test:build' ], ->
+  # test is intended to be an interactively run build; i.e. not CI. Force a
+  # clean exit due to issues with gulp-mocha not cleaning up gracefully.
+  process.exit(0)
 )
 
 #
-# Release related tasks
+# Continuous-integration tasks.
 #
 
-gulp.task( 'contribs', ->
-  gulp.src( 'README.md' )
-    .pipe( plugins.contribs( '## Contributors', '## License' ) )
-    .pipe( gulp.dest( './' ) )
-)
+gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
 
 #
-# Develop-mode continuous compilation and auto server restart related tasks
+# Develop tasks.
 #
 
-gulp.task( 'coffeewatch', [ 'build' ], ->
-  changes = gulp.src( 'src/**/*.coffee', read: false )
-    .pipe( plugins.watch( ) )
+gulp.task( 'coffee:develop', tasks.coffee )
 
-  changes
-    .pipe( plugins.changed( 'dist' ) )
-    .pipe( plugins.coffee( bare: true, sourceMap: true ) )
-    .pipe( gulp.dest( 'dist' ) )
-    .on( 'error', plugins.util.log )
-
-  changes
-    .pipe( plugins.coffeelint( optFile: 'coffeelint.json' ) )
-    .pipe( plugins.coffeelint.reporter( ) )
-)
-
-gulp.task( 'mochawatch', [ 'build' ], ->
+gulp.task( 'test:develop', [ 'build' ], ->
   gulp.src( [ 'dist/**/*.js', 'test/**/*.coffee' ], read: false )
     .pipe( plugins.watch( emit: 'all', ( files ) ->
-      stream = files
+      files
         .pipe( plugins.grepStream( '**/test/**/*.coffee' ) )
         .pipe( mocha() )
         .on( 'error', plugins.util.log )
-      unless isCI
-        stream.on( 'error', plugins.notify.onError(
-          title: 'joukou-api: gulp mochawatch'
-          message: '<%= error.message %>'
-        ))
-      stream
     ) )
 )
 
-gulp.task( 'nodemon', [ 'build' ], ->
+gulp.task( 'nodemon:develop', [ 'build' ], ->
   plugins.nodemon(
     script: 'dist/server.js'
     env:
@@ -172,8 +164,10 @@ gulp.task( 'nodemon', [ 'build' ], ->
     watch: [ 'dist', 'node_modules' ]
   )
   .on( 'restart', ->
-      plugins.util.log( 'Restarted!' )
-    )
+    plugins.util.log( 'Server Restarted!' )
+  )
 )
 
-gulp.task( 'develop', [ 'coffeewatch', 'mochawatch', 'nodemon' ] )
+gulp.task( 'develop', [ 'build', 'test:develop', 'nodemon:develop' ], ->
+  gulp.watch( paths.src.coffee, [ 'sloc', 'coffeelint', 'coffee:develop' ] )
+)

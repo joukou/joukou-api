@@ -63,6 +63,7 @@
     "sinon-chai": "2.5.0",
     "rewire": "2.0.0",
     "replay": "1.10.2",
-    "lazypipe": "0.2.1"
+    "lazypipe": "0.2.1",
+    "gulp-mocha": "~0.4.1"
   }
 }
