@@ -22,7 +22,7 @@ cpus = require('os').cpus;
 
 path = require('path');
 
-log = require('./lib/log/LoggerFactory').getLogger({
+log = require('./log/LoggerFactory').getLogger({
   name: 'cluster'
 });
 

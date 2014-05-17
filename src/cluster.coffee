@@ -17,7 +17,7 @@ _         = require( 'lodash' )
 cluster   = require( 'cluster' )
 { cpus }  = require( 'os' )
 path      = require( 'path' )
-log       = require( './lib/log/LoggerFactory' ).getLogger( name: 'cluster' )
+log       = require( './log/LoggerFactory' ).getLogger( name: 'cluster' )
 
 if cluster.isMaster # If this is the master process
   # Fork a new worker process per CPU core

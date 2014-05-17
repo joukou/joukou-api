@@ -1,9 +1,10 @@
 "use strict"
+
 ###*
 @class joukou-api/log/LoggerFactory
 @requires bunyan
 @requires path
-@author Isaac Johnston <isaac.johnston@joukou.co>
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 module.exports = new class
@@ -58,11 +59,6 @@ module.exports = new class
       streams: [
         {
           stream: process.stdout
-          level: @logLevel
-        }
-        {
-          type: 'file'
-          path: path.join( __dirname, '..', '..', 'log', "#{config.name}.log" )
           level: @logLevel
         }
       ]

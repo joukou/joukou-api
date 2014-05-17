@@ -13,11 +13,11 @@ require('source-map-support').install();
 
 restify = require('restify');
 
-authn = require('./lib/authn');
+authn = require('./authn');
 
-routes = require('./lib/routes');
+routes = require('./routes');
 
-LoggerFactory = require('./lib/log/LoggerFactory');
+LoggerFactory = require('./log/LoggerFactory');
 
 module.exports = server = restify.createServer({
   name: 'joukou.com',

@@ -49,9 +49,6 @@ gulp.task( 'coffee', [ 'clean' ], ->
     .pipe( plugins.coffee( bare: true, sourceMap: true ) )
     .pipe( gulp.dest( 'dist' ) )
     .on( 'error', plugins.util.log )
-    .on( 'end', ->
-      fs.mkdirSync( './dist/log' )
-    )
   unless isCI
     stream.pipe( plugins.notify(
         title: 'joukou-api: gulp coffee'

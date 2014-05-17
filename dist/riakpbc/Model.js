@@ -76,17 +76,17 @@ module.exports = self = (function(_super) {
       key: key
     }, function(err, reply) {
       if (err) {
-        if (err.notFound) {
-          deferred.reject(new NotFoundError(err));
-        } else {
-          deferred.reject(new RiakError(err));
-        }
+        deferred.reject(new RiakError(err));
       } else {
-        deferred.resolve(new Value({
-          model: this,
-          key: key,
-          riakData: reply.content
-        }));
+        if (_.isEmpty(reply)) {
+          deferred.reject(new NotFoundError());
+        } else {
+          deferred.resolve(new Value({
+            model: this,
+            key: key,
+            riakData: reply.content
+          }));
+        }
       }
     });
     return deferred.promise;

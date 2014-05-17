@@ -51,13 +51,13 @@ module.exports = self = class extends EventEmitter
 
     riakpbc.get( bucket: @bucket, key: key, ( err, reply ) ->
       if err
-        if err.notFound
-          deferred.reject( new NotFoundError( err ) )
-        else
-          deferred.reject( new RiakError( err ) )
+        deferred.reject( new RiakError( err ) )
       else
-        deferred.resolve(
-          new Value( model: @, key: key, riakData: reply.content ) )
+        if _.isEmpty( reply )
+          deferred.reject( new NotFoundError( ) )
+        else
+          deferred.resolve(
+            new Value( model: @, key: key, riakData: reply.content ) )
       return
     )
 
