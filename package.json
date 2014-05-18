@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
+    "apidoc": "0.4.3",
     "gulp": "3.6.2",
     "gulp-changed": "0.3.0",
     "gulp-clean": "0.2.4",

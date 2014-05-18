@@ -9,6 +9,27 @@ Simple contact service for sending an email to Joukou.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
+
+/*
+@api {post} /contact Send a message to Joukou staff
+@apiName Contact
+@apiGroup Contact
+
+@apiParam {String} name The name of the person sending the message
+@apiParam {String} email The email address of the person sending the message
+@apiParam {String} message The plaintext content of the message
+
+@apiExample CURL Example:
+  curl -i -X POST https://api.joukou.com/contact
+    -H 'Content-Type: application/json' \
+    -d '{ "name": "Isaac Johnston", "email": "isaac.johnston@joukou.com", "message": "API Example" }'
+
+@apiSuccess (201) Created The message has been sent successfully.
+
+@apiError (429) TooManyRequests The client has sent too many requests in a given amount of time.
+
+@apiError (503) ServiceUnavailable There was a temporary failure sending the message, the client should try again later.
+ */
 var config, mailer, self;
 
 config = require('../config');
