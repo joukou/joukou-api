@@ -8,17 +8,20 @@ lazypipe    = require( 'lazypipe' )
 plugins     = require( 'gulp-load-plugins' )( lazy: false )
 fs          = require( 'fs' )
 path        = require( 'path' )
+apidoc      = require( 'apidoc' )
 
 ###*
 @namespace
 ###
 paths =
   src:
+    dir: 'src'
     coffee: path.join( 'src', '**', '*.coffee' )
   dist:
-    dest: 'dist'
+    dir: 'dist'
     js: path.join( 'dist', '**', '*.js' )
-    docs: path.join( 'dist', 'docs' )
+    jsdoc: path.join( 'dist', 'jsdoc' )
+    apidoc: path.join( 'dist', 'apidoc' )
   test:
     coffee: path.join( 'test', '**', '*.coffee' )
     coverage: './coverage'
@@ -51,7 +54,7 @@ tasks =
       .pipe( plugins.sloc() )
 
   clean: ->
-    gulp.src( paths.dist.dest, read: false )
+    gulp.src( paths.dist.dir, read: false )
       .pipe( plugins.clean( force: true ) )
       .on( 'error', plugins.util.log )
 
@@ -64,7 +67,7 @@ tasks =
   coffee: ->
     gulp.src( paths.src.coffee )
       .pipe( plugins.coffee( bare: true, sourceMap: true ) )
-      .pipe( gulp.dest( paths.dist.dest ) )
+      .pipe( gulp.dest( paths.dist.dir ) )
       .on( 'error', plugins.util.log )
 
   jsdoc: ->
@@ -75,7 +78,7 @@ tasks =
         licenses: [ require( './package.json').license ]
         plugins: [ 'plugins/markdown' ]
       ) )
-      .pipe( plugins.jsdoc.generator( paths.dist.docs,
+      .pipe( plugins.jsdoc.generator( paths.dist.jsdoc,
         path: 'ink-docstrap'
         systemName: 'Joukou Platform API.'
         footer: 'A simple and intuitive way to web enable and monetize your data.'
@@ -91,6 +94,16 @@ tasks =
         cleverLinks: false
         outputSourceFiles: false
       ) )
+
+  apidoc: ( done ) ->
+    count = apidoc(
+      src: paths.src.dir
+      dest: paths.dist.apidoc
+      debug: false
+      includeFilters: [ '.*\\.coffee$' ]
+    )
+    plugins.util.log( 'apidoc:' + count )
+    done()
 
   test: ( done ) ->
     gulp.src( paths.dist.js )
@@ -124,7 +137,8 @@ gulp.task( 'coffeelint', tasks.coffeelint )
 gulp.task( 'clean:build', tasks.clean )
 gulp.task( 'coffee:build', [ 'clean:build' ], tasks.coffee )
 gulp.task( 'jsdoc:build', [ 'coffee:build' ], tasks.jsdoc )
-gulp.task( 'build', [ 'sloc', 'coffeelint', 'jsdoc:build' ] )
+gulp.task( 'apidoc:build', [ 'coffee:build' ], tasks.apidoc )
+gulp.task( 'build', [ 'sloc', 'coffeelint', 'jsdoc:build', 'apidoc:build' ] )
 
 gulp.task( 'test:build', [ 'build' ], tasks.test )
 gulp.task( 'test', [ 'test:build' ], ->
