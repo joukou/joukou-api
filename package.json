@@ -38,8 +38,8 @@
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
+    "apidoc": "0.4.3",
     "gulp": "3.6.2",
-    "gulp-apidoc": "0.0.1",
     "gulp-changed": "0.3.0",
     "gulp-clean": "0.2.4",
     "gulp-coffee": "git://github.com/joukou/gulp-coffee.git#b94c412839",
