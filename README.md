@@ -13,7 +13,7 @@ For supporting tools:
 
 1. `$ npm -g install http-console gulp`
 
-For the project iself:
+For the project itself:
 
 1. `$ cd joukou-api`
 1. `$ npm install`
