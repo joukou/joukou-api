@@ -105,6 +105,15 @@ tasks =
     plugins.util.log( 'apidoc:' + count )
     done()
 
+  deployApidoc: ->
+    gulp.src( 'dist/apidoc/**/*' )
+      .pipe( plugins.sftp(
+        host: 'joukou.com'
+        user: 'www-data'
+        remotePath: '/var/www/staging.joukou.com/apidoc'
+        key: '/home/ubuntu/.ssh/id_joukou.com'
+      ) )
+
   test: ( done ) ->
     gulp.src( paths.dist.js )
     .pipe( plugins.istanbul() )
@@ -152,6 +161,8 @@ gulp.task( 'test', [ 'test:build' ], ->
 #
 
 gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
+
+gulp.task( 'deploy-apidoc', [ 'apidoc:build' ], tasks.deployApidoc )
 
 #
 # Develop tasks.

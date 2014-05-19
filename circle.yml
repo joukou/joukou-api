@@ -14,3 +14,8 @@ machine:
     - cp joukou-api/.circle/riak.conf /etc/riak/riak.conf
     - sudo service riak start
     - sleep 5
+deployment:
+  staging:
+    branch: develop
+    commands:
+      - ./node_modules/.bin/gulp deploy-apidoc
