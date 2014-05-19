@@ -9,7 +9,7 @@ Authentication based on Passport.
 @requires passport
 @requires passport-http
 @requires util
-@requires joukou-api/riakpbc/client
+@requires joukou-api/riak/client
 @requires joukou-api/error/BcryptError
 @requires joukou-api/error/RiakError
 @author Isaac Johnston <isaac.johnston@joukou.com>
@@ -19,7 +19,7 @@ Authentication based on Passport.
 _                 = require( 'lodash' )
 passport          = require( 'passport' )
 { BasicStrategy } = require( 'passport-http' )
-riakpbc           = require( './riakpbc/client' )
+riak              = require( './riak/client' )
 
 ###*
 @private
