@@ -10,13 +10,15 @@ another, acts in his or her own interests.
 
 @module joukou-api/agent/model
 @requires joukou-api/agent/schema
+@requires joukou-api/riak/Model
+@requires joukou-api/error/BcryptError
 @requires lodash
 @requires q
 @requires bcrypt
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BcryptError, DuplicateError, Model, Q, RiakError, bcrypt, riakpbc, schema, verifyPassword, _;
+var BcryptError, Model, Q, bcrypt, schema, verifyPassword, _;
 
 _ = require('lodash');
 
@@ -24,17 +26,11 @@ Q = require('q');
 
 bcrypt = require('bcrypt');
 
-BcryptError = require('../error/BcryptError');
-
-RiakError = require('../error/RiakError');
-
-DuplicateError = require('../error/DuplicateError');
-
-riakpbc = require('../riakpbc/client');
-
 schema = require('./schema');
 
-Model = require('../riakpbc/Model');
+Model = require('../riak/Model');
+
+BcryptError = require('../error/BcryptError');
 
 module.exports = Model.factory({
   schema: schema,

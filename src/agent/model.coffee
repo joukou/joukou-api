@@ -10,6 +10,8 @@ another, acts in his or her own interests.
 
 @module joukou-api/agent/model
 @requires joukou-api/agent/schema
+@requires joukou-api/riak/Model
+@requires joukou-api/error/BcryptError
 @requires lodash
 @requires q
 @requires bcrypt
@@ -20,19 +22,14 @@ another, acts in his or her own interests.
 _               = require( 'lodash' )
 Q               = require( 'q' )
 bcrypt          = require( 'bcrypt' )
-BcryptError     = require( '../error/BcryptError' )
-RiakError       = require( '../error/RiakError' )
-DuplicateError  = require( '../error/DuplicateError' )
-riakpbc         = require( '../riakpbc/client' )
 schema          = require( './schema')
-Model           = require( '../riakpbc/Model' )
+Model           = require( '../riak/Model' )
+BcryptError     = require( '../error/BcryptError' )
 
 module.exports = Model.factory(
   schema: schema
   bucket: 'agent'
 )
-
-
 
 verifyPassword = ( password ) ->
   deferred = Q.defer()
