@@ -111,6 +111,7 @@ tasks =
       sshConfig:
         host: 'joukou.com'
         port: 22
+        username: 'www-data'
         privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
     )
 
