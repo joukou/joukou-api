@@ -105,6 +105,15 @@ tasks =
     plugins.util.log( 'apidoc:' + count )
     done()
 
+  prepareDeployApidoc: ->
+    plugins.ssh.exec(
+      command: [ 'mkdir -pv /var/www/staging.joukou.com/apidoc' ]
+      sshConfig:
+        host: 'joukou.com'
+        port: 22
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com', encoding: 'utf8' )
+    )
+
   deployApidoc: ->
     gulp.src( 'dist/apidoc/**/*' )
       .pipe( plugins.sftp(
@@ -162,7 +171,8 @@ gulp.task( 'test', [ 'test:build' ], ->
 
 gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
 
-gulp.task( 'deploy-apidoc', [ 'apidoc:build' ], tasks.deployApidoc )
+gulp.task( 'prepare-deploy-apidoc', [ 'apidoc:build' ], tasks.prepareDeployApidoc )
+gulp.task( 'deploy-apidoc', [ 'prepare-deploy-apidoc' ], tasks.deployApidoc )
 
 #
 # Develop tasks.
