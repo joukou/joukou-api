@@ -111,7 +111,7 @@ tasks =
       sshConfig:
         host: 'joukou.com'
         port: 22
-        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com', encoding: 'utf8' )
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
     )
 
   deployApidoc: ->
