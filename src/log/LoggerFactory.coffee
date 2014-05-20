@@ -57,9 +57,9 @@ module.exports = new class
     bunyan.createLogger(
       name: config.name
       streams: [
-        {
-          stream: process.stdout
-          level: @logLevel
-        }
+        #{
+        #  stream: process.stdout
+        #  level: @logLevel
+        #}
       ]
     )
