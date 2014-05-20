@@ -13,7 +13,7 @@ network = require( './network/routes' )
 persona = require( './persona/routes' )
 runtime = require( './runtime/routes' )
 
-module.exports =
+module.exports = self =
 
   ###*
   Registers all routes with the `server`.
@@ -26,3 +26,8 @@ module.exports =
     network.registerRoutes( server )
     persona.registerRoutes( server )
     runtime.registerRoutes( server )
+
+    server.get( '/', self.index )
+
+  index: ( req, res, next ) ->
+    res.send( 200 )

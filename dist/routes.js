@@ -5,7 +5,7 @@
 @author Juan Morales <juan@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var agent, contact, graph, network, persona, runtime;
+var agent, contact, graph, network, persona, runtime, self;
 
 agent = require('./agent/routes');
 
@@ -19,7 +19,7 @@ persona = require('./persona/routes');
 
 runtime = require('./runtime/routes');
 
-module.exports = {
+module.exports = self = {
 
   /**
   Registers all routes with the `server`.
@@ -31,7 +31,11 @@ module.exports = {
     graph.registerRoutes(server);
     network.registerRoutes(server);
     persona.registerRoutes(server);
-    return runtime.registerRoutes(server);
+    runtime.registerRoutes(server);
+    return server.get('/', self.index);
+  },
+  index: function(req, res, next) {
+    return res.send(200);
   }
 };
 

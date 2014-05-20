@@ -43,6 +43,11 @@ server.use(restify.bodyParser({
 
 server.use(authn.middleware());
 
+server.use(restify.CORS({
+  origins: ['http://localhost:2100', 'http://127.0.0.1:2100', 'http://staging.joukou.com', 'https://joukou.com'],
+  credentials: true
+}));
+
 server.on('after', restify.auditLogger({
   log: LoggerFactory.getLogger({
     name: 'audit'
