@@ -18,7 +18,7 @@ another, acts in his or her own interests.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BcryptError, Model, Q, bcrypt, schema, verifyPassword, _;
+var BcryptError, Model, Q, agentModel, bcrypt, schema, _;
 
 _ = require('lodash');
 
@@ -32,15 +32,15 @@ Model = require('../riak/Model');
 
 BcryptError = require('../error/BcryptError');
 
-module.exports = Model.factory({
+agentModel = Model.define({
   schema: schema,
   bucket: 'agent'
 });
 
-verifyPassword = function(password) {
+agentModel.prototype.verifyPassword = function(password) {
   var deferred;
   deferred = Q.defer();
-  bcrypt.compare(password, this.data.password, function(err, authenticated) {
+  bcrypt.compare(password, getValue().password, function(err, authenticated) {
     if (err) {
       return deferred.reject(new BcryptError(err));
     } else {
@@ -49,6 +49,28 @@ verifyPassword = function(password) {
   });
   return deferred.promise;
 };
+
+agentModel.beforeCreate = function(value) {
+  var deferred;
+  deferred = Q.defer();
+  bcrypt.getSalt(10, function(err, salt) {
+    if (err) {
+      return deferred.reject(new BcryptError(err));
+    } else {
+      return bcrypt.hash(value.password, salt, function(err, hash) {
+        if (err) {
+          return deferred.reject(new BcryptError(err));
+        } else {
+          value.password = hash;
+          return deferred.resolve(value);
+        }
+      });
+    }
+  });
+  return deferred.promise;
+};
+
+module.exports = agentModel;
 
 /*
 //# sourceMappingURL=model.js.map

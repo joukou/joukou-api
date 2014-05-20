@@ -4,26 +4,18 @@
 Authentication based on Passport.
 
 @module joukou-api/authn
-@requires lodash
-@requires bcrypt
 @requires passport
 @requires passport-http
-@requires util
-@requires joukou-api/riak/client
-@requires joukou-api/error/BcryptError
-@requires joukou-api/error/RiakError
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BasicStrategy, passport, riak, self, verify, _;
-
-_ = require('lodash');
+var BasicStrategy, agentModel, passport, self, verify;
 
 passport = require('passport');
 
 BasicStrategy = require('passport-http').BasicStrategy;
 
-riak = require('./riak/client');
+agentModel = require('./agent/model');
 
 
 /**

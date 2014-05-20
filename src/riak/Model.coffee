@@ -13,85 +13,110 @@
 ###
 
 { EventEmitter } = require( 'events' )
+_                = require( 'lodash' )
+Q                = require( 'q' )
+uuid             = require( 'node-uuid' )
+riak             = require( './Client' )
+MetaValue        = require( './MetaValue' )
 
-module.exports = self = class extends EventEmitter
+module.exports =
 
-  self              = @
-  _                 = require( 'lodash' )
-  Q                 = require( 'q' )
-  uuid              = require( 'node-uuid' )
-  riak              = require( './Client' )
-  MetaValue         = require( './MetaValue' )
+  define: ( { type, bucket, schema } ) ->
 
-  ###*
-  Create a model definition.
-  @function factory
-  @static
-  ###
-  @factory = ( options ) ->
-    new self( options )
+    type ?= 'default'
 
-  ###*
-  @constructor
-  ###
-  constructor: ( { @bucket, @schema } ) ->
-    return
+    class extends EventEmitter
 
-  ###*
-  @return {string} The bucket name.
-  ###
-  getBucket: ->
-    @bucket
+      self = @
 
-  ###*
-  @return {schemajs} The schema.
-  ###
-  getSchema: ->
-    @schema
+      @getType = ->
+        type
 
-  ###*
-  Load a *Value* for `this` *Model* from Basho Riak.
-  @param {string} key
-  @return {q.promise}
-  ###
-  load: ( key ) ->
-    deferred = Q.defer()
+      @getBucket = ->
+        bucket
 
-    riak.get( bucket: @bucket, key: key ).then( ( metaValue ) =>
-      metaValue.setModel( @ )
-      deferred.resolve( metaValue )
-    ).fail( ( err ) ->
-      deferred.reject( err )
-    )
+      @getSchema = ->
+        schema
 
-    deferred.promise
+      ###*
+      Create a new *Value* for `this` *Model* in Basho Riak.
+      @param {Object.<string,(string|number)>} rawValue The raw data from the client.
+      @return {q.promise}
+      ###
+      @create = ( rawValue ) ->
+        deferred = Q.defer()
 
-  ###*
-  Create a new *Value* for `this` *Model* in Basho Riak.
-  @param {Object.<string,(string|number)>} rawValue The raw data from the client.
-  @return {q.promise}
-  ###
-  create: ( rawValue ) ->
-    deferred = Q.defer()
+        { value, errors, valid } = self.getSchema().validate( rawValue )
 
-    { value, errors, valid } = @getSchema().validate( rawValue )
+        unless valid
+          process.nextTick( ->
+            deferred.reject( errors )
+          )
+          return deferred.promise
 
-    unless valid
-      process.nextTick( ->
-        deferred.reject( errors )
-      )
-      return deferred.promise
+        if self.beforeCreate
+          beforeCreate = self.beforeCreate( value )
+        else
+          beforeCreate = Q.fcall( -> value )
 
-    metaValue = new MetaValue(
-      bucket: @bucket
-      key: uuid.v4()
-      value: value
-    )
+        beforeCreate.then( ( value ) ->
 
-    riak.put( metaValue: metaValue ).then( ->
-      deferred.resolve( value, meta )
-    ).fail( ( err ) ->
-      deferred.reject( err )
-    )
+          metaValue = new MetaValue(
+            type: @getType()
+            bucket: @bucket
+            key: uuid.v4()
+            value: value
+          )
 
-    deferred.promise
+          riak.put( metaValue: metaValue ).then( ->
+            deferred.resolve( metaValue )
+          ).fail( ( err ) ->
+            deferred.reject( err )
+          )
+
+        )
+
+        deferred.promise
+
+      ###*
+      Retrieve a *Model* instance of this *Model* class from Basho Riak.
+      @param {string} key
+      @return {q.promise}
+      ###
+      @retrieve = ( key ) ->
+        deferred = Q.defer()
+
+        riak.get(
+          type: self.getType()
+          bucket: self.getBucket()
+          key: key
+        ).then( ( metaValue ) ->
+          deferred.resolve( new self(
+            metaValue: metaValue
+          ) )
+        ).fail( ( err ) ->
+          deferred.reject( err )
+        )
+
+        deferred.promise
+
+      ###*
+      @constructor
+      ###
+      constructor: ( { @metaValue } ) ->
+
+      ###*
+      Get the *MetaValue* instance for `this` *Modal* instance.
+      @return {joukou-api/riak/MetaValue}
+      ###
+      getMetaValue: ->
+        @metaValue
+
+      ###*
+      Get value of the *MetaValue* instance for `this` *Modal* instance.
+      @return {!Object}
+      ###
+      getValue: ->
+        @getMetaValue().getValue()
+
+

@@ -26,15 +26,15 @@ schema          = require( './schema')
 Model           = require( '../riak/Model' )
 BcryptError     = require( '../error/BcryptError' )
 
-module.exports = Model.factory(
+agentModel      = Model.define(
   schema: schema
   bucket: 'agent'
 )
 
-verifyPassword = ( password ) ->
+agentModel::verifyPassword = ( password ) ->
   deferred = Q.defer()
 
-  bcrypt.compare( password, @data.password, ( err, authenticated ) ->
+  bcrypt.compare( password, getValue().password, ( err, authenticated ) ->
     if err
       deferred.reject( new BcryptError( err ) )
     else
@@ -43,4 +43,22 @@ verifyPassword = ( password ) ->
 
   deferred.promise
 
- 
+agentModel.beforeCreate = ( value ) ->
+  deferred = Q.defer()
+
+  bcrypt.getSalt( 10, ( err, salt ) ->
+    if err
+      deferred.reject( new BcryptError( err ) )
+    else
+      bcrypt.hash( value.password, salt, ( err, hash ) ->
+        if err
+          deferred.reject( new BcryptError( err ) )
+        else
+          value.password = hash
+          deferred.resolve( value )
+      )
+  )
+
+  deferred.promise
+
+module.exports = agentModel
