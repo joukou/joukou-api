@@ -4,3 +4,4 @@ coverage
 dist/jsdoc
 dist/apidoc
 dist/log
+config.yml
