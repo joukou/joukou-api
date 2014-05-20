@@ -5,6 +5,7 @@
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
   "scripts": {
+    "start": "node dist/cluster.js | bunyan",
     "test": "gulp ci"
   },
   "repository": {
