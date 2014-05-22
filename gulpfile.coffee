@@ -9,6 +9,7 @@ plugins     = require( 'gulp-load-plugins' )( lazy: false )
 fs          = require( 'fs' )
 path        = require( 'path' )
 apidoc      = require( 'apidoc' )
+request     = require( 'request' )
 
 ###*
 @namespace
@@ -32,6 +33,79 @@ paths =
 utils =
   isCI: ->
     process.env.CI is 'true'
+
+  getDeploymentEnvironment: ->
+    switch process.env.CIRCLE_BRANCH
+      when 'master'
+        'production'
+      when 'develop'
+        'staging'
+      else
+        ''
+
+  getPackage: ->
+    require( './package.json' )
+
+  getName: ->
+    utils.getPackage().name
+
+  getVersion: ->
+    utils.getPackage().version
+
+  getSha: ->
+    process.env.CIRCLE_SHA1
+
+  getBuildNum: ->
+    process.env.CIRCLE_BUILD_NUM
+
+  getArtifactsDir: ->
+    process.env.CIRCLE_ARTIFACTS
+
+  getZipFilename: ->
+    "#{utils.getName()}-#{utils.getVersion()}-#{utils.getSha()}-#{utils.getBuildNum()}.zip"
+
+  getApiDocZipFilename: ->
+    "#{utils.getName()}-apidoc-#{utils.getVersion()}-#{utils.getSha()}-#{utils.getBuildNum()}.zip"
+
+  getDeployRemotePath: ->
+    switch utils.getDeploymentEnvironment()
+      when 'production'
+        '/var/node/api.joukou.com'
+      when 'staging'
+        '/var/node/staging-api.joukou.com'
+      else
+        throw new Error( 'Invalid deployment environment!' )
+
+  getApiDocDeployRemotePath: ->
+    switch utils.getDeploymentEnvironment()
+      when 'production'
+        '/var/www/apidoc.joukou.com'
+      when 'staging'
+        '/var/www/staging-apidoc.joukou.com'
+      else
+        throw new Error( 'Invalid deployment environment!' )
+
+  getScpCommand: ( { host } ) ->
+    [
+      'scp'
+      '-o'
+      'IdentityFile=/home/ubuntu/.ssh/id_joukou.com'
+      '-o'
+      'ControlMaster=no'
+      path.join( utils.getArtifactsDir(), utils.getZipFilename() )
+      "node@#{host}:#{path.join( '/tmp', utils.getZipFilename() )}"
+    ].join( ' ' )
+
+  getApiDocScpCommand: ( { host } ) ->
+    [
+      'scp'
+      '-o'
+      'IdentityFile=/home/ubuntu/.ssh/id_joukou.com'
+      '-o'
+      'ControlMaster=no'
+      path.join( utils.getArtifactsDir(), utils.getApiDocZipFilename() )
+      "www-data@#{host}:#{path.join( '/tmp', utils.getApiDocZipFilename() )}"
+    ].join( ' ' )
 
 ###*
 @namespace
@@ -105,24 +179,176 @@ tasks =
     plugins.util.log( 'apidoc:' + count )
     done()
 
-  prepareDeployApidoc: ->
+  deployZip: ->
+    gulp.src( '**/*' )
+      .pipe( plugins.grepStream( '**/dist/apidoc/**/*', invertMatch: true ) )
+      .pipe( plugins.zip( utils.getZipFilename() ) )
+      .pipe( gulp.dest( utils.getArtifactsDir() ) )
+
+  deployApiDocZip: ->
+    gulp.src( 'dist/apidoc/**/*' )
+      .pipe( plugins.zip( utils.getApiDocZipFilename() ) )
+      .pipe( gulp.dest( utils.getArtifactsDir() ) )
+
+  deployUploadAkl1: ( done ) ->
+    exec( utils.getScpCommand( host: 'akl1.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployUploadAkl2: ( done ) ->
+    exec( utils.getScpCommand( host: 'akl2.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployUploadAkl3: ( done ) ->
+    exec( utils.getScpCommand( host: 'akl3.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployApiDocUploadAkl1: ( done ) ->
+    exec( utils.getApiDocScpCommand( host: 'akl1.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployApiDocUploadAkl2: ( done ) ->
+    exec( utils.getApiDocScpCommand( host: 'akl2.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployApiDocUploadAkl3: ( done ) ->
+    exec( utils.getApiDocScpCommand( host: 'akl3.joukou.com' ), ( err, stdout, stderr ) ->
+      plugins.util.log( stdout )
+      plugins.util.log( stderr )
+      done( err )
+    )
+
+  deployCommandsAkl1: ->
     plugins.ssh.exec(
-      command: [ 'mkdir -pv /var/www/staging.joukou.com/apidoc' ]
+      command: [
+        "rm -rf #{path.join( utils.getDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getZipFilename()} -d #{utils.getDeployRemotePath()}"
+      ]
       sshConfig:
-        host: 'joukou.com'
+        host: 'akl1.joukou.com'
+        port: 22
+        username: 'node'
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
+    )
+
+  deployCommandsAkl2: ->
+    plugins.ssh.exec(
+      command: [
+        "rm -rf #{path.join( utils.getDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getZipFilename()} -d #{utils.getDeployRemotePath()}"
+      ]
+      sshConfig:
+        host: 'akl2.joukou.com'
+        port: 22
+        username: 'node'
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
+    )
+
+  deployCommandsAkl3: ->
+    plugins.ssh.exec(
+      command: [
+        "rm -rf #{path.join( utils.getDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getZipFilename()} -d #{utils.getDeployRemotePath()}"
+      ]
+      sshConfig:
+        host: 'akl3.joukou.com'
+        port: 22
+        username: 'node'
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
+    )
+
+  deployApiDocCommandsAkl1: ->
+    plugins.ssh.exec(
+      command: [
+        "rm -rf #{path.join( utils.getApiDocDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getApiDocZipFilename()} -d #{utils.getApiDocDeployRemotePath()}"
+      ]
+      sshConfig:
+        host: 'akl1.joukou.com'
         port: 22
         username: 'www-data'
         privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
     )
 
-  deployApidoc: ->
-    gulp.src( 'dist/apidoc/**/*' )
-      .pipe( plugins.sftp(
-        host: 'joukou.com'
-        user: 'www-data'
-        remotePath: '/var/www/staging.joukou.com/apidoc'
-        key: '/home/ubuntu/.ssh/id_joukou.com'
-      ) )
+  deployApiDocCommandsAkl2: ->
+    plugins.ssh.exec(
+      command: [
+        "rm -rf #{path.join( utils.getApiDocDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getApiDocZipFilename()} -d #{utils.getApiDocDeployRemotePath()}"
+      ]
+      sshConfig:
+        host: 'akl2.joukou.com'
+        port: 22
+        username: 'www-data'
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
+    )
+
+  deployApiDocCommandsAkl3: ->
+    plugins.ssh.exec(
+      command: [
+        "rm -rf #{path.join( utils.getApiDocDeployRemotePath(), '*' )}"
+        "unzip /tmp/#{utils.getApiDocZipFilename()} -d #{utils.getApiDocDeployRemotePath()}"
+      ]
+      sshConfig:
+        host: 'akl3.joukou.com'
+        port: 22
+        username: 'www-data'
+        privateKey: fs.readFileSync( '/home/ubuntu/.ssh/id_joukou.com' ).toString()
+    )
+
+  deployNotification: ( done ) ->
+    requestOptions =
+      uri: 'https://api.flowdock.com/v1/messages/team_inbox/87d6d03d770e3ea007f7fe747fede5f4'
+      method: 'POST'
+      json:
+        source: 'Circle'
+        from_address: 'deploy+ok@joukou.com'
+        subject: "Success: deployment to #{utils.getDeploymentEnvironment()} from build \##{utils.getBuildNum()}"
+        content: '''
+                 <b>joukou-api</b> has been deployed to https://staging-api.joukou.com.
+                 '''
+        from_name: ''
+        project: 'joukou-api'
+        tags: [ '#deploy', "\##{utils.getDeploymentEnvironment()}" ]
+        link: 'http://staging-api.joukou.com'
+    request( requestOptions, ->
+      done()
+    )
+    return
+
+  deployApiDocNotification: ( done ) ->
+    requestOptions =
+      uri: 'https://api.flowdock.com/v1/messages/team_inbox/87d6d03d770e3ea007f7fe747fede5f4'
+      method: 'POST'
+      json:
+        source: 'Circle'
+        from_address: 'deploy+ok@joukou.com'
+        subject: "Success: deployment to #{utils.getDeploymentEnvironment()} from build \##{utils.getBuildNum()}"
+        content: '''
+                 <b>joukou-api</b> has been deployed to https://staging-apidoc.joukou.com.
+                 '''
+        from_name: ''
+        project: 'joukou-api'
+        tags: [ '#deploy', "\##{utils.getDeploymentEnvironment()}" ]
+        link: 'http://staging-apidoc.joukou.com'
+    request( requestOptions, ->
+      done()
+    )
+    return
 
   test: ( done ) ->
     gulp.src( paths.dist.js )
@@ -172,8 +398,32 @@ gulp.task( 'test', [ 'test:build' ], ->
 
 gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
 
-gulp.task( 'prepare-deploy-apidoc', [ 'apidoc:build' ], tasks.prepareDeployApidoc )
-gulp.task( 'deploy-apidoc', [ 'prepare-deploy-apidoc' ], tasks.deployApidoc )
+
+gulp.task( 'zip:deploy', tasks.deployZip )
+gulp.task( 'upload-akl1:deploy', [ 'zip:deploy' ], tasks.deployUploadAkl1 )
+gulp.task( 'upload-akl2:deploy', [ 'zip:deploy' ], tasks.deployUploadAkl2 )
+gulp.task( 'upload-akl3:deploy', [ 'zip:deploy' ], tasks.deployUploadAkl3 )
+gulp.task( 'upload:deploy', [ 'upload-akl1:deploy', 'upload-akl2:deploy', 'upload-akl3:deploy' ] )
+gulp.task( 'commands-akl1:deploy', [ 'upload:deploy' ], tasks.deployCommandsAkl1 )
+gulp.task( 'commands-akl2:deploy', [ 'upload:deploy' ], tasks.deployCommandsAkl2 )
+gulp.task( 'commands-akl3:deploy', [ 'upload:deploy' ], tasks.deployCommandsAkl3 )
+gulp.task( 'commands:deploy', [ 'commands-akl1:deploy', 'commands-akl2:deploy', 'commands-akl3:deploy' ] )
+gulp.task( 'notification:deploy', [ 'commands:deploy' ], tasks.deployNotification )
+
+
+gulp.task( 'zip:deploy-apidoc', tasks.deployApiDocZip )
+gulp.task( 'upload-akl1:deploy-apidoc', [ 'zip:deploy-apidoc' ], tasks.deployApiDocUploadAkl1 )
+gulp.task( 'upload-akl2:deploy-apidoc', [ 'zip:deploy-apidoc' ], tasks.deployApiDocUploadAkl2 )
+gulp.task( 'upload-akl3:deploy-apidoc', [ 'zip:deploy-apidoc' ], tasks.deployApiDocUploadAkl3 )
+gulp.task( 'upload:deploy-apidoc', [ 'upload-akl1:deploy-apidoc', 'upload-akl2:deploy-apidoc', 'upload-akl3:deploy-apidoc' ] )
+gulp.task( 'commands-akl1:deploy-apidoc', [ 'upload:deploy-apidoc' ], tasks.deployApiDocCommandsAkl1 )
+gulp.task( 'commands-akl2:deploy-apidoc', [ 'upload:deploy-apidoc' ], tasks.deployApiDocCommandsAkl2 )
+gulp.task( 'commands-akl3:deploy-apidoc', [ 'upload:deploy-apidoc' ], tasks.deployApiDocCommandsAkl3 )
+gulp.task( 'commands:deploy-apidoc', [ 'commands-akl1:deploy-apidoc', 'commands-akl2:deploy-apidoc', 'commands-akl3:deploy-apidoc' ] )
+gulp.task( 'notification:deploy-apidoc', [ 'commands:deploy-apidoc' ], tasks.deployNotification )
+
+
+gulp.task( 'deploy', [ 'notification:deploy', 'notification:deploy-apidoc' ] )
 
 #
 # Develop tasks.

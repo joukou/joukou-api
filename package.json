@@ -58,10 +58,10 @@
     "gulp-plumber": "0.6.1",
     "gulp-sloc": "1.0.4",
     "gulp-spawn-mocha": "0.1.4",
-    "gulp-sftp": "0.0.6",
     "gulp-ssh": "0.0.2",
     "gulp-util": "2.2.14",
     "gulp-watch": "0.6.4",
+    "gulp-zip": "0.3.4",
     "chai": "1.9.1",
     "chai-http": "0.4.0",
     "chai-as-promised": "4.1.1",
@@ -69,6 +69,7 @@
     "sinon-chai": "2.5.0",
     "rewire": "2.0.0",
     "replay": "1.10.2",
-    "lazypipe": "0.2.1"
+    "lazypipe": "0.2.1",
+    "request": "~2.36.0"
   }
 }
