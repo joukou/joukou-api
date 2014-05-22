@@ -190,7 +190,7 @@ gulp.task( 'commands:deploy-apidoc', [ 'commands-akl1:deploy-apidoc', 'commands-
 gulp.task( 'notification:deploy-apidoc', [ 'commands:deploy-apidoc' ], joukou.doDocDeploymentNotification() )
 
 
-gulp.task( 'deploy', [ 'notification:deploy', 'notification:deploy-apidoc' ] )
+gulp.task( 'deploy', [ 'notification:deploy' ] ) #,  'notification:deploy-apidoc' ] )
 
 #
 # Develop tasks.
