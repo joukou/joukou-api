@@ -18,4 +18,8 @@ deployment:
   staging:
     branch: develop
     commands:
-      - ./node_modules/.bin/gulp deploy-apidoc
+      - ./node_modules/.bin/gulp deploy
+  production:
+    branch: master
+    commands:
+      - ./node_modules/.bin/gulp deploy
