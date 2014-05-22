@@ -10,6 +10,7 @@ fs          = require( 'fs' )
 path        = require( 'path' )
 apidoc      = require( 'apidoc' )
 request     = require( 'request' )
+{ exec }    = require( 'child_process' )
 
 ###*
 @namespace
