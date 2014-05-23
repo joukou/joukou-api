@@ -184,8 +184,8 @@ gulp.task( 'upload-akl3:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDep
 gulp.task( 'upload:deploy-apidoc', [ 'upload-akl1:deploy-apidoc', 'upload-akl2:deploy-apidoc', 'upload-akl3:deploy-apidoc' ] )
 
 gulp.task( 'commands-akl1:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl1.joukou.com' ) )
-gulp.task( 'commands-akl2:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl1.joukou.com' ) )
-gulp.task( 'commands-akl3:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl1.joukou.com' ) )
+gulp.task( 'commands-akl2:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl2.joukou.com' ) )
+gulp.task( 'commands-akl3:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl3.joukou.com' ) )
 gulp.task( 'commands:deploy-apidoc', [ 'commands-akl1:deploy-apidoc', 'commands-akl2:deploy-apidoc', 'commands-akl3:deploy-apidoc' ] )
 gulp.task( 'notification:deploy-apidoc', [ 'commands:deploy-apidoc' ], joukou.doDocDeploymentNotification() )
 
