@@ -6,11 +6,25 @@ Simple module to load deployment configuration from a YAML file.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2014 Joukou Ltd. All rights reserved.
  */
-var yaml;
+var e, fs, log, path, yaml;
+
+fs = require('fs');
+
+path = require('path');
 
 yaml = require('js-yaml');
 
-module.exports = yaml.safeLoad('../config.yml');
+log = require('./log/LoggerFactory').getLogger({
+  name: 'server'
+});
+
+try {
+  module.exports = yaml.safeLoad(fs.readFileSync(path.join(__dirname, '..', 'config.yml'), 'utf8'));
+} catch (_error) {
+  e = _error;
+  log.warn('unable to load ' + path.join(__dirname, '..', 'config.yml'));
+  module.exports = {};
+}
 
 /*
 //# sourceMappingURL=config.js.map

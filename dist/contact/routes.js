@@ -20,7 +20,7 @@ Simple contact service for sending an email to Joukou.
 @apiParam {String} message The plaintext content of the message
 
 @apiExample CURL Example:
-  curl -i -X POST https://api.joukou.com/contact
+  curl -i -X POST https://api.joukou.com/contact \
     -H 'Content-Type: application/json' \
     -d '{ "name": "Isaac Johnston", "email": "isaac.johnston@joukou.com", "message": "API Example" }'
 
