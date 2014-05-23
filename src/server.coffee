@@ -64,7 +64,7 @@ server.on( 'after', restify.auditLogger(
 routes.registerRoutes( server )
 
 server.listen(
-  process.env.JOUKOU_PORT or 3000,
+  process.env.JOUKOU_PORT or 2201,
   process.env.JOUKOU_HOST or 'localhost',
   ->
     server.log.info(
