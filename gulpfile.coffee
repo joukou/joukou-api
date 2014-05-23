@@ -95,7 +95,7 @@ tasks =
       dest: paths.dist.apidoc
       debug: false
       includeFilters: [ '.*\\.coffee$' ]
-      template: path.join( __dirname, 'apidoc_template' )
+      template: path.join( __dirname, '.apidoc', 'template' )
     )
     plugins.util.log( 'apidoc:' + count )
     done()
