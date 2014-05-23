@@ -64,7 +64,8 @@ server.on( 'after', restify.auditLogger(
 routes.registerRoutes( server )
 
 server.listen(
-  process.env.JOUKOU_PORT or 2201,
+  # Port 2101 is for develop/staging, 2201 is for production!
+  process.env.JOUKOU_PORT or 2101,
   process.env.JOUKOU_HOST or 'localhost',
   ->
     server.log.info(
