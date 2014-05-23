@@ -175,7 +175,7 @@ gulp.task( 'notification:deploy', [ 'commands:deploy' ], joukou.doPackageDeploym
 
 
 # Create documentation ZIP file
-gulp.task( 'zip:deploy-apidoc', tasks.deployDocZip )
+gulp.task( 'zip:deploy-apidoc', [ 'notification:deploy'], tasks.deployDocZip )
 
 # Upload documentation ZIP file
 gulp.task( 'upload-akl1:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDeploymentUpload( host: 'akl1.joukou.com' ) )
@@ -190,7 +190,7 @@ gulp.task( 'commands:deploy-apidoc', [ 'commands-akl1:deploy-apidoc', 'commands-
 gulp.task( 'notification:deploy-apidoc', [ 'commands:deploy-apidoc' ], joukou.doDocDeploymentNotification() )
 
 
-gulp.task( 'deploy', [ 'notification:deploy', 'notification:deploy-apidoc' ] )
+gulp.task( 'deploy', [ 'notification:deploy-apidoc' ] )
 
 #
 # Develop tasks.
