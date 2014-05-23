@@ -14,8 +14,8 @@ log  = require( './log/LoggerFactory' ).getLogger( name: 'server' )
 
 try
   module.exports = yaml.safeLoad(
-    fs.readFileSync( path.join( __dirname, '..', 'config.yml' ), 'utf8' )
+    fs.readFileSync( process.env.JOUKOU_CONFIG )
   )
 catch e
-  log.warn( 'unable to load ' + path.join( __dirname, '..', 'config.yml' ) )
+  log.warn( 'unable to load ' + process.env.JOUKOU_CONFIG )
   module.exports = {}
