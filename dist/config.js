@@ -19,7 +19,9 @@ log = require('./log/LoggerFactory').getLogger({
 });
 
 try {
-  module.exports = yaml.safeLoad(fs.readFileSync(process.env.JOUKOU_CONFIG));
+  module.exports = yaml.safeLoad(fs.readFileSync(process.env.JOUKOU_CONFIG, {
+    encoding: 'utf8'
+  }));
 } catch (_error) {
   e = _error;
   log.warn('unable to load ' + process.env.JOUKOU_CONFIG);
