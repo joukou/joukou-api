@@ -33,6 +33,8 @@ Simple contact service for sending an email to Joukou.
 
 config = require( '../config' )
 mailer = require( 'nodemailer' )
+log  = require( './log/LoggerFactory' ).getLogger( name: 'server' )
+
 
 self = module.exports =
   ###*
@@ -77,6 +79,7 @@ self = module.exports =
 
     smtp.sendMail( message, ( err, smtpRes ) ->
       if err
+        log.fatal( 'unable to send smtp message: ' + err )
         res.send( 503 )
       else
         res.send( 201 )
