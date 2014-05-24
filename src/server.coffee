@@ -18,7 +18,7 @@ cors          = require( 'restify-cors-middleware' )(
   origins: [
     'http://localhost:2100'
     'http://127.0.0.1:2100'
-    'http://staging.joukou.com'
+    'https://staging.joukou.com'
     'https://joukou.com'
   ]
   allowHeaders: [
