@@ -6,7 +6,7 @@
   "main": "dist/cluster.js",
   "scripts": {
     "start": "node dist/cluster.js | bunyan",
-    "test": "gulp ci"
+    "test": "gulp --max-stack-size=10000 ci"
   },
   "repository": {
     "type": "git",
