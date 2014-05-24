@@ -1,12 +1,12 @@
 {
   "name": "joukou-api",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
   "scripts": {
     "start": "node dist/cluster.js | bunyan",
-    "test": "gulp ci"
+    "test": "gulp --max-stack-size=10000 ci"
   },
   "repository": {
     "type": "git",

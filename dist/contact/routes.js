@@ -30,11 +30,15 @@ Simple contact service for sending an email to Joukou.
 
 @apiError (503) ServiceUnavailable There was a temporary failure sending the message, the client should try again later.
  */
-var config, mailer, self;
+var config, log, mailer, self;
 
 config = require('../config');
 
 mailer = require('nodemailer');
+
+log = require('../log/LoggerFactory').getLogger({
+  name: 'server'
+});
 
 self = module.exports = {
 
@@ -54,7 +58,7 @@ self = module.exports = {
    */
   _contact: function(req, res) {
     var message, name, smtp, subject, text, _ref, _ref1;
-    smtp = mailer.createTransport('SMTP', config.smtp);
+    smtp = mailer.createTransport('SES', config.ses);
     name = ((_ref = req.body.name) != null ? _ref.length : void 0) ? req.body.name : 'Anonymous';
     if ((_ref1 = req.body.message) != null ? _ref1.length : void 0) {
       subject = "Joukou message from " + name;
@@ -71,6 +75,7 @@ self = module.exports = {
     };
     smtp.sendMail(message, function(err, smtpRes) {
       if (err) {
+        log.fatal('Unable to send message via Amazon SES: ' + err);
         res.send(503);
       } else {
         res.send(201);

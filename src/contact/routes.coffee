@@ -33,6 +33,8 @@ Simple contact service for sending an email to Joukou.
 
 config = require( '../config' )
 mailer = require( 'nodemailer' )
+log  = require( '../log/LoggerFactory' ).getLogger( name: 'server' )
+
 
 self = module.exports =
   ###*
@@ -40,7 +42,6 @@ self = module.exports =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-
     server.post( '/contact', self._contact )
 
   ###*
@@ -50,7 +51,7 @@ self = module.exports =
   @param {http.ServerResponse} res
   ###
   _contact: ( req, res ) ->
-    smtp = mailer.createTransport( 'SMTP', config.smtp )
+    smtp = mailer.createTransport( 'SES', config.ses )
     
     name = if req.body.name?.length then req.body.name else 'Anonymous'
 
@@ -77,6 +78,7 @@ self = module.exports =
 
     smtp.sendMail( message, ( err, smtpRes ) ->
       if err
+        log.fatal( 'Unable to send message via Amazon SES: ' + err )
         res.send( 503 )
       else
         res.send( 201 )
