@@ -12,12 +12,12 @@
     "type": "git",
     "url": "https://github.com/joukou/joukou-api.git"
   },
-  "author": "Joukou Ltd <team@joukou.co>",
-  "license": "MPL-2.0",
+  "author": "Joukou Ltd <team@joukou.com>",
+  "license": "Proprietary",
   "bugs": {
-    "url": "https://joukou.tpondemand.com"
+    "url": "https://www.blossom.io/app/blay4k3jubf3vkmdvlhxczig7q/czy6duayiba4djv3pbsayoscta/board"
   },
-  "homepage": "https://joukou.co",
+  "homepage": "https://api.joukou.com",
   "dependencies": {
     "riakpbc": "2.0.0-beta4",
     "restify": "2.8.0",
