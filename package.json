@@ -1,6 +1,6 @@
 {
   "name": "joukou-api",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
@@ -12,15 +12,15 @@
     "type": "git",
     "url": "https://github.com/joukou/joukou-api.git"
   },
-  "author": "Joukou Ltd <team@joukou.co>",
-  "license": "MPL-2.0",
+  "author": "Joukou Ltd <team@joukou.com>",
+  "license": "Proprietary",
   "bugs": {
-    "url": "https://joukou.tpondemand.com"
+    "url": "https://www.blossom.io/app/blay4k3jubf3vkmdvlhxczig7q/czy6duayiba4djv3pbsayoscta/board"
   },
-  "homepage": "https://joukou.co",
+  "homepage": "https://api.joukou.com",
   "dependencies": {
-    "riakpbc": "2.0.0-beta4",
-    "restify": "2.8.0",
+    "riakpbc": "2.0.0-beta6",
+    "restify": "2.8.1",
     "restify-cors-middleware": "git://github.com/joukou/restify-cors-middleware.git#master",
     "source-map-support": "0.2.6",
     "async": "0.2.10",
@@ -44,9 +44,9 @@
     "gulp": "3.6.2",
     "joukou-gulp": "git+https://4b59aac46c51477f6ea49e1f083686d43bf8c9a4:x-oauth-basic@github.com/joukou/joukou-gulp.git#master",
     "gulp-changed": "0.3.0",
-    "gulp-clean": "0.2.4",
+    "gulp-clean": "0.3.0",
     "gulp-coffee": "git://github.com/joukou/gulp-coffee.git#b94c412839",
-    "gulp-coffeelint": "0.3.2",
+    "gulp-coffeelint": "0.3.3",
     "gulp-contribs": "0.0.2",
     "gulp-coveralls": "0.1.2",
     "gulp-grep-stream": "0.0.2",
@@ -54,23 +54,23 @@
     "gulp-jsdoc": "0.1.4",
     "gulp-load-plugins": "0.5.1",
     "gulp-mocha": "0.4.1",
-    "gulp-nodemon": "1.0.2",
-    "gulp-notify": "1.2.5",
-    "gulp-plumber": "0.6.1",
+    "gulp-nodemon": "1.0.3",
+    "gulp-notify": "1.3.0",
+    "gulp-plumber": "0.6.2",
     "gulp-sloc": "1.0.4",
     "gulp-spawn-mocha": "0.1.4",
     "gulp-ssh": "0.0.2",
     "gulp-util": "2.2.14",
-    "gulp-watch": "0.6.4",
+    "gulp-watch": "0.6.5",
     "gulp-zip": "0.3.4",
     "chai": "1.9.1",
     "chai-http": "0.4.0",
     "chai-as-promised": "4.1.1",
-    "sinon": "1.9.1",
+    "sinon": "1.10.0",
     "sinon-chai": "2.5.0",
-    "rewire": "2.0.0",
-    "replay": "1.10.2",
+    "rewire": "2.0.1",
+    "replay": "1.10.3",
     "lazypipe": "0.2.1",
-    "request": "~2.36.0"
+    "request": "2.36.0"
   }
 }
