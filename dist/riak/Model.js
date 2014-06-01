@@ -41,6 +41,12 @@ module.exports = {
     if (type == null) {
       type = 'default';
     }
+    if (!_.isString(bucket)) {
+      throw new TypeError('type is not a string');
+    }
+    if (!(_.isObject(schema) && _.isFunction(schema.validate))) {
+      throw new TypeError('schema is not a schema object');
+    }
     return (function(_super) {
       var self;
 

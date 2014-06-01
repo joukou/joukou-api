@@ -1,51 +1,8 @@
-assert            = require( 'assert' )
-chai              = require( 'chai' )
-chaiAsPromised    = require( 'chai-as-promised' )
-chai.use( chaiAsPromised )
-should            = chai.should()
 
 
 xdescribe 'riak/MetaValue', ->
 
-  specify 'is defined', ->
-    should.exist( MetaValue )
-
-  describe 'getValue', ->
-
-    specify 'is defined', ->
-      should.exist( MetaValue::getValue )
-      MetaValue::getValue.should.be.a( 'function' )
-
-    specify 'is equal to value', ->
-      value = {}
-      metaValue = new MetaValue(
-        value: value
-      )
-      metaValue.getValue().should.equal( value )
-
-  describe 'getModel', ->
-
-    specify 'is defined', ->
-      should.exist( MetaValue::getModel )
-      MetaValue::getModel.should.be.a( 'function' )
-
-    specify 'is equal to model', ->
-      metaValue = new MetaValue()
-      model = {}
-      metaValue.model = model
-      metaValue.getModel().should.equal( model )
-
-  describe 'setModel', ->
-  
-    specify 'is defined', ->
-      should.exist( MetaValue::setModel )
-      MetaValue::setModel.should.be.a( 'function' )
-
-    specify 'sets the model', ->
-      metaValue = new MetaValue()
-      model = {}
-      metaValue.setModel( model )
-      metaValue.model.should.equal( model )
+ 
 
   describe 'getParams', ->
 

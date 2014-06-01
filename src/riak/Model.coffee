@@ -32,6 +32,12 @@ module.exports =
 
     type ?= 'default'
 
+    unless _.isString( bucket )
+      throw new TypeError( 'type is not a string' )
+
+    unless _.isObject( schema ) and _.isFunction( schema.validate )
+      throw new TypeError( 'schema is not a schema object' )
+
     class extends EventEmitter
 
       self = @
