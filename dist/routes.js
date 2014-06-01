@@ -2,6 +2,7 @@
 
 /**
 @module joukou-api/routes
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @author Juan Morales <juan@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */

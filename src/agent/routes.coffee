@@ -1,7 +1,7 @@
 "use strict"
 
 ###*
-{@link module:joukou-api/agent/model|Agent} routes.
+{@link module:joukou-api/agent/Model|Agent} routes.
 
 @module joukou-api/agent/routes
 @requires lodash
@@ -9,17 +9,17 @@
 @requires joukou-api/config
 @requires joukou-api/authn
 @requires joukou-api/authz
-@requires joukou-api/agent/model
+@requires joukou-api/agent/Model
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-_       = require( 'lodash' )
-jwt     = require( 'jsonwebtoken' )
-authn   = require( '../authn' )
-authz   = require( '../authz' )
-model   = require( './model' )
-config  = require( '../config' )
+_             = require( 'lodash' )
+jwt           = require( 'jsonwebtoken' )
+authn         = require( '../authn' )
+authz         = require( '../authz' )
+config        = require( '../config' )
+AgentModel    = require( './Model' )
 
 module.exports = self =
   ###*

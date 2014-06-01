@@ -8,7 +8,7 @@ authorizes the agent to work under his control and on his behalf.
 Latin: qui facit per alium, facit per se, i.e. the one who acts through
 another, acts in his or her own interests.
 
-@module joukou-api/agent/model
+@module joukou-api/agent/Model
 @requires joukou-api/agent/schema
 @requires joukou-api/riak/Model
 @requires joukou-api/error/BcryptError
