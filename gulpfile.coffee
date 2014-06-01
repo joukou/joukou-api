@@ -213,7 +213,7 @@ gulp.task( 'nodemon:develop', [ 'build' ], ->
   plugins.nodemon(
     script: 'dist/server.js'
     env:
-      JOUKOU_PORT: 3010
+      JOUKOU_PORT: 2111 # Offset by 10 to avoid conflicts with Mocha tests.
     ext: 'js'
     watch: [ 'dist', 'node_modules' ]
   )
@@ -224,10 +224,4 @@ gulp.task( 'nodemon:develop', [ 'build' ], ->
 
 gulp.task( 'develop', [ 'build', 'test:develop', 'nodemon:develop' ], ->
   gulp.watch( paths.src.coffee, [ 'sloc', 'coffeelint', 'coffee:develop' ] )
-)
-
-gulp.task( 'foo', ( done ) ->
-
-  console.log( joukou.getName() )
-
 )
