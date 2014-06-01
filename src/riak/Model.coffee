@@ -69,7 +69,7 @@ module.exports =
           )
 
           riak.put( metaValue: metaValue ).then( ->
-            deferred.resolve( metaValue )
+            deferred.resolve( new self( metaValue: metaValue ) )
           ).fail( ( err ) ->
             deferred.reject( err )
           )

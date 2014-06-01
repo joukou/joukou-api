@@ -88,7 +88,9 @@ module.exports = {
           return riak.put({
             metaValue: metaValue
           }).then(function() {
-            return deferred.resolve(metaValue);
+            return deferred.resolve(new self({
+              metaValue: metaValue
+            }));
           }).fail(function(err) {
             return deferred.reject(err);
           });

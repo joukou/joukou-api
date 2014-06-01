@@ -52,7 +52,7 @@ describe 'riak/Client', ->
       )
 
     after ( done ) ->
-      riakpbc.del( bucket: 'test', key: 'bob_marley', ( err, reply ) ->
+      riakpbc.del( { bucket: 'test', key: 'bob_marley' }, ( err, reply ) ->
         done()
       )
 
@@ -72,6 +72,6 @@ describe 'riak/Client', ->
       ).should.be.fulfilled
 
     after ( done ) ->
-      riakpbc.del( bucket: 'test', key: 'bruce_lee', ( err, reply ) ->
+      riakpbc.del( { bucket: 'test', key: 'bruce_lee' }, ( err, reply ) ->
         done()
       )

@@ -40,7 +40,7 @@ agentModel = Model.define({
 agentModel.prototype.verifyPassword = function(password) {
   var deferred;
   deferred = Q.defer();
-  bcrypt.compare(password, getValue().password, function(err, authenticated) {
+  bcrypt.compare(password, this.getValue().password, function(err, authenticated) {
     if (err) {
       return deferred.reject(new BcryptError(err));
     } else {

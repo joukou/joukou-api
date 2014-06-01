@@ -34,7 +34,7 @@ agentModel      = Model.define(
 agentModel::verifyPassword = ( password ) ->
   deferred = Q.defer()
 
-  bcrypt.compare( password, getValue().password, ( err, authenticated ) ->
+  bcrypt.compare( password, @getValue().password, ( err, authenticated ) ->
     if err
       deferred.reject( new BcryptError( err ) )
     else
