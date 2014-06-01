@@ -8,11 +8,9 @@ riakpbc           = require( 'riakpbc' ).createClient(
                       host: 'localhost'
                       port: 8087
                     )
-riak              = require( '../../dist/riak/Client' )
-MetaValue         = require( '../../dist/riak/MetaValue' )
 NotFoundError     = require( '../../dist/riak/NotFoundError' )
 
-describe 'riak/Client', ->
+xdescribe 'riak/Client', ->
 
   specify 'is defined', ->
     riak.should.exist

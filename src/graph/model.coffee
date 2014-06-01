@@ -16,12 +16,12 @@ GraphModel = Model.define(
   bucket: 'graph'
 )
 
-GraphModel.beforeCreate = ( metaValue ) ->
+GraphModel.afterCreate = ( graph ) ->
   deferred = Q.defer()
 
-  metaValue.addSecondaryIndex( 'persona' )
+  graph.addSecondaryIndex( 'persona' )
 
-  deferred.resolve( metaValue )
+  deferred.resolve( graph )
 
   deferred.promise
 

@@ -6,21 +6,24 @@ should            = chai.should()
 
 AgentModel        = require( '../../dist/agent/Model' )
 NotFoundError     = require( '../../dist/riak/NotFoundError' )
-riak              = require( '../../dist/riak/Client' )
+pbc               = require( '../../dist/riak/pbc' )
 
 describe 'agent/Model', ->
 
   before ( done ) ->
-    riak.put(
+    pbc.put(
       bucket: 'agent'
       key: 'isaac@joukou.com'
-      value:
-        username: 'isaac@joukou.com'
-        roles: [ 'operator' ]
-        name: 'Isaac'
-        password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG' # "password" in bcrypt w/ 10 rounds
-    ).then( ->
-      done()
+      content:
+        content_type: 'application/json'
+        value: JSON.stringify(
+          username: 'isaac@joukou.com'
+          roles: [ 'operator' ]
+          name: 'Isaac'
+          password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG' # "password" in bcrypt w/ 10 rounds
+        )
+    , ( err, reply ) ->
+      done( err )
     )
 
   specify 'is defined', ->
@@ -31,7 +34,7 @@ describe 'agent/Model', ->
     specify 'is eventually rejected with a NotFoundError if the username does not exist', ->
       AgentModel.retrieve( 'bogus' ).should.eventually.be.rejectedWith( NotFoundError )
 
-    specify 'is eventually resolved with a MetaValue if the username does exist', ->
+    specify 'is eventually resolved with a Model instance if the username does exist', ->
       AgentModel.retrieve( 'isaac@joukou.com' ).then( ( agent ) ->
         agent.getValue().should.deep.equal(
           username: 'isaac@joukou.com'

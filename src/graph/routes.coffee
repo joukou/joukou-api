@@ -13,7 +13,6 @@ the `joukou-fbpp` WebSocket flow-based programming protocol server.
 ###
 
 authn       = require( '../authn' )
-riak        = require( '../riak/Client' )
 GraphModel  = require( './Model' )
 
 module.exports = self =
@@ -76,7 +75,7 @@ module.exports = self =
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
   ###
   retrieve: ( req, res, next ) ->
-    riak.get( bucket: 'graph', key: req.params.graphKey ).then( ( graph ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       console.log( req.user )
       res.send( graph.getValue() )
     ).fail( ( err ) ->

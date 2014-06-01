@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "pbc.js",
+  "sourceRoot": "../../src/riak",
+  "sources": [
+    "pbc.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,MAAM,CAAC,OAAP,GAAiB,OAAA,CAAS,SAAT,CAAoB,CAAC,YAArB,CACf;AAAA,EAAA,IAAA,EAAM,WAAN;AAAA,EACA,IAAA,EAAM,IADN;CADe,CAAjB,CAAA"
+}

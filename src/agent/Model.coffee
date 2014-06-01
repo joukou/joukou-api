@@ -32,21 +32,21 @@ AgentModel      = Model.define(
 )
 
 ###*
-Before creating an agent, encrypt the password with bcrypt.
+After creating an agent model instance, encrypt the password with bcrypt.
 ###
-AgentModel.beforeCreate = ( metaValue ) ->
+AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
   bcrypt.getSalt( 10, ( err, salt ) ->
     if err
       deferred.reject( new BcryptError( err ) )
     else
-      bcrypt.hash( metaValue.getValue().password, salt, ( err, hash ) ->
+      bcrypt.hash( agent.getValue().password, salt, ( err, hash ) ->
         if err
           deferred.reject( new BcryptError( err ) )
         else
-          metaValue.setValue( _.assign( metaValue.getValue(), password: hash ) )
-          deferred.resolve( metaValue )
+          agent.setValue( _.assign( agent.getValue(), password: hash ) )
+          deferred.resolve( agent )
       )
   )
 
@@ -89,6 +89,5 @@ AgentModel::hasSomeRoles = ( agent, roles ) ->
   _.some( roles, ( role ) =>
     @getRoles().indexOf( role ) isnt -1
   )
-
 
 module.exports = AgentModel

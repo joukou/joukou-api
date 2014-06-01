@@ -19,11 +19,11 @@ GraphModel = Model.define({
   bucket: 'graph'
 });
 
-GraphModel.beforeCreate = function(metaValue) {
+GraphModel.afterCreate = function(graph) {
   var deferred;
   deferred = Q.defer();
-  metaValue.addSecondaryIndex('persona');
-  deferred.resolve(metaValue);
+  graph.addSecondaryIndex('persona');
+  deferred.resolve(graph);
   return deferred.promise;
 };
 

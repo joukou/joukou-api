@@ -4,9 +4,8 @@ chaiAsPromised    = require( 'chai-as-promised' )
 chai.use( chaiAsPromised )
 should            = chai.should()
 
-MetaValue         = require( '../../dist/riak/MetaValue' )
 
-describe 'riak/MetaValue', ->
+xdescribe 'riak/MetaValue', ->
 
   specify 'is defined', ->
     should.exist( MetaValue )

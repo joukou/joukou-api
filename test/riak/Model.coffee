@@ -8,10 +8,9 @@ rewire            = require( 'rewire' )
 
 Q                 = require( 'q' )
 schemajs          = require( 'schemajs' )
-MetaValue         = require( '../../dist/riak/MetaValue' )
 Model             = rewire( '../../dist/riak/Model' )
 
-describe 'riak/Model', ->
+xdescribe 'riak/Model', ->
 
   specify 'is defined', ->
     should.exist( Model )

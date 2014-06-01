@@ -39,24 +39,24 @@ AgentModel = Model.define({
 
 
 /**
-Before creating an agent, encrypt the password with bcrypt.
+After creating an agent model instance, encrypt the password with bcrypt.
  */
 
-AgentModel.beforeCreate = function(metaValue) {
+AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
   bcrypt.getSalt(10, function(err, salt) {
     if (err) {
       return deferred.reject(new BcryptError(err));
     } else {
-      return bcrypt.hash(metaValue.getValue().password, salt, function(err, hash) {
+      return bcrypt.hash(agent.getValue().password, salt, function(err, hash) {
         if (err) {
           return deferred.reject(new BcryptError(err));
         } else {
-          metaValue.setValue(_.assign(metaValue.getValue(), {
+          agent.setValue(_.assign(agent.getValue(), {
             password: hash
           }));
-          return deferred.resolve(metaValue);
+          return deferred.resolve(agent);
         }
       });
     }
