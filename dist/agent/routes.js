@@ -80,7 +80,19 @@ module.exports = self = {
   @param {Function} next
    */
   show: function(req, res, next) {
-    return res.send(503);
+    if (!(req.params.username === req.user.getUsername() || req.user.hasRole('operator'))) {
+      return res.send(401);
+    } else {
+      return AgentModel.retrieve(req.params.username).then(function(agent) {
+        return res.send(200, agent.getRepresentation());
+      }).fail(function(err) {
+        if (err.notFound) {
+          return res.send(401);
+        } else {
+          return res.send(503);
+        }
+      });
+    }
   },
 
   /**

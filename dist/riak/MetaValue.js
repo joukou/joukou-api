@@ -54,12 +54,23 @@ module.exports = (function() {
         }
       };
     })(this));
+    if (this.indexes == null) {
+      this.indexes = [];
+    }
     this.contentType = this._detectContentType();
     return;
   }
 
+  _Class.prototype.getKey = function() {
+    return this.key;
+  };
+
   _Class.prototype.getValue = function() {
     return this.value;
+  };
+
+  _Class.prototype.setValue = function(value) {
+    this.value = value;
   };
 
 
@@ -106,8 +117,53 @@ module.exports = (function() {
     if (this.vtag) {
       content.vtag = this.vtag;
     }
+    if (this.hasSecondaryIndexes()) {
+      content.indexes = this.getSecondaryIndexes();
+    }
     params.content = content;
     return params;
+  };
+
+  _Class.prototype.addSecondaryIndex = function(key) {
+    this.indexes.push(key);
+    return this;
+  };
+
+  _Class.prototype.hasSecondaryIndexes = function() {
+    return this.indexes.length > 0;
+  };
+
+  _Class.prototype.getSecondaryIndexes = function() {
+    var indexes, key, _i, _len, _ref;
+    indexes = [];
+    _ref = this.indexes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      if (this.value.hasOwnProperty(key)) {
+        indexes.push({
+          key: this._getSecondaryIndexKey(key),
+          value: this.value[key]
+        });
+      }
+    }
+    return indexes;
+  };
+
+
+  /**
+  Get the secondary index field name based on reflection of the value associated
+  with the given key.
+  @return {string}
+   */
+
+  _Class.prototype._getSecondaryIndexKey = function(key) {
+    if (_.isNumber(this.value[key])) {
+      return "" + key + "_int";
+    } else if (_.isString(this.value[key])) {
+      return "" + key + "_bin";
+    } else {
+      throw new Error('Invalid secondary index type');
+    }
   };
 
 

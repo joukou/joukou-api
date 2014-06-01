@@ -52,12 +52,19 @@ module.exports = class
         @[ key ] = options[ key ]
     )
 
+    @indexes ?= []
+
     @contentType = @_detectContentType()
 
     return
 
+  getKey: ->
+    @key
+
   getValue: ->
     @value
+
+  setValue: ( @value ) ->
 
   ###*
   Get the *Model* associated with `this` *MetaValue*.
@@ -89,10 +96,41 @@ module.exports = class
     content.value = @getSerializedValue()
     content.content_type = @getContentType()
     content.vtag = @vtag if @vtag
+    content.indexes = @getSecondaryIndexes() if @hasSecondaryIndexes()
 
     params.content = content
 
     params
+
+  addSecondaryIndex: ( key ) ->
+    @indexes.push( key )
+    @
+
+  hasSecondaryIndexes: ->
+    @indexes.length > 0
+
+  getSecondaryIndexes: ->
+    indexes = []
+    for key in @indexes
+      if @value.hasOwnProperty( key )
+        indexes.push(
+          key: @_getSecondaryIndexKey( key )
+          value: @value[ key ]
+        )
+    indexes
+
+  ###*
+  Get the secondary index field name based on reflection of the value associated
+  with the given key.
+  @return {string}
+  ###
+  _getSecondaryIndexKey: ( key ) ->
+    if _.isNumber( @value[ key ] )
+      "#{key}_int"
+    else if _.isString( @value[ key ] )
+      "#{key}_bin"
+    else
+      throw new Error( 'Invalid secondary index type' )
 
   ###*
   Get a serialized representation of the value.

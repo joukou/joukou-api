@@ -1,24 +1,25 @@
 "use strict";
 
 /**
-{@link module:joukou-api/personas/model|Persona} APIs.
+{@link module:joukou-api/personas/Model|Persona} routes.
 
 @module joukou-api/persona/routes
 @requires lodash
 @requires joukou-api/authn
 @requires joukou-api/authz
+@requires joukou-api/persona/Model
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var authn, authz, self, _;
-
-self = module.exports;
+var PersonaModel, authn, authz, self, _;
 
 _ = require('lodash');
 
 authn = require('../authn');
 
 authz = require('../authz');
+
+PersonaModel = require('./Model');
 
 module.exports = self = {
 
@@ -38,7 +39,17 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
-    return res.send(503);
+    return PersonaModel.create(rawValue).then(function(persona) {
+      persona.setCreator(req.user);
+      persona.setOwner(req.user);
+      return persona.save().then(function() {
+        res.header('Location', "/persona/" + (persona.getKey()));
+        res.link("/persona/" + (persona.getKey()), 'location');
+        return res.send(201);
+      });
+    }).fail(function(err) {
+      return res.send(503);
+    });
   },
 
   /**

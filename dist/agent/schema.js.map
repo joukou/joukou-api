@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "schema.js",
-  "sourceRoot": "",
+  "sourceRoot": "../../src/agent",
   "sources": [
     "schema.coffee"
   ],

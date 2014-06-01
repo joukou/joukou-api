@@ -54,26 +54,24 @@ module.exports =
           )
           return deferred.promise
 
+        metaValue = new MetaValue(
+          type: @getType()
+          bucket: @bucket
+          key: uuid.v4()
+          value: value
+        )
+
         if self.beforeCreate
-          beforeCreate = self.beforeCreate( value )
+          beforeCreate = self.beforeCreate( metaValue )
         else
-          beforeCreate = Q.fcall( -> value )
+          beforeCreate = Q.fcall( -> metaValue )
 
-        beforeCreate.then( ( value ) ->
-
-          metaValue = new MetaValue(
-            type: @getType()
-            bucket: @bucket
-            key: uuid.v4()
-            value: value
-          )
-
+        beforeCreate.then( ( metaValue ) ->
           riak.put( metaValue: metaValue ).then( ->
             deferred.resolve( new self( metaValue: metaValue ) )
           ).fail( ( err ) ->
             deferred.reject( err )
           )
-
         )
 
         deferred.promise

@@ -68,7 +68,20 @@ module.exports = self =
   @param {Function} next
   ###
   show: ( req, res, next ) ->
-    res.send( 503 )
+    unless req.params.username is req.user.getUsername() or
+    req.user.hasRole( 'operator' )
+      res.send( 401 )
+    else
+      AgentModel.retrieve( req.params.username ).then( ( agent ) ->
+        res.send( 200, agent.getRepresentation() )
+      ).fail( ( err ) ->
+        if err.notFound
+          # Technically this should be a 404 NotFound, but that can be abused by
+          # an attacker to discover valid vs invalid usernames.
+          res.send( 401 )
+        else
+          res.send( 503 )
+      )
 
   ###*
   Handles a request to create a relationship between an agent and a persona.

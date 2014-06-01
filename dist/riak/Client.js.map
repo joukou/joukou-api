@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "Client.js",
-  "sourceRoot": "",
+  "sourceRoot": "../../src/riak",
   "sources": [
     "Client.coffee"
   ],

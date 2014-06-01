@@ -60,7 +60,7 @@ tasks =
 
   coffee: ->
     gulp.src( paths.src.coffee )
-      .pipe( plugins.coffee( bare: true, sourceMap: true ) )
+      .pipe( plugins.coffee( bare: true, sourceMap: true, sourceDest: paths.dist.dir ) )
       .pipe( gulp.dest( paths.dist.dir ) )
       .on( 'error', plugins.util.log )
 

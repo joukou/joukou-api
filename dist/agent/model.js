@@ -8,7 +8,7 @@ authorizes the agent to work under his control and on his behalf.
 Latin: qui facit per alium, facit per se, i.e. the one who acts through
 another, acts in his or her own interests.
 
-@module joukou-api/agent/Model
+@class joukou-api/agent/Model
 @requires joukou-api/agent/schema
 @requires joukou-api/riak/Model
 @requires joukou-api/error/BcryptError
@@ -18,7 +18,7 @@ another, acts in his or her own interests.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BcryptError, Model, Q, agentModel, bcrypt, schema, _;
+var AgentModel, BcryptError, Model, Q, bcrypt, schema, _;
 
 _ = require('lodash');
 
@@ -32,12 +32,46 @@ Model = require('../riak/Model');
 
 BcryptError = require('../error/BcryptError');
 
-agentModel = Model.define({
+AgentModel = Model.define({
   schema: schema,
   bucket: 'agent'
 });
 
-agentModel.prototype.verifyPassword = function(password) {
+
+/**
+Before creating an agent, encrypt the password with bcrypt.
+ */
+
+AgentModel.beforeCreate = function(metaValue) {
+  var deferred;
+  deferred = Q.defer();
+  bcrypt.getSalt(10, function(err, salt) {
+    if (err) {
+      return deferred.reject(new BcryptError(err));
+    } else {
+      return bcrypt.hash(metaValue.getValue().password, salt, function(err, hash) {
+        if (err) {
+          return deferred.reject(new BcryptError(err));
+        } else {
+          metaValue.setValue(_.assign(metaValue.getValue(), {
+            password: hash
+          }));
+          return deferred.resolve(metaValue);
+        }
+      });
+    }
+  });
+  return deferred.promise;
+};
+
+
+/**
+Verify the given `password` against the stored password.
+@method verifyPassword
+@return {q.promise}
+ */
+
+AgentModel.prototype.verifyPassword = function(password) {
   var deferred;
   deferred = Q.defer();
   bcrypt.compare(password, this.getValue().password, function(err, authenticated) {
@@ -50,27 +84,37 @@ agentModel.prototype.verifyPassword = function(password) {
   return deferred.promise;
 };
 
-agentModel.beforeCreate = function(value) {
-  var deferred;
-  deferred = Q.defer();
-  bcrypt.getSalt(10, function(err, salt) {
-    if (err) {
-      return deferred.reject(new BcryptError(err));
-    } else {
-      return bcrypt.hash(value.password, salt, function(err, hash) {
-        if (err) {
-          return deferred.reject(new BcryptError(err));
-        } else {
-          value.password = hash;
-          return deferred.resolve(value);
-        }
-      });
-    }
-  });
-  return deferred.promise;
+AgentModel.prototype.getRepresentation = function() {
+  return _.pick(this.getValue(), ['username', 'roles', 'name']);
 };
 
-module.exports = agentModel;
+AgentModel.prototype.getUsername = function() {
+  return this.getValue().username;
+};
+
+AgentModel.prototype.getName = function() {
+  return this.getValue().name;
+};
+
+AgentModel.prototype.getRoles = function() {
+  return this.getValue().roles;
+};
+
+AgentModel.prototype.hasRole = function(agent, role) {
+  var roles;
+  roles = [role];
+  return this.hasSomeRoles(roles);
+};
+
+AgentModel.prototype.hasSomeRoles = function(agent, roles) {
+  return _.some(roles, (function(_this) {
+    return function(role) {
+      return _this.getRoles().indexOf(role) !== -1;
+    };
+  })(this));
+};
+
+module.exports = AgentModel;
 
 /*
 //# sourceMappingURL=Model.js.map

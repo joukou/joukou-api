@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "schema.js",
+  "sourceRoot": "../../src/persona",
+  "sources": [
+    "schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;GAFA;AAAA,IAAA,MAAA;;AAAA,MAQA,GAAS,OAAA,CAAS,UAAT,CART,CAAA;;AAAA,MAUM,CAAC,OAAP,GAAiB,MAAM,CAAC,MAAP,CACf;AAAA,EAAA,IAAA,EACE;AAAA,IAAA,IAAA,EAAM,SAAN;AAAA,IACA,QAAA,EAAU,IADV;AAAA,IAEA,SAAA,EAAW,KAFX;AAAA,IAGA,OAAA,EAAS,CAAE,MAAF,CAHT;GADF;CADe,CAVjB,CAAA"
+}

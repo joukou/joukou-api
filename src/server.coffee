@@ -12,7 +12,9 @@ require( 'source-map-support' ).install()
 
 restify       = require( 'restify' )
 authn         = require( './authn' )
+hal           = require( './hal' )
 routes        = require( './routes' )
+
 LoggerFactory = require( './log/LoggerFactory' )
 cors          = require( 'restify-cors-middleware' )(
   origins: [
@@ -41,9 +43,20 @@ cors          = require( 'restify-cors-middleware' )(
   ]
 )
 
+getServerName = ->
+  switch process.env.NODE_ENV
+    when 'production'
+      'api.joukou.com'
+    when 'staging'
+      'staging-api.joukou.com'
+    else
+      require( '../package.json' ).name
+
 module.exports = server = restify.createServer(
-  name: 'joukou.com'
+  name: getServerName()
   version: require( '../package.json' ).version
+  formatters:
+    'application/hal+json': hal.formatter
   log: LoggerFactory.getLogger( name: 'server' )
 )
 
@@ -56,6 +69,7 @@ server.use( restify.bodyParser( mapParams: false ) )
 server.use( authn.middleware( ) )
 server.pre( cors.preflight )
 server.use( cors.actual )
+server.use( hal.link( ) )
 
 server.on( 'after', restify.auditLogger(
   log: LoggerFactory.getLogger( name: 'audit' )

@@ -8,7 +8,7 @@ rewire            = require( 'rewire' )
 
 Q                 = require( 'q' )
 schemajs          = require( 'schemajs' )
-
+MetaValue         = require( '../../dist/riak/MetaValue' )
 Model             = rewire( '../../dist/riak/Model' )
 
 describe 'riak/Model', ->
@@ -71,7 +71,7 @@ describe 'riak/Model', ->
         TestModel.create.should.be.a( 'function' )
 
       specify 'calls beforeCreate if it exists', ->
-        TestModel.beforeCreate = sinon.stub().returns( Q.fcall( -> name: 'This is a test.' ) )
+        TestModel.beforeCreate = sinon.stub().returns( Q.fcall( -> new MetaValue( value: { name: 'This is a test.' } ) ) )
         TestModel.create( name: 'This is a test.' )
         TestModel.beforeCreate.should.have.been.called
 

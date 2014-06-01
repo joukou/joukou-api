@@ -7,13 +7,15 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2013 Joukou Ltd. All rights reserved.
  */
-var LoggerFactory, authn, cors, restify, routes, server;
+var LoggerFactory, authn, cors, getServerName, hal, restify, routes, server;
 
 require('source-map-support').install();
 
 restify = require('restify');
 
 authn = require('./authn');
+
+hal = require('./hal');
 
 routes = require('./routes');
 
@@ -25,9 +27,23 @@ cors = require('restify-cors-middleware')({
   exposeHeaders: ['api-version', 'content-length', 'content-md5', 'content-type', 'date', 'request-id', 'response-time']
 });
 
+getServerName = function() {
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      return 'api.joukou.com';
+    case 'staging':
+      return 'staging-api.joukou.com';
+    default:
+      return require('../package.json').name;
+  }
+};
+
 module.exports = server = restify.createServer({
-  name: 'joukou.com',
+  name: getServerName(),
   version: require('../package.json').version,
+  formatters: {
+    'application/hal+json': hal.formatter
+  },
   log: LoggerFactory.getLogger({
     name: 'server'
   })
@@ -52,6 +68,8 @@ server.use(authn.middleware());
 server.pre(cors.preflight);
 
 server.use(cors.actual);
+
+server.use(hal.link());
 
 server.on('after', restify.auditLogger({
   log: LoggerFactory.getLogger({

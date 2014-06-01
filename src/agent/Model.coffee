@@ -8,7 +8,7 @@ authorizes the agent to work under his control and on his behalf.
 Latin: qui facit per alium, facit per se, i.e. the one who acts through
 another, acts in his or her own interests.
 
-@module joukou-api/agent/Model
+@class joukou-api/agent/Model
 @requires joukou-api/agent/schema
 @requires joukou-api/riak/Model
 @requires joukou-api/error/BcryptError
@@ -26,12 +26,38 @@ schema          = require( './schema')
 Model           = require( '../riak/Model' )
 BcryptError     = require( '../error/BcryptError' )
 
-agentModel      = Model.define(
+AgentModel      = Model.define(
   schema: schema
   bucket: 'agent'
 )
 
-agentModel::verifyPassword = ( password ) ->
+###*
+Before creating an agent, encrypt the password with bcrypt.
+###
+AgentModel.beforeCreate = ( metaValue ) ->
+  deferred = Q.defer()
+
+  bcrypt.getSalt( 10, ( err, salt ) ->
+    if err
+      deferred.reject( new BcryptError( err ) )
+    else
+      bcrypt.hash( metaValue.getValue().password, salt, ( err, hash ) ->
+        if err
+          deferred.reject( new BcryptError( err ) )
+        else
+          metaValue.setValue( _.assign( metaValue.getValue(), password: hash ) )
+          deferred.resolve( metaValue )
+      )
+  )
+
+  deferred.promise
+
+###*
+Verify the given `password` against the stored password.
+@method verifyPassword
+@return {q.promise}
+###
+AgentModel::verifyPassword = ( password ) ->
   deferred = Q.defer()
 
   bcrypt.compare( password, @getValue().password, ( err, authenticated ) ->
@@ -43,22 +69,26 @@ agentModel::verifyPassword = ( password ) ->
 
   deferred.promise
 
-agentModel.beforeCreate = ( value ) ->
-  deferred = Q.defer()
+AgentModel::getRepresentation = ->
+  _.pick( @getValue(), [ 'username', 'roles', 'name' ] )
 
-  bcrypt.getSalt( 10, ( err, salt ) ->
-    if err
-      deferred.reject( new BcryptError( err ) )
-    else
-      bcrypt.hash( value.password, salt, ( err, hash ) ->
-        if err
-          deferred.reject( new BcryptError( err ) )
-        else
-          value.password = hash
-          deferred.resolve( value )
-      )
+AgentModel::getUsername = ->
+  @getValue().username
+
+AgentModel::getName = ->
+  @getValue().name
+
+AgentModel::getRoles = ->
+  @getValue().roles
+
+AgentModel::hasRole = ( agent, role ) ->
+  roles = [ role ]
+  @hasSomeRoles( roles )
+
+AgentModel::hasSomeRoles = ( agent, roles ) ->
+  _.some( roles, ( role ) =>
+    @getRoles().indexOf( role ) isnt -1
   )
 
-  deferred.promise
 
-module.exports = agentModel
+module.exports = AgentModel

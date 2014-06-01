@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "BcryptError.js",
-  "sourceRoot": "",
+  "sourceRoot": "../../src/error",
   "sources": [
     "BcryptError.coffee"
   ],

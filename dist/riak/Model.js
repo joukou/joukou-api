@@ -61,7 +61,7 @@ module.exports = {
        */
 
       _Class.create = function(rawValue) {
-        var beforeCreate, deferred, errors, valid, value, _ref;
+        var beforeCreate, deferred, errors, metaValue, valid, value, _ref;
         deferred = Q.defer();
         _ref = self.getSchema().validate(rawValue), value = _ref.value, errors = _ref.errors, valid = _ref.valid;
         if (!valid) {
@@ -70,21 +70,20 @@ module.exports = {
           });
           return deferred.promise;
         }
+        metaValue = new MetaValue({
+          type: this.getType(),
+          bucket: this.bucket,
+          key: uuid.v4(),
+          value: value
+        });
         if (self.beforeCreate) {
-          beforeCreate = self.beforeCreate(value);
+          beforeCreate = self.beforeCreate(metaValue);
         } else {
           beforeCreate = Q.fcall(function() {
-            return value;
+            return metaValue;
           });
         }
-        beforeCreate.then(function(value) {
-          var metaValue;
-          metaValue = new MetaValue({
-            type: this.getType(),
-            bucket: this.bucket,
-            key: uuid.v4(),
-            value: value
-          });
+        beforeCreate.then(function(metaValue) {
           return riak.put({
             metaValue: metaValue
           }).then(function() {
