@@ -22,17 +22,23 @@ module.exports =
   @param {Object} body
   @return {Object}
   ###
-  formatter: (req, res, body) ->
-    if Buffer.isBuffer(body)
-      body = body.toString('base64')
-    else if body instanceof Error
+  formatter: ( req, res, body ) ->
+    # Binary data
+    if Buffer.isBuffer( body )
+      data = body.toString( 'base64' )
+      res.setHeader( 'Content-Length', Buffer.byteLength( data ) )
+      return data
+
+    # Error
+    if body instanceof Error
       res.setHeader('Content-Type', 'application/vnd.error+json')
       res.statusCode = body.statusCode or 500
-      body = [
+      body =
         logref: body.restCode
         message: body.message
         _links: res._links
-      ]
+
+    # HAL+JSON
     else
       res.link(req.path(), 'self')
       body._links = res._links

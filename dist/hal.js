@@ -29,17 +29,18 @@ module.exports = {
   formatter: function(req, res, body) {
     var data;
     if (Buffer.isBuffer(body)) {
-      body = body.toString('base64');
-    } else if (body instanceof Error) {
+      data = body.toString('base64');
+      res.setHeader('Content-Length', Buffer.byteLength(data));
+      return data;
+    }
+    if (body instanceof Error) {
       res.setHeader('Content-Type', 'application/vnd.error+json');
       res.statusCode = body.statusCode || 500;
-      body = [
-        {
-          logref: body.restCode,
-          message: body.message,
-          _links: res._links
-        }
-      ];
+      body = {
+        logref: body.restCode,
+        message: body.message,
+        _links: res._links
+      };
     } else {
       res.link(req.path(), 'self');
       body._links = res._links;
