@@ -10,7 +10,8 @@ _                 = require( 'lodash' )
 Q                 = require( 'q' )
 pbc               = require( '../../dist/riak/pbc' )
 schemajs          = require( 'schemajs' )
-Model             = rewire( '../../dist/riak/Model' )
+Model             = require( '../../dist/riak/Model' )
+NotFoundError     = require( '../../dist/riak/NotFoundError' )
 
 describe 'riak/Model', ->
 
@@ -186,10 +187,63 @@ describe 'riak/Model', ->
         )
 
     describe '.retrieve( key )', ->
+      
+      before ( done ) ->
+        pbc.put(
+          bucket: 'test-retrieve'
+          key: 'bob_marley'
+          content:
+            content_type: 'application/json'
+            value: JSON.stringify(
+              future: 'In this bright future you can\'t forget your past.'
+              free: 'None but ourselves can free our minds.'
+            )
+        , ( err, reply ) ->
+          done()
+        )
 
       specify 'is defined', ->
         should.exist( TestModel.retrieve )
         TestModel.retrieve.should.be.a( 'function' )
+
+      specify 'is eventually rejected with a NotFoundError if the bucket/key location does not exist', ->
+        RetrieveModel = Model.define(
+          bucket: 'test-retrieve'
+          schema: schemajs.create(
+            future:
+              type: 'string+'
+            free:
+              type: 'string+'
+          )
+        )
+
+        RetrieveModel.retrieve( 'nonexistent' )
+          .should.eventually.be.rejectedWith( NotFoundError )
+
+      specify 'is eventually resolved with a model instance if the bucket/key location does exist', ->
+        RetrieveModel = Model.define(
+          bucket: 'test-retrieve'
+          schema: schemajs.create(
+            future:
+              type: 'string+'
+            free:
+              type: 'string+'
+          )
+        )
+
+        RetrieveModel.retrieve( 'bob_marley' ).then( ( instance ) ->
+          should.exist( instance )
+          instance.should.be.an.instanceof( RetrieveModel )
+          instance.getValue().should.deep.equal(
+            future: 'In this bright future you can\'t forget your past.'
+            free: 'None but ourselves can free our minds.'
+          )
+        )
+
+      after ( done ) ->
+        pbc.del( { bucket: 'test-retrieve', key: 'bob_marley' }, ( err, reply ) ->
+          done()
+        )
 
     describe '::getKey()', ->
 
