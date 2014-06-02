@@ -63,12 +63,13 @@ module.exports =
       @param {http.ServerResponse} res
       @param {Function} next
       ###
-      res.__proto__.link = (href, rel, props = {}) ->
-        assert.string(href)
-        assert.string(rel)
+      res.link = ( href, rel, props = {} ) ->
+        assert.string( href )
+        assert.string( rel )
 
         @_links ?= {}
-        (@_links[rel] ?= []).push(_.extend(props,
+        ( @_links[ rel ] ?= [] ).push( _.extend( props,
           href: href
-        ))
+        ) )
+
       next()

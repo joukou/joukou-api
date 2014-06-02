@@ -66,7 +66,7 @@ module.exports = {
       @param {http.ServerResponse} res
       @param {Function} next
        */
-      res.__proto__.link = function(href, rel, props) {
+      res.link = function(href, rel, props) {
         var _base;
         if (props == null) {
           props = {};

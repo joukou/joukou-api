@@ -39,6 +39,24 @@ describe 'joukou-api/hal', ->
       res.setHeader.should.have.been.calledWith( 'Content-Length', 49 )
       res.setHeader.should.have.been.calledWith( 'Content-Type', 'application/vnd.error+json' )
 
+    specify 'is the application/hal+json representation of an object', ->
+      req =
+        path: ->
+          '/test'
+      res =
+        setHeader: sinon.stub()
+      body =
+        person: 'Dr. Seuss'
+        quote: 'Today you are you! That is truer than true! There is no one alive who is you-er than you!'
+
+      middleware = hal.link()
+      middleware( req, res, -> )
+
+      hal.formatter( req, res, body ).should.equal( "{\"person\":\"Dr. Seuss\",\"quote\":\"Today you are you! That is truer than true! There is no one alive who is you-er than you!\",\"_links\":{\"self\":[{\"href\":\"/test\"}]}}" )
+      res.setHeader.should.have.been.calledWith( 'Content-Length', 159 )
+      #res.setHeader.should.have.been.calledWith( 'Content-Type', 'application/hal+json' )
+     
+
   describe '.link() middleware', -> 
 
     specify 'is defined', ->
@@ -50,15 +68,13 @@ describe 'joukou-api/hal', ->
       should.exist( fn )
       fn.should.be.a( 'function' )
 
-    xspecify 'the returned middleware function adds a ::link method to the response object', ( done ) ->
+    specify 'the returned middleware function adds a .link() method to the response object', ( done ) ->
       fn = hal.link()
-      req = {} #new http.ClientRequest()
-      res = {} #new http.ServerResponse()
+      req = {}
+      res = {}
       next = ->
-        should.exist( res::link )
-        res::link.should.be.a( 'function' )
+        should.exist( res.link )
+        res.link.should.be.a( 'function' )
         done()
       fn( req, res, next )
-
-    #describe 'res::link( href, rel, props )', ->
 
