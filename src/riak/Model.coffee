@@ -81,7 +81,7 @@ module.exports =
         deferred = Q.defer()
 
         # Check if the raw data is valid according to the schema
-        { value, errors, valid } = self.getSchema().validate( rawValue )
+        { data, errors, valid } = self.getSchema().validate( rawValue )
 
         # If the raw data is invalid then reject the promise
         unless valid
@@ -94,7 +94,7 @@ module.exports =
         key = uuid.v4()
         
         # Create a new model instance
-        instance = new self( key: key, value: value )
+        instance = new self( key: key, value: data )
 
         # Provide a hook for model definitions to inject post-create logic
         if self.afterCreate
@@ -185,7 +185,7 @@ module.exports =
       save: ->
         deferred = Q.defer()
 
-        pbc.put( @_getPbParams(), ( err, reply ) ->
+        pbc.put( @_getPbParams(), ( err, reply ) =>
           if err
             deferred.reject( err )
           else

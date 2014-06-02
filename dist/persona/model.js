@@ -23,5 +23,5 @@ PersonaModel = Model.define({
 module.exports = PersonaModel;
 
 /*
-//# sourceMappingURL=model.js.map
+//# sourceMappingURL=Model.js.map
 */

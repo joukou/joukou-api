@@ -1,9 +1,9 @@
 {
   "version": 3,
-  "file": "model.js",
+  "file": "Model.js",
   "sourceRoot": "../../src/runtime",
   "sources": [
-    "model.coffee"
+    "Model.coffee"
   ],
   "names": [],
   "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;GAFA;AAAA"

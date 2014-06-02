@@ -30,5 +30,5 @@ GraphModel.afterCreate = function(graph) {
 module.exports = GraphModel;
 
 /*
-//# sourceMappingURL=model.js.map
+//# sourceMappingURL=Model.js.map
 */

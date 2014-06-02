@@ -103,9 +103,9 @@ module.exports = {
        */
 
       _Class.create = function(rawValue) {
-        var afterCreate, deferred, errors, instance, key, valid, value, _ref;
+        var afterCreate, data, deferred, errors, instance, key, valid, _ref;
         deferred = Q.defer();
-        _ref = self.getSchema().validate(rawValue), value = _ref.value, errors = _ref.errors, valid = _ref.valid;
+        _ref = self.getSchema().validate(rawValue), data = _ref.data, errors = _ref.errors, valid = _ref.valid;
         if (!valid) {
           process.nextTick(function() {
             return deferred.reject(errors);
@@ -115,7 +115,7 @@ module.exports = {
         key = uuid.v4();
         instance = new self({
           key: key,
-          value: value
+          value: data
         });
         if (self.afterCreate) {
           afterCreate = self.afterCreate(instance);
@@ -220,16 +220,18 @@ module.exports = {
       _Class.prototype.save = function() {
         var deferred;
         deferred = Q.defer();
-        pbc.put(this._getPbParams(), function(err, reply) {
-          if (err) {
-            return deferred.reject(err);
-          } else {
-            return deferred.resolve(self.createFromReply({
-              key: this.key,
-              reply: reply
-            }));
-          }
-        });
+        pbc.put(this._getPbParams(), (function(_this) {
+          return function(err, reply) {
+            if (err) {
+              return deferred.reject(err);
+            } else {
+              return deferred.resolve(self.createFromReply({
+                key: _this.key,
+                reply: reply
+              }));
+            }
+          };
+        })(this));
         return deferred.promise;
       };
 
