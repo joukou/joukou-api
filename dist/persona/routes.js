@@ -39,13 +39,14 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
-    return PersonaModel.create(rawValue).then(function(persona) {
-      persona.setCreator(req.user);
-      persona.setOwner(req.user);
-      return persona.save().then(function() {
-        res.header('Location', "/persona/" + (persona.getKey()));
-        res.link("/persona/" + (persona.getKey()), 'location');
+    return PersonaModel.create(req.body).then(function(persona) {
+      return persona.save().then(function(reply) {
+        self = "/persona/" + (persona.getKey());
+        res.header('Location', self);
+        res.link(self, 'location');
         return res.send(201);
+      }).fail(function(err) {
+        return res.send(503);
       });
     }).fail(function(err) {
       return res.send(503);

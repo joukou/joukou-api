@@ -7,7 +7,7 @@ server = require( '../dist/server' )
 
 describe 'server', ->
   
-  it 'is true', ->
+  it 'true is true', ->
     true.should.be.true
 
   describe 'Cross Origin Resource Sharing', ->
@@ -42,6 +42,6 @@ describe 'server', ->
 
 
 
-  after ( done ) ->
-    server.once( 'close', done )
-    server.close()
+  #after ( done ) ->
+  #  server.once( 'close', done )
+  #  server.close()

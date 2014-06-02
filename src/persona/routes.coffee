@@ -36,13 +36,14 @@ module.exports = self =
   @param {function(Error)} next
   ###
   create: ( req, res, next ) ->
-    PersonaModel.create( rawValue ).then( ( persona ) ->
-      persona.setCreator( req.user )
-      persona.setOwner( req.user )
-      persona.save().then( ->
-        res.header( 'Location', "/persona/#{persona.getKey()}" )
-        res.link( "/persona/#{persona.getKey()}", 'location' )
+    PersonaModel.create( req.body ).then( ( persona ) ->
+      persona.save().then( ( reply ) ->
+        self = "/persona/#{persona.getKey()}"
+        res.header( 'Location', self )
+        res.link( self, 'location' ) # TODO rel uri
         res.send( 201 )
+      ).fail( ( err ) ->
+        res.send( 503 )
       )
     ).fail( ( err ) ->
       res.send( 503 )
