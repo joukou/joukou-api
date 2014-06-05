@@ -12,7 +12,7 @@ machine:
     version: 0.10.22
   post:
     - cp joukou-api/.circle/riak.conf /etc/riak/riak.conf
-    - sudo service riak start
+    - sudo service riak restart
     - sleep 5
 deployment:
   staging:
