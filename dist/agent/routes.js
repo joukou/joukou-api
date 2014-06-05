@@ -36,10 +36,10 @@ module.exports = self = {
   registerRoutes: function(server) {
     server.post('/agent', self.create);
     server.post('/agent/authenticate', authn.authenticate, self.authenticate);
-    server.get('/agent/:username', authn.authenticate, self.show);
-    server.post('/agent/:username/persona', authn.authenticate, self.linkToPersonas);
-    server.get('/agent/:username/persona', authn.authenticate, self.linkedPersonasSearch);
-    return server.get('/agent/:username/personas/facets', authn.authenticate, self.linkedPersonasSearchFacets);
+    server.get('/agent/:email', authn.authenticate, self.show);
+    server.post('/agent/:email/persona', authn.authenticate, self.addPersona);
+    server.get('/agent/:email/persona', authn.authenticate, self.personaSearch);
+    return server.get('/agent/:email/persona/facet', authn.authenticate, self.personaSearchFacets);
   },
 
   /**
@@ -49,6 +49,13 @@ module.exports = self = {
   @param {Function} next
    */
   create: function(req, res, next) {
+    AgentModel.create(req.body).then(function(agent) {
+      return agent.save().then(function(reply) {}).fail(function(err) {
+        return res.send(503);
+      });
+    }).fail(function(err) {
+      return res.send(503);
+    });
     return model.create(req.body).save().then(function() {
       return res.send(201);
     }).fail(function(err) {
@@ -83,7 +90,7 @@ module.exports = self = {
     if (!(req.params.username === req.user.getUsername() || req.user.hasRole('operator'))) {
       return res.send(401);
     } else {
-      return AgentModel.retrieve(req.params.username).then(function(agent) {
+      return AgentModel.retrieveByEmail(req.params.username).then(function(agent) {
         return res.send(200, agent.getRepresentation());
       }).fail(function(err) {
         if (err.notFound) {
@@ -101,7 +108,7 @@ module.exports = self = {
   @param {http.ServerResponse} res
   @param {Function} next
    */
-  linkToPersonas: function(req, res, next) {
+  addPersona: function(req, res, next) {
     return res.send(503);
   },
 
@@ -111,7 +118,7 @@ module.exports = self = {
   @param {http.ServerResponse} res
   @param {Function} next
    */
-  linkedPersonasSearch: function(req, res, next) {
+  personaSearch: function(req, res, next) {
     return res.send(503);
   },
 
@@ -122,7 +129,7 @@ module.exports = self = {
   @param {http.ServerResponse} res
   @param {Function} next
    */
-  linkedPersonasSearchFacets: function(req, res, next) {
+  personaSearchFacets: function(req, res, next) {
     return res.send(503);
   }
 };

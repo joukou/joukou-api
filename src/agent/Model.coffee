@@ -69,11 +69,14 @@ AgentModel::verifyPassword = ( password ) ->
 
   deferred.promise
 
-AgentModel::getRepresentation = ->
-  _.pick( @getValue(), [ 'username', 'roles', 'name' ] )
+AgentModel.retrieveByEmail = ( email ) ->
+  AgentModel.retrieveBySecondaryIndex( 'email_bin', email, true )
 
-AgentModel::getUsername = ->
-  @getValue().username
+AgentModel::getRepresentation = ->
+  _.pick( @getValue(), [ 'email', 'roles', 'name' ] )
+
+AgentModel::getEmail = ->
+  @getValue().email
 
 AgentModel::getName = ->
   @getValue().name

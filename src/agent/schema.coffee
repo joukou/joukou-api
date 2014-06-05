@@ -10,15 +10,16 @@
 schema = require( 'schemajs' )
 
 module.exports = schema.create(
-  username:
-    type: 'string+'
-    required: true
-    allownull: false
-    filters: [ 'trim' ]
   email:
     type: 'email'
     required: true
     allownull: false
+    filters: [ 'trim' ]
+  name:
+    type: 'string+'
+    required: true
+    allownull: false
+    filters: [ 'trim' ]
   password:
     type: 'string+'
     required: true
@@ -26,5 +27,5 @@ module.exports = schema.create(
     filters: [ 'trim' ]
     properties:
       min: 6
-      max: 30
+      max: 42
 )

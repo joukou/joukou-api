@@ -156,6 +156,59 @@ module.exports =
         deferred.promise
 
       ###*
+      Retrieve a collection of instances of this *Model* class from Basho Riak
+      via a secondary index query.
+      @param {string} index
+      @param {string} key
+      ###
+      @retrieveBySecondaryIndex = ( index, key, firstOnly = false ) ->
+        deferred = Q.defer()
+
+        pbc.getIndex(
+          type: self.getType()
+          bucket: self.getBucket()
+          index: index
+          qtype: 0
+          key: key
+          # return_terms: true - this only works with streaming data
+        , ( err, reply ) ->
+          if err
+            deferred.reject( err )
+          else if _.isEmpty( reply )
+            deferred.reject( new NotFoundError(
+              type: self.getType()
+              bucket: self.getBucket()
+              key: key
+            ) )
+          else
+            if firstOnly
+              deferred.resolve( self.retrieve( _.first( reply.keys ) ) )
+            else
+              deferred.resolve( _.map( reply.keys, ( key ) ->
+                self.retrieve( key )
+              ) )
+
+            ###
+            # reply.results = [ { key: keyData, value: valueData }]
+            instances = _.map( reply.results, ( result ) ->
+              new self(
+                type: self.getType()
+                bucket: self.getBucket()
+                key: result.key
+                value: result.value
+              )
+            )
+            console.log(require('util').inspect(reply))
+            if firstOnly
+              deferred.resolve( instances[ 0 ] )
+            else
+              deferred.resolve( instances )
+            ###
+        )
+
+        deferred.promise
+
+      ###*
       @constructor
       ###
       constructor: ( options ) ->

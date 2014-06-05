@@ -23,7 +23,7 @@ AgentModel        = require( './agent/Model' )
 @param {function(Error,*)} next
 ###
 verify = ( username, password, next ) ->
-  AgentModel.retrieve( username ).then( ( agent ) ->
+  AgentModel.retrieveByEmail( username ).then( ( agent ) ->
     agent.verifyPassword( password ).then( ( authenticated ) ->
       if authenticated
         next( null, agent )

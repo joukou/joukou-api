@@ -187,6 +187,65 @@ module.exports = {
 
 
       /**
+      Retrieve a collection of instances of this *Model* class from Basho Riak
+      via a secondary index query.
+      @param {string} index
+      @param {string} key
+       */
+
+      _Class.retrieveBySecondaryIndex = function(index, key, firstOnly) {
+        var deferred;
+        if (firstOnly == null) {
+          firstOnly = false;
+        }
+        deferred = Q.defer();
+        pbc.getIndex({
+          type: self.getType(),
+          bucket: self.getBucket(),
+          index: index,
+          qtype: 0,
+          key: key
+        }, function(err, reply) {
+          if (err) {
+            return deferred.reject(err);
+          } else if (_.isEmpty(reply)) {
+            return deferred.reject(new NotFoundError({
+              type: self.getType(),
+              bucket: self.getBucket(),
+              key: key
+            }));
+          } else {
+            if (firstOnly) {
+              return deferred.resolve(self.retrieve(_.first(reply.keys)));
+            } else {
+              return deferred.resolve(_.map(reply.keys, function(key) {
+                return self.retrieve(key);
+              }));
+            }
+
+            /*
+             * reply.results = [ { key: keyData, value: valueData }]
+            instances = _.map( reply.results, ( result ) ->
+              new self(
+                type: self.getType()
+                bucket: self.getBucket()
+                key: result.key
+                value: result.value
+              )
+            )
+            console.log(require('util').inspect(reply))
+            if firstOnly
+              deferred.resolve( instances[ 0 ] )
+            else
+              deferred.resolve( instances )
+             */
+          }
+        });
+        return deferred.promise;
+      };
+
+
+      /**
       @constructor
        */
 

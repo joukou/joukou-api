@@ -28,7 +28,7 @@ AgentModel = require('./agent/Model');
  */
 
 verify = function(username, password, next) {
-  return AgentModel.retrieve(username).then(function(agent) {
+  return AgentModel.retrieveByEmail(username).then(function(agent) {
     return agent.verifyPassword(password).then(function(authenticated) {
       if (authenticated) {
         return next(null, agent);

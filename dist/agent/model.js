@@ -84,12 +84,16 @@ AgentModel.prototype.verifyPassword = function(password) {
   return deferred.promise;
 };
 
-AgentModel.prototype.getRepresentation = function() {
-  return _.pick(this.getValue(), ['username', 'roles', 'name']);
+AgentModel.retrieveByEmail = function(email) {
+  return AgentModel.retrieveBySecondaryIndex('email_bin', email, true);
 };
 
-AgentModel.prototype.getUsername = function() {
-  return this.getValue().username;
+AgentModel.prototype.getRepresentation = function() {
+  return _.pick(this.getValue(), ['email', 'roles', 'name']);
+};
+
+AgentModel.prototype.getEmail = function() {
+  return this.getValue().email;
 };
 
 AgentModel.prototype.getName = function() {

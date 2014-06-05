@@ -27,15 +27,13 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.post( '/agent', self.create )
-    server.post( '/agent/authenticate', authn.authenticate, self.authenticate )
-    server.get(  '/agent/:username', authn.authenticate, self.show )
-    server.post( '/agent/:username/persona', authn.authenticate,
-      self.linkToPersonas )
-    server.get(  '/agent/:username/persona', authn.authenticate,
-      self.linkedPersonasSearch )
-    server.get(  '/agent/:username/personas/facets', authn.authenticate,
-      self.linkedPersonasSearchFacets )
+    server.post('/agent', self.create )
+    server.post('/agent/authenticate', authn.authenticate, self.authenticate )
+    server.get( '/agent/:email', authn.authenticate, self.show )
+    server.post('/agent/:email/persona', authn.authenticate, self.addPersona )
+    server.get( '/agent/:email/persona', authn.authenticate, self.personaSearch)
+    server.get( '/agent/:email/persona/facet', authn.authenticate,
+      self.personaSearchFacets )
 
   ###*
   Handles a request to create an agent.
@@ -44,6 +42,17 @@ module.exports = self =
   @param {Function} next
   ###
   create: ( req, res, next ) ->
+    AgentModel.create( req.body ).then( ( agent ) ->
+      agent.save().then( ( reply ) ->
+
+      ).fail( ( err ) ->
+        res.send( 503 )
+      )
+    ).fail( ( err ) ->
+      res.send( 503 )
+    )
+
+
     model.create( req.body ).save().then( ->
       res.send( 201 )
     ).fail( ( err ) ->
@@ -72,7 +81,7 @@ module.exports = self =
     req.user.hasRole( 'operator' )
       res.send( 401 )
     else
-      AgentModel.retrieve( req.params.username ).then( ( agent ) ->
+      AgentModel.retrieveByEmail( req.params.username ).then( ( agent ) ->
         res.send( 200, agent.getRepresentation() )
       ).fail( ( err ) ->
         if err.notFound
@@ -89,7 +98,7 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkToPersonas: ( req, res, next ) ->
+  addPersona: ( req, res, next ) ->
     res.send( 503 )
 
   ###*
@@ -98,7 +107,7 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkedPersonasSearch: ( req, res, next ) ->
+  personaSearch: ( req, res, next ) ->
     res.send( 503 )
 
   ###*
@@ -108,5 +117,5 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkedPersonasSearchFacets: ( req, res, next ) ->
+  personaSearchFacets: ( req, res, next ) ->
     res.send( 503 )

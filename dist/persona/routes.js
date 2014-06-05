@@ -39,6 +39,7 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
+    console.log(require('util').inspect(req.body));
     return PersonaModel.create(req.body).then(function(persona) {
       return persona.save().then(function(reply) {
         self = "/persona/" + (persona.getKey());

@@ -13,11 +13,17 @@ describe 'agent/Model', ->
   before ( done ) ->
     pbc.put(
       bucket: 'agent'
-      key: 'isaac@joukou.com'
+      key: '7ec23d7d-9522-478c-97a4-2f577335e023'
       content:
         content_type: 'application/json'
+        indexes: [
+          {
+            key: 'email_bin'
+            value: 'isaac.johnston@joukou.com'
+          }
+        ]
         value: JSON.stringify(
-          username: 'isaac@joukou.com'
+          email: 'isaac.johnston@joukou.com'
           roles: [ 'operator' ]
           name: 'Isaac'
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG' # "password" in bcrypt w/ 10 rounds
@@ -29,15 +35,15 @@ describe 'agent/Model', ->
   specify 'is defined', ->
     should.exist( AgentModel )
 
-  describe '.retrieve( email )', ->
+  describe '.retrieveByEmail( email )', ->
 
-    specify 'is eventually rejected with a NotFoundError if the username does not exist', ->
-      AgentModel.retrieve( 'bogus' ).should.eventually.be.rejectedWith( NotFoundError )
+    specify 'is eventually rejected with a NotFoundError if the email does not exist', ->
+      AgentModel.retrieveByEmail( 'bogus' ).should.eventually.be.rejectedWith( NotFoundError )
 
-    specify 'is eventually resolved with a Model instance if the username does exist', ->
-      AgentModel.retrieve( 'isaac@joukou.com' ).then( ( agent ) ->
+    specify 'is eventually resolved with a Model instance if the email does exist', ->
+      AgentModel.retrieveByEmail( 'isaac.johnston@joukou.com' ).then( ( agent ) ->
         agent.getValue().should.deep.equal(
-          username: 'isaac@joukou.com'
+          email: 'isaac.johnston@joukou.com'
           roles: [ 'operator' ]
           name: 'Isaac'
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
@@ -47,12 +53,12 @@ describe 'agent/Model', ->
   describe '::verifyPassword( password )', ->
 
     specify 'is eventually resolved with false if the password does not match', ->
-      AgentModel.retrieve( 'isaac@joukou.com' ).then( ( agent ) ->
+      AgentModel.retrieveByEmail( 'isaac.johnston@joukou.com' ).then( ( agent ) ->
         agent.verifyPassword( 'bogus' ).should.eventually.be.equal( false )
       )
 
     specify 'is eventually resolved with true if the password does match', ->
-      AgentModel.retrieve( 'isaac@joukou.com' ).then( ( agent ) ->
+      AgentModel.retrieveByEmail( 'isaac.johnston@joukou.com' ).then( ( agent ) ->
         agent.verifyPassword( 'password' ).should.eventually.be.equal( true )
       )
 
