@@ -53,6 +53,33 @@ describe 'agent/Model', ->
         done( err )
       )
 
+  describe '::save( )', ->
+
+    specify 'persists an agent model instance to Basho Riak', ( done ) ->
+      AgentModel.create(
+        email: 'ben.brabant@joukou.com'
+        name: 'Ben Brabant'
+        password: 'password'
+      ).then( ( agent ) ->
+        agent.save().then( ( saved ) ->
+          AgentModel.retrieveByEmail( 'ben.brabant@joukou.com' ).then( ( retrieved ) ->
+            retrieved.getName().should.equal( 'Ben Brabant' )
+            pbc.del(
+              bucket: 'agent'
+              key: retrieved.getKey()
+            , ( err, reply ) ->
+              done()
+            )
+          ).fail( ( err ) ->
+            done( err )
+          )
+        ).fail( ( err ) ->
+          done( err )
+        )
+      ).fail( ( err ) ->
+        done( err )
+      )
+
   describe '.retrieveByEmail( email )', ->
 
     specify 'is eventually rejected with a NotFoundError if the email does not exist', ->
