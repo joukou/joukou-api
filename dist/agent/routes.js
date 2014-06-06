@@ -36,7 +36,7 @@ module.exports = self = {
   registerRoutes: function(server) {
     server.post('/agent', self.create);
     server.post('/agent/authenticate', authn.authenticate, self.authenticate);
-    server.get('/agent/:email', authn.authenticate, self.show);
+    server.get('/agent/:key', authn.authenticate, self.show);
     server.post('/agent/:email/persona', authn.authenticate, self.addPersona);
     server.get('/agent/:email/persona', authn.authenticate, self.personaSearch);
     return server.get('/agent/:email/persona/facet', authn.authenticate, self.personaSearchFacets);
@@ -49,19 +49,17 @@ module.exports = self = {
   @param {Function} next
    */
   create: function(req, res, next) {
-    AgentModel.create(req.body).then(function(agent) {
+    return AgentModel.create(req.body).then(function(agent) {
       return agent.save().then(function(reply) {
+        self = "/agent/" + (reply.getKey());
+        res.header('Location', self);
+        res.link(self, 'location');
         return res.send(201);
       }).fail(function(err) {
         return res.send(503);
       });
     }).fail(function(err) {
-      return res.send(503);
-    });
-    return model.create(req.body).save().then(function() {
-      return res.send(201);
-    }).fail(function(err) {
-      return res.send(err);
+      return res.send(403);
     });
   },
 
@@ -89,19 +87,36 @@ module.exports = self = {
   @param {Function} next
    */
   show: function(req, res, next) {
-    if (!(req.params.username === req.user.getUsername() || req.user.hasRole('operator'))) {
-      return res.send(401);
-    } else {
-      return AgentModel.retrieveByEmail(req.params.username).then(function(agent) {
+    return AgentModel.retrieve(req.params.key).then(function(agent) {
+      if (!(agent.getEmail() === req.user.getEmail() || req.user.hasRole('operator'))) {
+        return res.send(401);
+      } else {
         return res.send(200, agent.getRepresentation());
-      }).fail(function(err) {
-        if (err.notFound) {
-          return res.send(401);
-        } else {
-          return res.send(503);
-        }
-      });
-    }
+      }
+    }).fail(function(err) {
+      if (err.notFound) {
+        return res.send(401);
+      } else {
+        return res.send(503);
+      }
+    });
+
+    /*
+    unless req.params.email is req.user.getEmail() or
+    req.user.hasRole( 'operator' )
+      res.send( 401 )
+    else
+      AgentModel.retrieveByEmail( req.params.username ).then( ( agent ) ->
+        res.send( 200, agent.getRepresentation() )
+      ).fail( ( err ) ->
+        if err.notFound
+           * Technically this should be a 404 NotFound, but that can be abused by
+           * an attacker to discover valid vs invalid usernames.
+          res.send( 401 )
+        else
+          res.send( 503 )
+      )
+     */
   },
 
   /**

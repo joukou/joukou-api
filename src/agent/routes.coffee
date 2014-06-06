@@ -29,7 +29,7 @@ module.exports = self =
   registerRoutes: ( server ) ->
     server.post('/agent', self.create )
     server.post('/agent/authenticate', authn.authenticate, self.authenticate )
-    server.get( '/agent/:email', authn.authenticate, self.show )
+    server.get( '/agent/:key', authn.authenticate, self.show )
     server.post('/agent/:email/persona', authn.authenticate, self.addPersona )
     server.get( '/agent/:email/persona', authn.authenticate, self.personaSearch)
     server.get( '/agent/:email/persona/facet', authn.authenticate,
@@ -44,19 +44,15 @@ module.exports = self =
   create: ( req, res, next ) ->
     AgentModel.create( req.body ).then( ( agent ) ->
       agent.save().then( ( reply ) ->
+        self = "/agent/#{reply.getKey()}"
+        res.header( 'Location', self )
+        res.link( self, 'location' ) # TODO rel uri
         res.send( 201 )
       ).fail( ( err ) ->
         res.send( 503 )
       )
     ).fail( ( err ) ->
-      res.send( 503 )
-    )
-
-
-    model.create( req.body ).save().then( ->
-      res.send( 201 )
-    ).fail( ( err ) ->
-      res.send( err )
+      res.send( 403 )
     )
 
   ###*
@@ -77,7 +73,23 @@ module.exports = self =
   @param {Function} next
   ###
   show: ( req, res, next ) ->
-    unless req.params.username is req.user.getUsername() or
+    AgentModel.retrieve( req.params.key ).then( ( agent ) ->
+      unless agent.getEmail() is req.user.getEmail() or
+      req.user.hasRole( 'operator' )
+        res.send( 401 )
+      else
+        res.send( 200, agent.getRepresentation() )
+    ).fail( ( err ) ->
+      if err.notFound
+        # Technically this should be a 404 NotFound, but that could be abused by
+        # an attacker to discover valid user keys.
+        res.send( 401 )
+      else
+        res.send( 503 )
+    )
+
+    ###
+    unless req.params.email is req.user.getEmail() or
     req.user.hasRole( 'operator' )
       res.send( 401 )
     else
@@ -91,6 +103,7 @@ module.exports = self =
         else
           res.send( 503 )
       )
+    ###
 
   ###*
   Handles a request to create a relationship between an agent and a persona.
