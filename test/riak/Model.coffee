@@ -186,6 +186,12 @@ describe 'riak/Model', ->
           done( err )
         )
 
+    describe '.createFromReply( { key, reply } )', ->
+
+      specify 'is defined', ->
+        should.exist( TestModel.createFromReply )
+        TestModel.createFromReply.should.be.a( 'function' )
+
     describe '.retrieve( key )', ->
       
       before ( done ) ->
@@ -243,6 +249,36 @@ describe 'riak/Model', ->
       after ( done ) ->
         pbc.del( { bucket: 'test-retrieve', key: 'bob_marley' }, ( err, reply ) ->
           done()
+        )
+
+    describe '.retrieveBySecondaryIndex( index, key, firstOnly )', ->
+
+      specify 'is defined', ->
+        should.exist( TestModel.retrieveBySecondaryIndex )
+        TestModel.retrieveBySecondaryIndex.should.be.a( 'function' )
+
+    describe '.delete( key )', ->
+
+      specify 'is defined', ->
+        should.exist( TestModel.delete )
+        TestModel.delete.should.be.a( 'function' )
+
+      specify 'deletes the value from Basho Riak by the given key', ( done ) ->
+        TestModel.create( name: 'test-delete' ).then( ( instance ) ->
+          TestModel.delete( instance.getKey() ).then( ->
+            pbc.get(
+              bucket: 'test'
+              key: instance.getKey()
+            , ( err, reply ) ->
+              should.not.exist( err )
+              reply.should.be.empty
+              done()
+            )
+          ).fail( ( err ) ->
+            done( err )
+          )
+        ).fail( ( err ) ->
+          done( err )
         )
 
     describe '::getKey()', ->
