@@ -45,7 +45,8 @@ After creating an agent model instance, encrypt the password with bcrypt.
 AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
-  bcrypt.getSalt(10, function(err, salt) {
+  agent.addSecondaryIndex('email');
+  bcrypt.genSalt(10, function(err, salt) {
     if (err) {
       return deferred.reject(new BcryptError(err));
     } else {

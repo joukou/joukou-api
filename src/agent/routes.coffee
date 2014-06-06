@@ -44,7 +44,7 @@ module.exports = self =
   create: ( req, res, next ) ->
     AgentModel.create( req.body ).then( ( agent ) ->
       agent.save().then( ( reply ) ->
-
+        res.send( 201 )
       ).fail( ( err ) ->
         res.send( 503 )
       )

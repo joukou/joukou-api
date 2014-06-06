@@ -37,7 +37,9 @@ After creating an agent model instance, encrypt the password with bcrypt.
 AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
-  bcrypt.getSalt( 10, ( err, salt ) ->
+  agent.addSecondaryIndex( 'email' )
+
+  bcrypt.genSalt( 10, ( err, salt ) ->
     if err
       deferred.reject( new BcryptError( err ) )
     else

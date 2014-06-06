@@ -4,6 +4,7 @@ chaiAsPromised    = require( 'chai-as-promised' )
 chai.use( chaiAsPromised )
 should            = chai.should()
 
+bcrypt            = require( 'bcrypt' )
 AgentModel        = require( '../../dist/agent/Model' )
 NotFoundError     = require( '../../dist/riak/NotFoundError' )
 pbc               = require( '../../dist/riak/pbc' )
@@ -34,6 +35,23 @@ describe 'agent/Model', ->
 
   specify 'is defined', ->
     should.exist( AgentModel )
+
+  describe '.create( )', ->
+
+    specify 'creates a new agent', ( done ) ->
+      AgentModel.create(
+        email: 'ben.brabant@joukou.com'
+        name: 'Ben Brabant'
+        password: 'password'
+      ).then( ( agent ) ->
+        { email, name, password } = agent.getValue()
+        email.should.equal( 'ben.brabant@joukou.com' )
+        name.should.equal( 'Ben Brabant' )
+        bcrypt.compareSync( 'password', password ).should.be.true
+        done()
+      ).fail( ( err ) ->
+        done( err )
+      )
 
   describe '.retrieveByEmail( email )', ->
 

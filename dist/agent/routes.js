@@ -50,7 +50,9 @@ module.exports = self = {
    */
   create: function(req, res, next) {
     AgentModel.create(req.body).then(function(agent) {
-      return agent.save().then(function(reply) {}).fail(function(err) {
+      return agent.save().then(function(reply) {
+        return res.send(201);
+      }).fail(function(err) {
         return res.send(503);
       });
     }).fail(function(err) {
