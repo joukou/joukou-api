@@ -107,4 +107,83 @@ describe 'agent/Model', ->
         agent.verifyPassword( 'password' ).should.eventually.be.equal( true )
       )
 
+  describe '.retrieveByEmail( email )', ->
 
+    specify 'is defined', ->
+      should.exist( AgentModel.retrieveByEmail )
+      AgentModel.retrieveByEmail.should.be.a( 'function' )
+
+  describe '::getRepresentation', ->
+
+    specify 'is defined', ->
+      should.exist( AgentModel::getRepresentation )
+      AgentModel::getRepresentation.should.be.a( 'function' )
+
+    specify 'is a representation of the model instance', ->
+      instance = new AgentModel(
+        value:
+          email: 'isaac.johnston@joukou.com'
+          name: 'Isaac Johnston'
+          roles: [ 'operator' ]
+          password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
+      )
+      instance.getRepresentation().should.deep.equal(
+        email: 'isaac.johnston@joukou.com'
+        name: 'Isaac Johnston'
+        roles: [ 'operator' ]
+      )
+
+  describe '::getEmail', ->
+
+    specify 'is defined', ->
+      should.exist( AgentModel::getEmail )
+      AgentModel::getEmail.should.be.a( 'function' )
+
+    specify 'is the email of the model instance', ->
+      instance = new AgentModel(
+        value:
+          email: 'isaac.johnston@joukou.com'
+          name: 'Isaac Johnston'
+          roles: [ 'operator' ]
+          password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
+      )
+      instance.getEmail().should.equal( 'isaac.johnston@joukou.com' )     
+
+  describe '::getRoles', ->
+
+    specify 'is defined', ->
+      should.exist( AgentModel::getRoles )
+      AgentModel::getRoles.should.be.a( 'function' )
+
+    specify 'is the array of roles of the model instance', ->
+      instance = new AgentModel(
+        value:
+          email: 'isaac.johnston@joukou.com'
+          name: 'Isaac Johnston'
+          roles: [ 'operator' ]
+          password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
+      )
+      instance.getRoles().should.deep.equal( [ 'operator' ] )
+
+  describe '::hasSomeRoles( roles )', ->
+
+    hasSomeRolesInstance = new AgentModel(
+      value:
+        email: 'isaac.johnston@joukou.com'
+        name: 'Isaac Johnston'
+        roles: [ 'operator', 'administrator' ]
+        password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'       
+    )
+
+    specify 'is defined', ->
+      should.exist( AgentModel::hasSomeRoles )
+      AgentModel::hasSomeRoles.should.be.a( 'function' )
+
+    specify 'is true when the model instance has at least one of the given roles', ->
+      hasSomeRolesInstance.hasSomeRoles( [ 'operator' ] ).should.be.true
+
+    specify 'is true when the model instance has at least one of the given roles but not all of them', ->
+      hasSomeRolesInstance.hasSomeRoles( [ 'operator', 'guest' ] ).should.be.true
+
+    specify 'is false when the model instance does not have the given roles', ->
+      hasSomeRolesInstance.hasSomeRoles( [ 'superman' ] ).should.be.false

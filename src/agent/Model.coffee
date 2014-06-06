@@ -86,11 +86,11 @@ AgentModel::getName = ->
 AgentModel::getRoles = ->
   @getValue().roles
 
-AgentModel::hasRole = ( agent, role ) ->
+AgentModel::hasRole = ( role ) ->
   roles = [ role ]
   @hasSomeRoles( roles )
 
-AgentModel::hasSomeRoles = ( agent, roles ) ->
+AgentModel::hasSomeRoles = ( roles ) ->
   _.some( roles, ( role ) =>
     @getRoles().indexOf( role ) isnt -1
   )

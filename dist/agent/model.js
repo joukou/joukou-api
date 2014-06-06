@@ -105,13 +105,13 @@ AgentModel.prototype.getRoles = function() {
   return this.getValue().roles;
 };
 
-AgentModel.prototype.hasRole = function(agent, role) {
+AgentModel.prototype.hasRole = function(role) {
   var roles;
   roles = [role];
   return this.hasSomeRoles(roles);
 };
 
-AgentModel.prototype.hasSomeRoles = function(agent, roles) {
+AgentModel.prototype.hasSomeRoles = function(roles) {
   return _.some(roles, (function(_this) {
     return function(role) {
       return _this.getRoles().indexOf(role) !== -1;
