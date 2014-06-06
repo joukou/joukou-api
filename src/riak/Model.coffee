@@ -208,6 +208,22 @@ module.exports =
 
         deferred.promise
 
+      @delete = ( key ) ->
+        deferred = Q.defer()
+
+        pbc.del(
+          type: self.getType()
+          bucket: self.getBucket()
+          key: key
+        , ( err, reply ) ->
+          if err
+            deferred.reject( err )
+          else
+            deferred.resolve()
+        )
+
+        deferred.promise
+
       ###*
       @constructor
       ###
@@ -246,6 +262,9 @@ module.exports =
         )
 
         deferred.promise
+
+      delete: ->
+        self.delete( @getKey() )
 
       ###*
       Get the params object suitable for sending to the server via the protocol

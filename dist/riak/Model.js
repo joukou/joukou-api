@@ -244,6 +244,23 @@ module.exports = {
         return deferred.promise;
       };
 
+      _Class["delete"] = function(key) {
+        var deferred;
+        deferred = Q.defer();
+        pbc.del({
+          type: self.getType(),
+          bucket: self.getBucket(),
+          key: key
+        }, function(err, reply) {
+          if (err) {
+            return deferred.reject(err);
+          } else {
+            return deferred.resolve();
+          }
+        });
+        return deferred.promise;
+      };
+
 
       /**
       @constructor
@@ -292,6 +309,10 @@ module.exports = {
           };
         })(this));
         return deferred.promise;
+      };
+
+      _Class.prototype["delete"] = function() {
+        return self["delete"](this.getKey());
       };
 
 

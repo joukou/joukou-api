@@ -89,6 +89,21 @@ AgentModel.retrieveByEmail = function(email) {
   return AgentModel.retrieveBySecondaryIndex('email_bin', email, true);
 };
 
+AgentModel.deleteByEmail = function(email) {
+  var deferred;
+  deferred = Q.defer();
+  AgentModel.retrieveByEmail(email).then(function(agent) {
+    return agent["delete"]().then(function() {
+      return deferred.resolve();
+    }).fail(function(err) {
+      return deferred.reject(err);
+    });
+  }).fail(function(err) {
+    return deferred.reject(err);
+  });
+  return deferred.promise;
+};
+
 AgentModel.prototype.getRepresentation = function() {
   return _.pick(this.getValue(), ['email', 'roles', 'name']);
 };

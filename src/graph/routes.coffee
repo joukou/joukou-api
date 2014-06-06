@@ -22,10 +22,9 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.get( '/persona/:personaKey/graph', authn.authenticate, self.search )
-    
     server.post( '/graph', authn.authenticate, self.create )
-    server.get(  '/graph/:graphKey', authn.authenticate, self.retrieve )
+    server.get(  '/graph/:key', authn.authenticate, self.retrieve )
+    server.get(  '/graph', authn.authenticate, self.search )
 
   ###
   @api {post} /graph Creates a new Joukou graph
@@ -48,16 +47,21 @@ module.exports = self =
   ###
 
   create: ( req, res, next ) ->
-    rawValue = req.body
-    console.log( req.user )
-    rawValue.persona = req.user.username
-    GraphModel.create( rawValue ).then( ( graph ) ->
-      res.link( "/graph/#{graph.getMetaValue().getKey()}", 'location' )
-      res.send( 201 )
-    ).fail( ( err ) ->
-      res.send( 503 )
-    )
+    res.send( 201 )
+    ###
+    rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
 
+    GraphModel.create( rawValue ).then( ( graph ) ->
+      graph.save().then( ->
+        res.header( 'Location', "/graph/#{graph.getKey()}")
+        res.send( 201 )
+      ).fail( ( err ) ->
+        res.send( 503 )
+      )
+    ).fail( ( err ) ->
+      res.send( 403 )
+    )
+    ###
 
   ###
   @api {get} /graph/:key Retrieve the definition of a Joukou graph
@@ -75,9 +79,8 @@ module.exports = self =
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
   ###
   retrieve: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      console.log( req.user )
-      res.send( graph.getValue() )
+    GraphModel.retrieve( req.params.key ).then( ( graph ) ->
+      res.send( 200, graph.getValue() )
     ).fail( ( err ) ->
       if err.notFound
         res.send( 404 )

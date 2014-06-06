@@ -24,9 +24,9 @@ module.exports = self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
-    server.get('/persona/:personaKey/graph', authn.authenticate, self.search);
     server.post('/graph', authn.authenticate, self.create);
-    return server.get('/graph/:graphKey', authn.authenticate, self.retrieve);
+    server.get('/graph/:key', authn.authenticate, self.retrieve);
+    return server.get('/graph', authn.authenticate, self.search);
   },
 
   /*
@@ -49,16 +49,22 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure creating the graph, the client should try again later.
    */
   create: function(req, res, next) {
-    var rawValue;
-    rawValue = req.body;
-    console.log(req.user);
-    rawValue.persona = req.user.username;
-    return GraphModel.create(rawValue).then(function(graph) {
-      res.link("/graph/" + (graph.getMetaValue().getKey()), 'location');
-      return res.send(201);
-    }).fail(function(err) {
-      return res.send(503);
-    });
+    return res.send(201);
+
+    /*
+    rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
+    
+    GraphModel.create( rawValue ).then( ( graph ) ->
+      graph.save().then( ->
+        res.header( 'Location', "/graph/#{graph.getKey()}")
+        res.send( 201 )
+      ).fail( ( err ) ->
+        res.send( 503 )
+      )
+    ).fail( ( err ) ->
+      res.send( 403 )
+    )
+     */
   },
 
   /*
@@ -77,9 +83,8 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
    */
   retrieve: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      console.log(req.user);
-      return res.send(graph.getValue());
+    return GraphModel.retrieve(req.params.key).then(function(graph) {
+      return res.send(200, graph.getValue());
     }).fail(function(err) {
       if (err.notFound) {
         return res.send(404);

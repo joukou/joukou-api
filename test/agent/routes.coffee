@@ -11,7 +11,7 @@ describe 'agent/routes', ->
 
   describe 'POST /agent', ->
 
-    specify 'creates a new agent given valid data', ->
+    xspecify 'creates a new agent given valid data', ( done ) ->
       chai.request( server )
         .post( '/agent' )
         .req( ( req ) ->
@@ -26,6 +26,7 @@ describe 'agent/routes', ->
         )
         .res( ( res ) ->
           res.should.have.status( 201 )
+          done()
         )
 
   describe 'GET /agent', ->
@@ -48,7 +49,7 @@ describe 'agent/routes', ->
         done( err )
       )
 
-    specify 'shows the agent identified by the provided key', ->
+    specify 'shows the agent identified by the provided key', ( done ) ->
       chai.request( server )
         .get( "/agent/#{agentKey}" )
         .req( ( req ) ->
@@ -56,6 +57,7 @@ describe 'agent/routes', ->
         )
         .res( ( res ) ->
           res.should.have.status( 200 )
+          done()
         )
 
     after ( done ) ->

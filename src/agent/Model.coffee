@@ -74,6 +74,21 @@ AgentModel::verifyPassword = ( password ) ->
 AgentModel.retrieveByEmail = ( email ) ->
   AgentModel.retrieveBySecondaryIndex( 'email_bin', email, true )
 
+AgentModel.deleteByEmail = ( email ) ->
+  deferred = Q.defer()
+
+  AgentModel.retrieveByEmail( email ).then( ( agent ) ->
+    agent.delete().then( ->
+      deferred.resolve()
+    ).fail( ( err ) ->
+      deferred.reject( err )
+    )
+  ).fail( ( err ) ->
+    deferred.reject( err )
+  )
+
+  deferred.promise
+
 AgentModel::getRepresentation = ->
   _.pick( @getValue(), [ 'email', 'roles', 'name' ] )
 
