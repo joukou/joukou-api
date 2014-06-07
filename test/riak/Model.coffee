@@ -1,7 +1,6 @@
 assert            = require( 'assert' )
 chai              = require( 'chai' )
-chaiAsPromised    = require( 'chai-as-promised' )
-chai.use( chaiAsPromised )
+chai.use( require( 'chai-as-promised' ) )
 should            = chai.should()
 sinon             = require( 'sinon' )
 rewire            = require( 'rewire' )
