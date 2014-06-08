@@ -1,11 +1,23 @@
-assert = require( 'assert' )
-chai   = require( 'chai' )
-should = chai.should()
+assert      = require( 'assert' )
+chai        = require( 'chai' )
+should      = chai.should()
 chai.use( require( 'chai-http' ) )
 
-AgentModel        = require( '../../dist/agent/Model' )
-server            = require( '../../dist/server' )
-riakpbc               = require( '../../dist/riak/pbc' )
+AgentModel  = require( '../../dist/agent/Model' )
+server      = require( '../../dist/server' )
+riakpbc     = require( '../../dist/riak/pbc' )
+
+superagent  = require( 'chai-http/node_modules/superagent' )
+superagent.parse['application/hal+json'] = ( res, done ) ->
+  res.text = ''
+  res.setEncoding( 'utf8' )
+  res.on( 'data', ( chunk ) -> res.text += chunk )
+  res.on( 'end', ->
+    try
+      done( null, JSON.parse( res.text ) )
+    catch err
+      done( err )
+  )
 
 describe 'agent/routes', ->
 
@@ -70,10 +82,21 @@ describe 'agent/routes', ->
       chai.request( server )
         .get( "/agent/#{key}" )
         .req( ( req ) ->
+          req.buffer()
           req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+retrieve@joukou.com:password' ).toString( 'base64' )}")
         )
         .res( ( res ) ->
           res.should.have.status( 200 )
+          res.body.should.deep.equal(
+            email: 'test+agent+routes+retrieve@joukou.com'
+            name: 'test/agent/routes/retrieve'
+            _links:
+              self: [
+                {
+                  href: "/agent/#{key}"
+                }
+              ]
+          )
           done()
         )
 
