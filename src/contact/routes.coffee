@@ -51,7 +51,8 @@ self = module.exports =
   @param {http.ServerResponse} res
   ###
   _contact: ( req, res ) ->
-    smtp = mailer.createTransport( 'SES', config.ses )
+    smtp = mailer.createTransport(
+      config.mailer.transport, config.mailer.transport_options )
     
     name = if req.body.name?.length then req.body.name else 'Anonymous'
 
@@ -71,14 +72,16 @@ self = module.exports =
              """
 
     message =
-      from: config.sender
-      to: config.recipients
+      from: config.mailer.sender
+      to: config.mailer.recipients
       subject: subject
       text: text
 
     smtp.sendMail( message, ( err, smtpRes ) ->
       if err
-        log.fatal( 'Unable to send message via Amazon SES: ' + err )
+        log.fatal(
+          "Unable to send message via #{config.mailer.transport}: " + err
+        )
         res.send( 503 )
       else
         res.send( 201 )

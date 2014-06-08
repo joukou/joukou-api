@@ -37,6 +37,8 @@ lazypipes =
     compilers: 'coffee:coffee-script/register'
   )
 
+process.env.JOUKOU_CONFIG = path.join( __dirname, 'test', 'config.yml' )
+
 ###*
 Task functions are defined independently of dependencies to enable re-use in
 different lifecycles; e.g. single pass build vs watch based develop mode.

@@ -58,7 +58,7 @@ self = module.exports = {
    */
   _contact: function(req, res) {
     var message, name, smtp, subject, text, _ref, _ref1;
-    smtp = mailer.createTransport('SES', config.ses);
+    smtp = mailer.createTransport(config.mailer.transport, config.mailer.transport_options);
     name = ((_ref = req.body.name) != null ? _ref.length : void 0) ? req.body.name : 'Anonymous';
     if ((_ref1 = req.body.message) != null ? _ref1.length : void 0) {
       subject = "Joukou message from " + name;
@@ -68,14 +68,14 @@ self = module.exports = {
       text = "" + name + " with the email address " + req.body.email + " has signed up for\nJoukou!";
     }
     message = {
-      from: config.sender,
-      to: config.recipients,
+      from: config.mailer.sender,
+      to: config.mailer.recipients,
       subject: subject,
       text: text
     };
     smtp.sendMail(message, function(err, smtpRes) {
       if (err) {
-        log.fatal('Unable to send message via Amazon SES: ' + err);
+        log.fatal(("Unable to send message via " + config.mailer.transport + ": ") + err);
         res.send(503);
       } else {
         res.send(201);
