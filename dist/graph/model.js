@@ -19,13 +19,19 @@ GraphModel = Model.define({
   bucket: 'graph'
 });
 
-GraphModel.afterCreate = function(graph) {
-  var deferred;
-  deferred = Q.defer();
-  graph.addSecondaryIndex('persona');
-  deferred.resolve(graph);
-  return deferred.promise;
-};
+
+/*
+GraphModel.afterCreate = ( graph ) ->
+  deferred = Q.defer()
+
+  graph.addSecondaryIndex( 'persona' )
+
+  process.nextTick( ->
+    deferred.resolve( graph )
+  )
+
+  deferred.promise
+ */
 
 module.exports = GraphModel;
 

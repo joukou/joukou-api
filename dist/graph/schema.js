@@ -18,7 +18,7 @@ module.exports = schema.create({
     type: 'object'
   },
   connections: {
-    type: 'object'
+    type: 'array'
   }
 });
 

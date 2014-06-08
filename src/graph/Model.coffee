@@ -16,15 +16,18 @@ GraphModel = Model.define(
   bucket: 'graph'
 )
 
+###
 GraphModel.afterCreate = ( graph ) ->
   deferred = Q.defer()
 
   graph.addSecondaryIndex( 'persona' )
 
-  deferred.resolve( graph )
+  process.nextTick( ->
+    deferred.resolve( graph )
+  )
 
   deferred.promise
-
+###
 
 module.exports = GraphModel
 

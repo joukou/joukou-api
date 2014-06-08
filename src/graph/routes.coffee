@@ -47,11 +47,9 @@ module.exports = self =
   ###
 
   create: ( req, res, next ) ->
-    res.send( 201 )
-    ###
-    rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
+    #rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
 
-    GraphModel.create( rawValue ).then( ( graph ) ->
+    GraphModel.create( req.body ).then( ( graph ) ->
       graph.save().then( ->
         res.header( 'Location', "/graph/#{graph.getKey()}")
         res.send( 201 )
@@ -61,7 +59,6 @@ module.exports = self =
     ).fail( ( err ) ->
       res.send( 403 )
     )
-    ###
 
   ###
   @api {get} /graph/:key Retrieve the definition of a Joukou graph

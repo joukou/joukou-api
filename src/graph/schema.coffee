@@ -15,5 +15,5 @@ module.exports = schema.create(
   processes:
     type: 'object'
   connections:
-    type: 'object'
+    type: 'array'
 )

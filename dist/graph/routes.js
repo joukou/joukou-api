@@ -49,22 +49,16 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure creating the graph, the client should try again later.
    */
   create: function(req, res, next) {
-    return res.send(201);
-
-    /*
-    rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
-    
-    GraphModel.create( rawValue ).then( ( graph ) ->
-      graph.save().then( ->
-        res.header( 'Location', "/graph/#{graph.getKey()}")
-        res.send( 201 )
-      ).fail( ( err ) ->
-        res.send( 503 )
-      )
-    ).fail( ( err ) ->
-      res.send( 403 )
-    )
-     */
+    return GraphModel.create(req.body).then(function(graph) {
+      return graph.save().then(function() {
+        res.header('Location', "/graph/" + (graph.getKey()));
+        return res.send(201);
+      }).fail(function(err) {
+        return res.send(503);
+      });
+    }).fail(function(err) {
+      return res.send(403);
+    });
   },
 
   /*
