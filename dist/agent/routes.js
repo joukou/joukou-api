@@ -72,7 +72,7 @@ module.exports = self = {
    */
   authenticate: function(req, res, next) {
     var token;
-    token = jwt.sign(req.user, config.jwt.secret, {
+    token = jwt.sign(req.user, 'abc', {
       expiresInMinutes: 60 * 5
     });
     return res.send(200, {

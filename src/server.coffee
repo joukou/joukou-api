@@ -56,7 +56,7 @@ module.exports = server = restify.createServer(
   name: getServerName()
   version: require( '../package.json' ).version
   formatters:
-    'application/hal+json': hal.formatter
+    'application/json': hal.formatter
   log: LoggerFactory.getLogger( name: 'server' )
 )
 

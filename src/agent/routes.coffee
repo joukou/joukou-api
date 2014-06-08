@@ -63,7 +63,8 @@ module.exports = self =
   @param {Function} next
   ###
   authenticate: ( req, res, next ) ->
-    token = jwt.sign( req.user, config.jwt.secret, expiresInMinutes: 60 * 5 )
+    # TODO config.jwt.secret
+    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
     res.send( 200, token: token )
 
   ###*

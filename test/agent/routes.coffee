@@ -1,3 +1,8 @@
+###*
+@author Isaac Johnston <isaac.johnston@joukou.com>
+@copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
+###
+
 assert      = require( 'assert' )
 chai        = require( 'chai' )
 should      = chai.should()
@@ -7,8 +12,13 @@ AgentModel  = require( '../../dist/agent/Model' )
 server      = require( '../../dist/server' )
 riakpbc     = require( '../../dist/riak/pbc' )
 
+###
+Attempt to monkey-patch application/hal+json parsing. Appears to cause empty
+response body, futher investigation needed. For now server is configured to
+send application/json responses.
+
 superagent  = require( 'chai-http/node_modules/superagent' )
-superagent.parse['application/hal+json'] = ( res, done ) ->
+superagent.parse[ 'application/hal+json' ] = ( res, done ) ->
   res.text = ''
   res.setEncoding( 'utf8' )
   res.on( 'data', ( chunk ) -> res.text += chunk )
@@ -18,6 +28,7 @@ superagent.parse['application/hal+json'] = ( res, done ) ->
     catch err
       done( err )
   )
+###
 
 describe 'agent/routes', ->
 
@@ -82,7 +93,6 @@ describe 'agent/routes', ->
       chai.request( server )
         .get( "/agent/#{key}" )
         .req( ( req ) ->
-          req.buffer()
           req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+retrieve@joukou.com:password' ).toString( 'base64' )}")
         )
         .res( ( res ) ->
@@ -96,6 +106,52 @@ describe 'agent/routes', ->
                   href: "/agent/#{key}"
                 }
               ]
+          )
+          done()
+        )
+
+    after ( done ) ->
+      riakpbc.del(
+        bucket: 'agent'
+        key: key
+      , ( err, reply ) ->
+        done( err )
+      )
+
+  describe 'POST /authenticate', ->
+
+    key = null
+
+    before ( done ) ->
+      AgentModel.create(
+        email: 'test+agent+routes+authenticate@joukou.com'
+        name: 'test/agent/routes/authenticate'
+        password: 'password'
+      ).then( ( agent ) ->
+        agent.save().then( ->
+          key = agent.getKey()
+          done()
+        ).fail( ( err ) ->
+          done( err )
+        )
+      ).fail( ( err ) ->
+        done( err )
+      )
+
+    specify 'responds with a JSON Web Token if the provided Authorization header is authenticated', ( done ) ->
+      chai.request( server )
+        .post( '/agent/authenticate' )
+        .req( ( req ) ->
+          req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+authenticate@joukou.com:password' ).toString( 'base64' )}")
+        )
+        .res( ( res ) ->
+          res.should.have.status( 200 )
+          should.exist( res.body.token )
+          res.body.token.should.be.a( 'string' )
+          res.body._links.should.deep.equal(
+            self: [
+              href: '/agent/authenticate'
+            ]
           )
           done()
         )
