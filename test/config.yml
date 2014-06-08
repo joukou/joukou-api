@@ -1,0 +1,6 @@
+mailer:
+  transport: 'PICKUP'
+  transport_options:
+    directory: '/tmp'
+  sender: 'platform@joukou.com'
+  recipients: 'test@joukou.com'

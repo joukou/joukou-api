@@ -1,10 +1,10 @@
 "use strict";
 
 /**
-@module joukou-api/runtime/model
+@module joukou-api/runtime/Model
  */
 
 
 /*
-//# sourceMappingURL=model.js.map
+//# sourceMappingURL=Model.js.map
 */

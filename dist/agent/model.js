@@ -8,7 +8,7 @@ authorizes the agent to work under his control and on his behalf.
 Latin: qui facit per alium, facit per se, i.e. the one who acts through
 another, acts in his or her own interests.
 
-@module joukou-api/agent/model
+@class joukou-api/agent/Model
 @requires joukou-api/agent/schema
 @requires joukou-api/riak/Model
 @requires joukou-api/error/BcryptError
@@ -18,7 +18,7 @@ another, acts in his or her own interests.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BcryptError, Model, Q, agentModel, bcrypt, schema, _;
+var AgentModel, BcryptError, Model, Q, bcrypt, schema, _;
 
 _ = require('lodash');
 
@@ -32,15 +32,50 @@ Model = require('../riak/Model');
 
 BcryptError = require('../error/BcryptError');
 
-agentModel = Model.define({
+AgentModel = Model.define({
   schema: schema,
   bucket: 'agent'
 });
 
-agentModel.prototype.verifyPassword = function(password) {
+
+/**
+After creating an agent model instance, encrypt the password with bcrypt.
+ */
+
+AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
-  bcrypt.compare(password, getValue().password, function(err, authenticated) {
+  agent.addSecondaryIndex('email');
+  bcrypt.genSalt(10, function(err, salt) {
+    if (err) {
+      return deferred.reject(new BcryptError(err));
+    } else {
+      return bcrypt.hash(agent.getValue().password, salt, function(err, hash) {
+        if (err) {
+          return deferred.reject(new BcryptError(err));
+        } else {
+          agent.setValue(_.assign(agent.getValue(), {
+            password: hash
+          }));
+          return deferred.resolve(agent);
+        }
+      });
+    }
+  });
+  return deferred.promise;
+};
+
+
+/**
+Verify the given `password` against the stored password.
+@method verifyPassword
+@return {q.promise}
+ */
+
+AgentModel.prototype.verifyPassword = function(password) {
+  var deferred;
+  deferred = Q.defer();
+  bcrypt.compare(password, this.getValue().password, function(err, authenticated) {
     if (err) {
       return deferred.reject(new BcryptError(err));
     } else {
@@ -50,28 +85,57 @@ agentModel.prototype.verifyPassword = function(password) {
   return deferred.promise;
 };
 
-agentModel.beforeCreate = function(value) {
+AgentModel.retrieveByEmail = function(email) {
+  return AgentModel.retrieveBySecondaryIndex('email_bin', email, true);
+};
+
+AgentModel.deleteByEmail = function(email) {
   var deferred;
   deferred = Q.defer();
-  bcrypt.getSalt(10, function(err, salt) {
-    if (err) {
-      return deferred.reject(new BcryptError(err));
-    } else {
-      return bcrypt.hash(value.password, salt, function(err, hash) {
-        if (err) {
-          return deferred.reject(new BcryptError(err));
-        } else {
-          value.password = hash;
-          return deferred.resolve(value);
-        }
-      });
-    }
+  AgentModel.retrieveByEmail(email).then(function(agent) {
+    return agent["delete"]().then(function() {
+      return deferred.resolve();
+    }).fail(function(err) {
+      return deferred.reject(err);
+    });
+  }).fail(function(err) {
+    return deferred.reject(err);
   });
   return deferred.promise;
 };
 
-module.exports = agentModel;
+AgentModel.prototype.getRepresentation = function() {
+  return _.pick(this.getValue(), ['email', 'roles', 'name']);
+};
+
+AgentModel.prototype.getEmail = function() {
+  return this.getValue().email;
+};
+
+AgentModel.prototype.getName = function() {
+  return this.getValue().name;
+};
+
+AgentModel.prototype.getRoles = function() {
+  return this.getValue().roles;
+};
+
+AgentModel.prototype.hasRole = function(role) {
+  var roles;
+  roles = [role];
+  return this.hasSomeRoles(roles);
+};
+
+AgentModel.prototype.hasSomeRoles = function(roles) {
+  return _.some(roles, (function(_this) {
+    return function(role) {
+      return _this.getRoles().indexOf(role) !== -1;
+    };
+  })(this));
+};
+
+module.exports = AgentModel;
 
 /*
-//# sourceMappingURL=model.js.map
+//# sourceMappingURL=Model.js.map
 */

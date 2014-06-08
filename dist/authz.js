@@ -4,6 +4,7 @@
 Authorization.
 
 @module joukou-api/authz
+@requires lodash
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
@@ -24,7 +25,11 @@ An *Agent* is authorized to act on behalf of a *Persona* (called the
 An *Operator* is a person that is involved in providing the services of this
 Joukou platform installation.
  */
-module.exports = {
+var self, _;
+
+_ = require('lodash');
+
+module.exports = self = {
 
   /**
   Check if the given `agent` has the given `permission`.

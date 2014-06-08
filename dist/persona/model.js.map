@@ -1,10 +1,10 @@
 {
   "version": 3,
-  "file": "model.js",
-  "sourceRoot": "",
+  "file": "Model.js",
+  "sourceRoot": "../../src/persona",
   "sources": [
-    "model.coffee"
+    "Model.coffee"
   ],
   "names": [],
-  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;;;GAFA;AAAA"
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;;;;;GAFA;AAAA,IAAA,2BAAA;;AAAA,KAYA,GAAQ,OAAA,CAAS,eAAT,CAZR,CAAA;;AAAA,MAaA,GAAS,OAAA,CAAS,UAAT,CAbT,CAAA;;AAAA,YAeA,GAAe,KAAK,CAAC,MAAN,CACb;AAAA,EAAA,MAAA,EAAQ,SAAR;AAAA,EACA,MAAA,EAAQ,MADR;CADa,CAff,CAAA;;AAAA,MAoBM,CAAC,OAAP,GAAiB,YApBjB,CAAA"
 }

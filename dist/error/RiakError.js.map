@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "RiakError.js",
-  "sourceRoot": "",
+  "sourceRoot": "../../src/error",
   "sources": [
     "RiakError.coffee"
   ],

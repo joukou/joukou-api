@@ -11,8 +11,9 @@ machine:
   node:
     version: 0.10.22
   post:
+    - rm /etc/riak/app.config
     - cp joukou-api/.circle/riak.conf /etc/riak/riak.conf
-    - sudo service riak start
+    - sudo riak start
     - sleep 5
 deployment:
   staging:

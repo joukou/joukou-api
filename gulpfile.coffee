@@ -37,6 +37,8 @@ lazypipes =
     compilers: 'coffee:coffee-script/register'
   )
 
+process.env.JOUKOU_CONFIG = path.join( __dirname, 'test', 'config.yml' )
+
 ###*
 Task functions are defined independently of dependencies to enable re-use in
 different lifecycles; e.g. single pass build vs watch based develop mode.
@@ -60,7 +62,7 @@ tasks =
 
   coffee: ->
     gulp.src( paths.src.coffee )
-      .pipe( plugins.coffee( bare: true, sourceMap: true ) )
+      .pipe( plugins.coffee( bare: true, sourceMap: true, sourceDest: paths.dist.dir ) )
       .pipe( gulp.dest( paths.dist.dir ) )
       .on( 'error', plugins.util.log )
 
@@ -213,7 +215,7 @@ gulp.task( 'nodemon:develop', [ 'build' ], ->
   plugins.nodemon(
     script: 'dist/server.js'
     env:
-      JOUKOU_PORT: 3010
+      JOUKOU_PORT: 2111 # Offset by 10 to avoid conflicts with Mocha tests.
     ext: 'js'
     watch: [ 'dist', 'node_modules' ]
   )
@@ -224,10 +226,4 @@ gulp.task( 'nodemon:develop', [ 'build' ], ->
 
 gulp.task( 'develop', [ 'build', 'test:develop', 'nodemon:develop' ], ->
   gulp.watch( paths.src.coffee, [ 'sloc', 'coffeelint', 'coffee:develop' ] )
-)
-
-gulp.task( 'foo', ( done ) ->
-
-  console.log( joukou.getName() )
-
 )

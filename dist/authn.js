@@ -6,16 +6,17 @@ Authentication based on Passport.
 @module joukou-api/authn
 @requires passport
 @requires passport-http
+@requires joukou-api/agent/Model
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var BasicStrategy, agentModel, passport, self, verify;
+var AgentModel, BasicStrategy, passport, self, verify;
 
 passport = require('passport');
 
 BasicStrategy = require('passport-http').BasicStrategy;
 
-agentModel = require('./agent/model');
+AgentModel = require('./agent/Model');
 
 
 /**
@@ -27,14 +28,16 @@ agentModel = require('./agent/model');
  */
 
 verify = function(username, password, next) {
-  var agent;
-  agent = agentModel.loadByUsername(username);
-  return agent.verifyPassword(password).then(function(authenticated) {
-    if (authenticated) {
-      return next(null, agent);
-    } else {
-      return next(null, false);
-    }
+  return AgentModel.retrieveByEmail(username).then(function(agent) {
+    return agent.verifyPassword(password).then(function(authenticated) {
+      if (authenticated) {
+        return next(null, agent);
+      } else {
+        return next(null, false);
+      }
+    }).fail(function(err) {
+      return next(err);
+    });
   }).fail(function(err) {
     return next(err);
   });

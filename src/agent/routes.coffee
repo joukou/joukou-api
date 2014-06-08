@@ -1,7 +1,7 @@
 "use strict"
 
 ###*
-{@link module:joukou-api/agent/model|Agent} routes.
+{@link module:joukou-api/agent/Model|Agent} routes.
 
 @module joukou-api/agent/routes
 @requires lodash
@@ -9,17 +9,17 @@
 @requires joukou-api/config
 @requires joukou-api/authn
 @requires joukou-api/authz
-@requires joukou-api/agent/model
+@requires joukou-api/agent/Model
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-_       = require( 'lodash' )
-jwt     = require( 'jsonwebtoken' )
-authn   = require( '../authn' )
-authz   = require( '../authz' )
-model   = require( './model' )
-config  = require( '../config' )
+_             = require( 'lodash' )
+jwt           = require( 'jsonwebtoken' )
+authn         = require( '../authn' )
+authz         = require( '../authz' )
+config        = require( '../config' )
+AgentModel    = require( './Model' )
 
 module.exports = self =
   ###*
@@ -27,15 +27,13 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.post( '/agent', self.create )
-    server.post( '/agent/authenticate', authn.authenticate, self.authenticate )
-    server.get(  '/agent/:username', authn.authenticate, self.show )
-    server.post( '/agent/:username/persona', authn.authenticate,
-      self.linkToPersonas )
-    server.get(  '/agent/:username/persona', authn.authenticate,
-      self.linkedPersonasSearch )
-    server.get(  '/agent/:username/personas/facets', authn.authenticate,
-      self.linkedPersonasSearchFacets )
+    server.post('/agent', self.create )
+    server.post('/agent/authenticate', authn.authenticate, self.authenticate )
+    server.get( '/agent/:key', authn.authenticate, self.retrieve )
+    server.post('/agent/:key/persona', authn.authenticate, self.addPersona )
+    server.get( '/agent/:key/persona', authn.authenticate, self.personaSearch)
+    server.get( '/agent/:key/persona/facet', authn.authenticate,
+      self.personaSearchFacets )
 
   ###*
   Handles a request to create an agent.
@@ -44,10 +42,17 @@ module.exports = self =
   @param {Function} next
   ###
   create: ( req, res, next ) ->
-    model.create( req.body ).save().then( ->
-      res.send( 201 )
+    AgentModel.create( req.body ).then( ( agent ) ->
+      agent.save().then( ( reply ) ->
+        self = "/agent/#{reply.getKey()}"
+        res.header( 'Location', self )
+        res.link( self, 'location' ) # TODO rel uri
+        res.send( 201 )
+      ).fail( ( err ) ->
+        res.send( 503 )
+      )
     ).fail( ( err ) ->
-      res.send( err )
+      res.send( 403 )
     )
 
   ###*
@@ -58,7 +63,8 @@ module.exports = self =
   @param {Function} next
   ###
   authenticate: ( req, res, next ) ->
-    token = jwt.sign( req.user, config.jwt.secret, expiresInMinutes: 60 * 5 )
+    # TODO config.jwt.secret
+    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
     res.send( 200, token: token )
 
   ###*
@@ -67,8 +73,21 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  show: ( req, res, next ) ->
-    res.send( 503 )
+  retrieve: ( req, res, next ) ->
+    AgentModel.retrieve( req.params.key ).then( ( agent ) ->
+      unless agent.getEmail() is req.user.getEmail() or
+      req.user.hasRole( 'operator' )
+        res.send( 401 )
+      else
+        res.send( 200, agent.getRepresentation() )
+    ).fail( ( err ) ->
+      if err.notFound
+        # Technically this should be a 404 NotFound, but that could be abused by
+        # an attacker to discover valid user keys.
+        res.send( 401 )
+      else
+        res.send( 503 )
+    )
 
   ###*
   Handles a request to create a relationship between an agent and a persona.
@@ -76,7 +95,7 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkToPersonas: ( req, res, next ) ->
+  addPersona: ( req, res, next ) ->
     res.send( 503 )
 
   ###*
@@ -85,7 +104,7 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkedPersonasSearch: ( req, res, next ) ->
+  personaSearch: ( req, res, next ) ->
     res.send( 503 )
 
   ###*
@@ -95,5 +114,5 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  linkedPersonasSearchFacets: ( req, res, next ) ->
+  personaSearchFacets: ( req, res, next ) ->
     res.send( 503 )
