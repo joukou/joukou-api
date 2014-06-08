@@ -25,7 +25,7 @@ module.exports = self =
   ###
   registerRoutes: ( server ) ->
     server.post( '/persona', authn.authenticate, self.create )
-    server.get(  '/persona/:personaKey', authn.authenticate, self.show )
+    server.get(  '/persona/:key', authn.authenticate, self.retrieve )
   
     return
 
@@ -36,7 +36,7 @@ module.exports = self =
   @param {function(Error)} next
   ###
   create: ( req, res, next ) ->
-    console.log(require('util').inspect(req.body))
+    #console.log(require('util').inspect(req.body))
     PersonaModel.create( req.body ).then( ( persona ) ->
       persona.save().then( ( reply ) ->
         self = "/persona/#{persona.getKey()}"
@@ -56,7 +56,12 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {function(Error)} next
   ###
-  show: ( req, res, next ) ->
-    res.send( 503 )
-
-
+  retrieve: ( req, res, next ) ->
+    PersonaModel.retrieve( req.params.key ).then( ( persona ) ->
+      res.send( 200, persona.getValue() )
+    ).fail( ( err ) ->
+      if err.notFound
+        res.send( 404 )
+      else
+        res.send( 503 )
+    )

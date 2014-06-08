@@ -29,7 +29,7 @@ module.exports = self =
   registerRoutes: ( server ) ->
     server.post('/agent', self.create )
     server.post('/agent/authenticate', authn.authenticate, self.authenticate )
-    server.get( '/agent/:key', authn.authenticate, self.show )
+    server.get( '/agent/:key', authn.authenticate, self.retrieve )
     server.post('/agent/:key/persona', authn.authenticate, self.addPersona )
     server.get( '/agent/:key/persona', authn.authenticate, self.personaSearch)
     server.get( '/agent/:key/persona/facet', authn.authenticate,
@@ -73,7 +73,7 @@ module.exports = self =
   @param {http.ServerResponse} res
   @param {Function} next
   ###
-  show: ( req, res, next ) ->
+  retrieve: ( req, res, next ) ->
     AgentModel.retrieve( req.params.key ).then( ( agent ) ->
       unless agent.getEmail() is req.user.getEmail() or
       req.user.hasRole( 'operator' )

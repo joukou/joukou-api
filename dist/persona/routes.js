@@ -29,7 +29,7 @@ module.exports = self = {
    */
   registerRoutes: function(server) {
     server.post('/persona', authn.authenticate, self.create);
-    server.get('/persona/:personaKey', authn.authenticate, self.show);
+    server.get('/persona/:key', authn.authenticate, self.retrieve);
   },
 
   /**
@@ -39,7 +39,6 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
-    console.log(require('util').inspect(req.body));
     return PersonaModel.create(req.body).then(function(persona) {
       return persona.save().then(function(reply) {
         self = "/persona/" + (persona.getKey());
@@ -60,8 +59,16 @@ module.exports = self = {
   @param {http.ServerResponse} res
   @param {function(Error)} next
    */
-  show: function(req, res, next) {
-    return res.send(503);
+  retrieve: function(req, res, next) {
+    return PersonaModel.retrieve(req.params.key).then(function(persona) {
+      return res.send(200, persona.getValue());
+    }).fail(function(err) {
+      if (err.notFound) {
+        return res.send(404);
+      } else {
+        return res.send(503);
+      }
+    });
   }
 };
 

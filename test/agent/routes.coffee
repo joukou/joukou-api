@@ -48,9 +48,7 @@ describe 'agent/routes', ->
         .res( ( res ) ->
           res.should.have.status( 201 )
           res.headers.location.should.match( /^\/agent\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
-
           key = res.headers.location.match( /^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
-
           chai.request( server )
             .get( res.headers.location )
             .req( ( req ) ->
@@ -69,7 +67,7 @@ describe 'agent/routes', ->
         )
 
 
-  describe 'GET /agent', ->
+  describe 'GET /agent/:key', ->
   
     key = null
 
