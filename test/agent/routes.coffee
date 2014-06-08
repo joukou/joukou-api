@@ -156,6 +156,18 @@ describe 'agent/routes', ->
           done()
         )
 
+    specify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated', ( done ) ->
+      chai.request( server )
+        .post( '/agent/authenticate' )
+        .req( ( req ) ->
+          req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+authenticate@joukou.com:bogus' ).toString( 'base64' )}")
+        )
+        .res( ( res ) ->
+          res.should.have.status( 401 )
+          res.body.should.be.empty
+          done()
+        )
+
     after ( done ) ->
       riakpbc.del(
         bucket: 'agent'
