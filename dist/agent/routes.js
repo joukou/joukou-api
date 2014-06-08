@@ -37,9 +37,9 @@ module.exports = self = {
     server.post('/agent', self.create);
     server.post('/agent/authenticate', authn.authenticate, self.authenticate);
     server.get('/agent/:key', authn.authenticate, self.show);
-    server.post('/agent/:email/persona', authn.authenticate, self.addPersona);
-    server.get('/agent/:email/persona', authn.authenticate, self.personaSearch);
-    return server.get('/agent/:email/persona/facet', authn.authenticate, self.personaSearchFacets);
+    server.post('/agent/:key/persona', authn.authenticate, self.addPersona);
+    server.get('/agent/:key/persona', authn.authenticate, self.personaSearch);
+    return server.get('/agent/:key/persona/facet', authn.authenticate, self.personaSearchFacets);
   },
 
   /**
@@ -100,23 +100,6 @@ module.exports = self = {
         return res.send(503);
       }
     });
-
-    /*
-    unless req.params.email is req.user.getEmail() or
-    req.user.hasRole( 'operator' )
-      res.send( 401 )
-    else
-      AgentModel.retrieveByEmail( req.params.username ).then( ( agent ) ->
-        res.send( 200, agent.getRepresentation() )
-      ).fail( ( err ) ->
-        if err.notFound
-           * Technically this should be a 404 NotFound, but that can be abused by
-           * an attacker to discover valid vs invalid usernames.
-          res.send( 401 )
-        else
-          res.send( 503 )
-      )
-     */
   },
 
   /**

@@ -5,7 +5,7 @@ chai.use( require( 'chai-http' ) )
 
 AgentModel        = require( '../../dist/agent/Model' )
 server            = require( '../../dist/server' )
-pbc               = require( '../../dist/riak/pbc' )
+riakpbc               = require( '../../dist/riak/pbc' )
 
 describe 'agent/routes', ->
 
@@ -26,6 +26,8 @@ describe 'agent/routes', ->
           res.should.have.status( 201 )
           res.headers.location.should.match( /^\/agent\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
 
+          key = res.headers.location.match( /^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+
           chai.request( server )
             .get( res.headers.location )
             .req( ( req ) ->
@@ -33,24 +35,29 @@ describe 'agent/routes', ->
             )
             .res( ( res ) ->
               res.should.have.status( 200 )
-              done()
+
+              riakpbc.del(
+                bucket: 'agent'
+                key: key
+              , ( err ,reply ) ->
+                done( err )
+              )
             )
         )
 
 
-
-  xdescribe 'GET /agent', ->
-
-    agentKey = null
+  describe 'GET /agent', ->
+  
+    key = null
 
     before ( done ) ->
       AgentModel.create(
-        email: 'sebastian.berlein@joukou.com'
-        name: 'Sebastian Berlein'
+        email: 'test+agent+routes+retrieve@joukou.com'
+        name: 'test/agent/routes/retrieve'
         password: 'password'
       ).then( ( agent ) ->
         agent.save().then( ->
-          agentKey = agent.getKey()
+          key = agent.getKey()
           done()
         ).fail( ( err ) ->
           done( err )
@@ -59,11 +66,11 @@ describe 'agent/routes', ->
         done( err )
       )
 
-    specify 'shows the agent identified by the provided key', ( done ) ->
+    specify 'retrieves the agent identified by the given key', ( done ) ->
       chai.request( server )
-        .get( "/agent/#{agentKey}" )
+        .get( "/agent/#{key}" )
         .req( ( req ) ->
-          req.set( 'Authorization', "Basic #{new Buffer('isaac.johnston@joukou.com:password').toString('base64')}" )
+          req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+retrieve@joukou.com:password' ).toString( 'base64' )}")
         )
         .res( ( res ) ->
           res.should.have.status( 200 )
@@ -71,9 +78,9 @@ describe 'agent/routes', ->
         )
 
     after ( done ) ->
-      pbc.del(
+      riakpbc.del(
         bucket: 'agent'
-        key: agentKey
+        key: key
       , ( err, reply ) ->
         done( err )
       )
