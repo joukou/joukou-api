@@ -1,6 +1,6 @@
 
 /**
-@class joukou-api/riak/NotFoundError
+@class joukou-api/riak/RiakError
 @extends restify/RestError
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
@@ -14,14 +14,14 @@ RestError = require('restify').RestError;
 module.exports = self = (function(_super) {
   __extends(_Class, _super);
 
-  function _Class(message) {
+  function _Class(originalError) {
+    this.originalError = originalError;
     _Class.__super__.constructor.call(this, {
-      restCode: 'NotFound',
-      statusCode: 404,
-      message: message,
+      restCode: 'InternalError',
+      statusCode: 503,
+      message: 'The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.',
       constructorOpt: self
     });
-    this.notFound = true;
     return;
   }
 
@@ -30,5 +30,5 @@ module.exports = self = (function(_super) {
 })(RestError);
 
 /*
-//# sourceMappingURL=NotFoundError.js.map
+//# sourceMappingURL=RiakError.js.map
 */

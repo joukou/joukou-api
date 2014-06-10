@@ -24,6 +24,8 @@ _                = require( 'lodash' )
 Q                = require( 'q' )
 uuid             = require( 'node-uuid' )
 NotFoundError    = require( './NotFoundError' )
+ValidationError  = require( './ValidationError' )
+RiakError        = require( './RiakError' )
 pbc              = require( './pbc' )
 
 module.exports =
@@ -86,7 +88,7 @@ module.exports =
         # If the raw data is invalid then reject the promise
         unless valid
           process.nextTick( ->
-            deferred.reject( errors )
+            deferred.reject( new ValidationError( errors ) )
           )
           return deferred.promise
 
@@ -142,7 +144,7 @@ module.exports =
           key: key
         , ( err, reply ) ->
           if err
-            deferred.reject( err )
+            deferred.reject( new RiakError( err ) )
           else if _.isEmpty( reply )
             deferred.reject( new NotFoundError(
               type: self.getType()
@@ -173,7 +175,7 @@ module.exports =
           # return_terms: true - this only works with streaming data
         , ( err, reply ) ->
           if err
-            deferred.reject( err )
+            deferred.reject( new RiakError( err ) )
           else if _.isEmpty( reply )
             deferred.reject( new NotFoundError(
               type: self.getType()
@@ -187,23 +189,6 @@ module.exports =
               deferred.resolve( _.map( reply.keys, ( key ) ->
                 self.retrieve( key )
               ) )
-
-            ###
-            # reply.results = [ { key: keyData, value: valueData }]
-            instances = _.map( reply.results, ( result ) ->
-              new self(
-                type: self.getType()
-                bucket: self.getBucket()
-                key: result.key
-                value: result.value
-              )
-            )
-            console.log(require('util').inspect(reply))
-            if firstOnly
-              deferred.resolve( instances[ 0 ] )
-            else
-              deferred.resolve( instances )
-            ###
         )
 
         deferred.promise
@@ -217,7 +202,7 @@ module.exports =
           key: key
         , ( err, reply ) ->
           if err
-            deferred.reject( err )
+            deferred.reject( new RiakError( err ) )
           else
             deferred.resolve()
         )
@@ -256,7 +241,7 @@ module.exports =
 
         pbc.put( @_getPbParams(), ( err, reply ) =>
           if err
-            deferred.reject( err )
+            deferred.reject( new RiakError( err ) )
           else
             deferred.resolve( self.createFromReply( key: @key, reply: reply ) )
         )

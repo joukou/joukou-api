@@ -41,6 +41,7 @@ module.exports =
     # HAL+JSON
     else
       res.link(req.path(), 'self')
+      res.link( 'https://rels.joukou.com/{rel}', 'curies', { name: 'joukou', templated: true } )
       body._links = res._links
 
     data = JSON.stringify(body)

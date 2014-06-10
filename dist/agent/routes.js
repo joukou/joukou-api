@@ -37,9 +37,14 @@ module.exports = self = {
     server.post('/agent', self.create);
     server.post('/agent/authenticate', authn.authenticate, self.authenticate);
     server.get('/agent/:key', authn.authenticate, self.retrieve);
-    server.post('/agent/:key/persona', authn.authenticate, self.addPersona);
-    server.get('/agent/:key/persona', authn.authenticate, self.personaSearch);
-    return server.get('/agent/:key/persona/facet', authn.authenticate, self.personaSearchFacets);
+    return server.post('/agent/search', authn.authenticate, self.search);
+
+    /*
+    server.post('/agent/:key/persona', authn.authenticate, self.addPersona )
+    server.get( '/agent/:key/persona', authn.authenticate, self.personaSearch)
+    server.get( '/agent/:key/persona/facet', authn.authenticate,
+      self.personaSearchFacets )
+     */
   },
 
   /**
@@ -100,6 +105,9 @@ module.exports = self = {
         return res.send(503);
       }
     });
+  },
+  search: function(req, res, next) {
+    return res.send(503);
   },
 
   /**

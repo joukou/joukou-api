@@ -13,6 +13,7 @@ describe 'agent/Model', ->
 
   before ( done ) ->
     pbc.put(
+      type: 'agent'
       bucket: 'agent'
       key: '7ec23d7d-9522-478c-97a4-2f577335e023'
       content:

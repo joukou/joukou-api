@@ -1,43 +1,27 @@
 
 /**
-@class joukou-api/error/RiakError
+@class joukou-api/riak/ValidationError
 @extends restify/RestError
-@author Isaac Johnston <isaac.johnston@joukou.co>
+@author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var RestError,
+var RestError, self,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 RestError = require('restify').RestError;
 
-module.exports = (function(_super) {
-
-  /**
-  @private
-  @static
-  @property {joukou-api.error.DuplicateError} self
-   */
-  var self;
-
+module.exports = self = (function(_super) {
   __extends(_Class, _super);
 
-  self = _Class;
-
-
-  /**
-  @method constructor
-  @param {Error} originalError
-   */
-
-  function _Class(originalError) {
-    this.originalError = originalError;
+  function _Class(errors) {
     _Class.__super__.constructor.call(this, {
-      restCode: 'InternalError',
-      statusCode: 503,
-      message: '',
+      restCode: 'ForbiddenError',
+      statusCode: 403,
+      message: JSON.stringify(errors),
       constructorOpt: self
     });
+    return;
   }
 
   return _Class;
@@ -45,5 +29,5 @@ module.exports = (function(_super) {
 })(RestError);
 
 /*
-//# sourceMappingURL=RiakError.js.map
+//# sourceMappingURL=ValidationError.js.map
 */

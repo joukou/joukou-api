@@ -1,5 +1,5 @@
 ###*
-@class joukou-api/riak/NotFoundError
+@class joukou-api/riak/RiakError
 @extends restify/RestError
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
@@ -8,12 +8,11 @@
 { RestError } = require( 'restify' )
 
 module.exports = self = class extends RestError
-  constructor: ( message ) ->
+  constructor: ( @originalError ) ->
     super(
-      restCode: 'NotFound'
-      statusCode: 404
-      message: message
+      restCode: 'InternalError'
+      statusCode: 503
+      message: 'The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.'
       constructorOpt: self
     )
-    @notFound = true
     return

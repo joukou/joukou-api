@@ -104,12 +104,18 @@ describe 'agent/routes', ->
                   href: "/agent/#{key}"
                 }
               ]
+              curies: [
+                name: 'joukou'
+                templated: true
+                href: 'https://rels.joukou.com/{rel}'
+              ]
           )
           done()
         )
 
     after ( done ) ->
       riakpbc.del(
+        type: 'agent'
         bucket: 'agent'
         key: key
       , ( err, reply ) ->
@@ -150,6 +156,11 @@ describe 'agent/routes', ->
             self: [
               href: '/agent/authenticate'
             ]
+            curies: [
+              name: 'joukou'
+              templated: true
+              href: 'https://rels.joukou.com/{rel}'
+            ]
           )
           done()
         )
@@ -168,6 +179,7 @@ describe 'agent/routes', ->
 
     after ( done ) ->
       riakpbc.del(
+        type: 'agent'
         bucket: 'agent'
         key: key
       , ( err, reply ) ->

@@ -18,7 +18,7 @@ Search is supported via solr-client.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var EventEmitter, NotFoundError, Q, pbc, uuid, _,
+var EventEmitter, NotFoundError, Q, RiakError, ValidationError, pbc, uuid, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -31,6 +31,10 @@ Q = require('q');
 uuid = require('node-uuid');
 
 NotFoundError = require('./NotFoundError');
+
+ValidationError = require('./ValidationError');
+
+RiakError = require('./RiakError');
 
 pbc = require('./pbc');
 
@@ -108,7 +112,7 @@ module.exports = {
         _ref = self.getSchema().validate(rawValue), data = _ref.data, errors = _ref.errors, valid = _ref.valid;
         if (!valid) {
           process.nextTick(function() {
-            return deferred.reject(errors);
+            return deferred.reject(new ValidationError(errors));
           });
           return deferred.promise;
         }
@@ -168,7 +172,7 @@ module.exports = {
           key: key
         }, function(err, reply) {
           if (err) {
-            return deferred.reject(err);
+            return deferred.reject(new RiakError(err));
           } else if (_.isEmpty(reply)) {
             return deferred.reject(new NotFoundError({
               type: self.getType(),
@@ -207,7 +211,7 @@ module.exports = {
           key: key
         }, function(err, reply) {
           if (err) {
-            return deferred.reject(err);
+            return deferred.reject(new RiakError(err));
           } else if (_.isEmpty(reply)) {
             return deferred.reject(new NotFoundError({
               type: self.getType(),
@@ -222,23 +226,6 @@ module.exports = {
                 return self.retrieve(key);
               }));
             }
-
-            /*
-             * reply.results = [ { key: keyData, value: valueData }]
-            instances = _.map( reply.results, ( result ) ->
-              new self(
-                type: self.getType()
-                bucket: self.getBucket()
-                key: result.key
-                value: result.value
-              )
-            )
-            console.log(require('util').inspect(reply))
-            if firstOnly
-              deferred.resolve( instances[ 0 ] )
-            else
-              deferred.resolve( instances )
-             */
           }
         });
         return deferred.promise;
@@ -253,7 +240,7 @@ module.exports = {
           key: key
         }, function(err, reply) {
           if (err) {
-            return deferred.reject(err);
+            return deferred.reject(new RiakError(err));
           } else {
             return deferred.resolve();
           }
@@ -299,7 +286,7 @@ module.exports = {
         pbc.put(this._getPbParams(), (function(_this) {
           return function(err, reply) {
             if (err) {
-              return deferred.reject(err);
+              return deferred.reject(new RiakError(err));
             } else {
               return deferred.resolve(self.createFromReply({
                 key: _this.key,

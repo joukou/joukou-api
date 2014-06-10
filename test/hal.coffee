@@ -52,8 +52,8 @@ describe 'joukou-api/hal', ->
       middleware = hal.link()
       middleware( req, res, -> )
 
-      hal.formatter( req, res, body ).should.equal( "{\"person\":\"Dr. Seuss\",\"quote\":\"Today you are you! That is truer than true! There is no one alive who is you-er than you!\",\"_links\":{\"self\":[{\"href\":\"/test\"}]}}" )
-      res.setHeader.should.have.been.calledWith( 'Content-Length', 159 )
+      hal.formatter( req, res, body ).should.equal( "{\"person\":\"Dr. Seuss\",\"quote\":\"Today you are you! That is truer than true! There is no one alive who is you-er than you!\",\"_links\":{\"self\":[{\"href\":\"/test\"}],\"curies\":[{\"name\":\"joukou\",\"templated\":true,\"href\":\"https://rels.joukou.com/{rel}\"}]}}" )
+      res.setHeader.should.have.been.calledWith( 'Content-Length', 244 )
       #res.setHeader.should.have.been.calledWith( 'Content-Type', 'application/hal+json' )
      
 

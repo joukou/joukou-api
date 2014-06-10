@@ -27,13 +27,17 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.post('/agent', self.create )
-    server.post('/agent/authenticate', authn.authenticate, self.authenticate )
-    server.get( '/agent/:key', authn.authenticate, self.retrieve )
+    server.post( '/agent', self.create )
+    server.post( '/agent/authenticate', authn.authenticate, self.authenticate )
+    server.get(  '/agent/:key', authn.authenticate, self.retrieve )
+    server.post( '/agent/search', authn.authenticate, self.search )
+
+    ###
     server.post('/agent/:key/persona', authn.authenticate, self.addPersona )
     server.get( '/agent/:key/persona', authn.authenticate, self.personaSearch)
     server.get( '/agent/:key/persona/facet', authn.authenticate,
       self.personaSearchFacets )
+    ###
 
   ###*
   Handles a request to create an agent.
@@ -88,6 +92,9 @@ module.exports = self =
       else
         res.send( 503 )
     )
+
+  search: ( req, res, next ) ->
+    res.send( 503 )
 
   ###*
   Handles a request to create a relationship between an agent and a persona.

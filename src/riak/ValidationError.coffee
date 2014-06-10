@@ -1,5 +1,5 @@
 ###*
-@class joukou-api/riak/NotFoundError
+@class joukou-api/riak/ValidationError
 @extends restify/RestError
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
@@ -8,12 +8,11 @@
 { RestError } = require( 'restify' )
 
 module.exports = self = class extends RestError
-  constructor: ( message ) ->
+  constructor: ( errors ) ->
     super(
-      restCode: 'NotFound'
-      statusCode: 404
-      message: message
+      restCode: 'ForbiddenError'
+      statusCode: 403
+      message: JSON.stringify( errors )
       constructorOpt: self
     )
-    @notFound = true
     return

@@ -11,9 +11,11 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var PersonaModel, authn, authz, self, _;
+var PersonaModel, async, authn, authz, self, _;
 
 _ = require('lodash');
+
+async = require('async');
 
 authn = require('../authn');
 
@@ -33,21 +35,41 @@ module.exports = self = {
   },
 
   /*
-  @api {post} /persona Create a new Joukou Persona
-  @apiName Persona
+  @api {post} /persona Create a Joukou Persona
+  @apiName Create Persona
   @apiGroup Persona
   
-  @apiParam {String} name The name of the Persona
+  @apiParam {String} name The name of the Persona; e.g. the company name.
+  @apiParam {Object.<String,Array>} _links Contains links to other resources.
   
   @apiExample CURL Example:
     curl -i -X POST https://api.joukou.com/persona \
+      -H 'Authorization: Basic aXNhYWMuam9obnN0b25Aam91a291LmNvbTpwYXNzd29yZA=='
       -H 'Content-Type: application/json' \
-      -d '{ "name": "Joukou Ltd" }'
+      --data-binary @persona.json
+  
+  @apiExample persona.json
+    {
+      "name": "Joukou Ltd",
+      "_links": {
+        "curies": [
+          {
+            "name": "joukou",
+            "href": "https://rels.joukou.com/{rel}",
+            "templated": true
+          }
+        ],
+        "joukou:agent": [
+          {
+            "href": "/agent/8a549b6d-70c9-40b1-a482-d11e36b780b3",
+            "role": "admin"
+          }
+        ]
+      }
+    }
   
   @apiSuccess (201) Created The Persona has been created successfully.
-  
   @apiError (429) TooManyRequests The client has sent too many requests in a given amount of time.
-  
   @apiError (503) ServiceUnavailable There was a temporary failure creating the Persona, the client should try again later.
    */
 
@@ -58,23 +80,73 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
-    return PersonaModel.create(req.body).then(function(persona) {
+    var data, err, link, links, match, rel, _i, _len, _ref, _ref1;
+    data = {};
+    data.name = req.body.name;
+    data.agents = [];
+    try {
+      if (req.body._links) {
+        _ref = req.body._links;
+        for (rel in _ref) {
+          links = _ref[rel];
+          if (!(rel === 'curies' || rel === 'joukou:agent')) {
+            throw new restify.ForbiddenError('link relation types must be "curies" or "joukou:agent"');
+          }
+          if (_.isObject(links)) {
+            links = [links];
+          }
+          if (!_.isArray(links)) {
+            throw new restify.ForbiddenError('link values must be a Link Object or an array of Link Objects');
+          }
+          if (rel === 'joukou:agent') {
+            for (_i = 0, _len = links.length; _i < _len; _i++) {
+              link = links[_i];
+              if (!(link.href && _.isString(link.href))) {
+                throw new restify.ForbiddenError('Link Objects must have a href property');
+              }
+              match = link.href(/^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/);
+              if (!match) {
+                throw new restify.ForbiddenError('joukou:agent Link Objects must have a href property that is a server-relative URI to an agent resource');
+              }
+              if (!(link.role && _.isString(link.role))) {
+                throw new restify.ForbiddenError('joukou:agent Link Objects must have a role property');
+              }
+              if ((_ref1 = link.role) !== 'admin') {
+                throw new restify.ForbiddenError('joukou:agent Link Objects role property may only be "admin" at this time');
+              }
+              data.agents.push({
+                key: match[1],
+                role: link.role
+              });
+            }
+          }
+        }
+      }
+    } catch (_error) {
+      err = _error;
+      next(err);
+      return;
+    }
+    data.agents.push({
+      key: req.user.getKey(),
+      role: 'creator'
+    });
+    return PersonaModel.create(data).then(function(persona) {
       return persona.save().then(function(reply) {
         self = "/persona/" + (persona.getKey());
         res.header('Location', self);
-        res.link(self, 'location');
         return res.send(201);
       }).fail(function(err) {
-        return res.send(503);
+        return next(err);
       });
     }).fail(function(err) {
-      return res.send(503);
+      return next(err);
     });
   },
 
   /*
   @api {get} /persona/:key Retrieve a Joukou Persona
-  @apiName Persona
+  @apiName Retrieve Persona
   @apiGroup Persona
    */
 
@@ -86,13 +158,17 @@ module.exports = self = {
    */
   retrieve: function(req, res, next) {
     return PersonaModel.retrieve(req.params.key).then(function(persona) {
-      return res.send(200, persona.getValue());
-    }).fail(function(err) {
-      if (err.notFound) {
-        return res.send(404);
-      } else {
-        return res.send(503);
+      var agent, _i, _len, _ref;
+      _ref = persona.getValue().agents;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        agent = _ref[_i];
+        res.link("/agent/" + agent.key, 'joukou:agent', {
+          role: agent.role
+        });
       }
+      return res.send(200, _.pick(persona.getValue(), ['name']));
+    }).fail(function(err) {
+      return next(err);
     });
   }
 };

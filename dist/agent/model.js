@@ -34,6 +34,7 @@ BcryptError = require('../error/BcryptError');
 
 AgentModel = Model.define({
   schema: schema,
+  type: 'agent',
   bucket: 'agent'
 });
 

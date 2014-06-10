@@ -18,6 +18,7 @@ paths =
   src:
     dir: 'src'
     coffee: path.join( 'src', '**', '*.coffee' )
+    jade: path.join( 'src', '**', '*.jade' )
   dist:
     dir: 'dist'
     js: path.join( 'dist', '**', '*.js' )
@@ -64,6 +65,27 @@ tasks =
     gulp.src( paths.src.coffee )
       .pipe( plugins.coffee( bare: true, sourceMap: true, sourceDest: paths.dist.dir ) )
       .pipe( gulp.dest( paths.dist.dir ) )
+      .on( 'error', plugins.util.log )
+
+  jade: ->
+    gulp.src( paths.src.jade )
+      .pipe( plugins.jade(
+        pretty: true
+      ) )
+      .pipe( gulp.dest( paths.dist.dir ) )
+      .on( 'error', plugins.util.log )
+
+  renameHtmlToXml: ->
+    gulp.src( 'dist/**/*.html' )
+      .pipe( plugins.rename( ( filename ) ->
+        filename.extname = '.xml'
+        return
+      ) )
+      .pipe( gulp.dest( './dist' ) )
+
+  deleteHtml: ->
+    gulp.src( 'dist/**/*.html', read: false )
+      .pipe( plugins.clean( force: true ) )
       .on( 'error', plugins.util.log )
 
   jsdoc: ->
@@ -143,10 +165,13 @@ gulp.task( 'coffeelint', tasks.coffeelint )
 #
 
 gulp.task( 'clean:build', tasks.clean )
+gulp.task( 'jade:build', [ 'clean:build' ], tasks.jade )
+gulp.task( 'rename-html-to-xml:build', [ 'jade:build' ], tasks.renameHtmlToXml )
+gulp.task( 'delete-html:build', [ 'rename-html-to-xml:build' ], tasks.deleteHtml )
 gulp.task( 'coffee:build', [ 'clean:build' ], tasks.coffee )
 gulp.task( 'jsdoc:build', [ 'coffee:build' ], tasks.jsdoc )
 gulp.task( 'apidoc:build', [ 'coffee:build' ], tasks.apidoc )
-gulp.task( 'build', [ 'sloc', 'coffeelint', 'jsdoc:build', 'apidoc:build' ] )
+gulp.task( 'build', [ 'sloc', 'coffeelint', 'delete-html:build', 'jsdoc:build', 'apidoc:build' ] )
 
 gulp.task( 'test:build', [ 'build' ], tasks.test )
 gulp.task( 'test', [ 'test:build' ], ->

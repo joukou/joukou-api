@@ -16,6 +16,7 @@ Model = require('../riak/Model');
 schema = require('./schema');
 
 PersonaModel = Model.define({
+  type: 'persona',
   bucket: 'persona',
   schema: schema
 });
