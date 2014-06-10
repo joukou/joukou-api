@@ -184,7 +184,7 @@ gulp.task( 'test', [ 'test:build' ], ->
 # Continuous-integration tasks.
 #
 
-gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
+gulp.task( 'ci', [ 'build' ] ) #, tasks.coveralls )
 
 # Create package ZIP file
 gulp.task( 'zip:deploy', tasks.deployPackageZip )
