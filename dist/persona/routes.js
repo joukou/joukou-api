@@ -11,7 +11,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var PersonaModel, async, authn, authz, self, _;
+var PersonaModel, async, authn, authz, request, self, _;
 
 _ = require('lodash');
 
@@ -20,6 +20,8 @@ async = require('async');
 authn = require('../authn');
 
 authz = require('../authz');
+
+request = require('request');
 
 PersonaModel = require('./Model');
 
@@ -31,7 +33,66 @@ module.exports = self = {
    */
   registerRoutes: function(server) {
     server.post('/persona', authn.authenticate, self.create);
+    server.get('/persona', authn.authenticate, self.index);
     server.get('/persona/:key', authn.authenticate, self.retrieve);
+  },
+
+  /*
+  @api {get} /persona Get the list of Joukou Personas that you have access to
+  @apiName Persona Index
+  @apiGroup Persona
+   */
+  index: function(req, res, next) {
+    return request({
+      uri: 'http://localhost:8098/mapred',
+      method: 'POST',
+      json: {
+        inputs: {
+          module: 'yokozuna',
+          "function": 'mapred_search',
+          arg: ['persona', 'agents.key:' + req.user.getKey()]
+        },
+        query: [
+          {
+            map: {
+              language: 'javascript',
+              keep: true,
+              source: (function(value, keyData, arg) {
+                var result;
+                result = Riak.mapValuesJson(value)[0];
+                result.key = value.key;
+                return [result];
+              }).toString()
+            }
+          }
+        ]
+      }
+    }, function(err, reply) {
+      var representation;
+      representation = {};
+      representation._embedded = _.reduce(reply.body, function(memo, persona) {
+        memo['joukou:persona'].push({
+          name: persona.name,
+          _links: {
+            self: [
+              {
+                href: "/persona/" + persona.key
+              }
+            ],
+            'joukou:agent': _.map(persona.agents, function(agent) {
+              return {
+                href: "/agent/" + agent.key,
+                role: agent.role
+              };
+            })
+          }
+        });
+        return memo;
+      }, {
+        'joukou:persona': []
+      });
+      return res.send(200, representation);
+    });
   },
 
   /*

@@ -16,6 +16,7 @@ _             = require( 'lodash' )
 async         = require( 'async' )
 authn         = require( '../authn' )
 authz         = require( '../authz' )
+request       = require( 'request' )
 PersonaModel  = require( './Model' )
 
 module.exports = self =
@@ -26,9 +27,58 @@ module.exports = self =
   ###
   registerRoutes: ( server ) ->
     server.post( '/persona', authn.authenticate, self.create )
+    server.get(  '/persona', authn.authenticate, self.index )
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
   
     return
+
+  ###
+  @api {get} /persona Get the list of Joukou Personas that you have access to
+  @apiName Persona Index
+  @apiGroup Persona
+  ###
+  index: ( req, res, next ) ->
+    request(
+      uri: 'http://localhost:8098/mapred'
+      method: 'POST'
+      json:
+        inputs:
+          module: 'yokozuna'
+          function: 'mapred_search'
+          arg: [ 'persona', 'agents.key:' + req.user.getKey() ]
+        query: [
+          {
+            map:
+              language: 'javascript'
+              keep: true
+              source: ( ( value, keyData, arg ) ->
+                result = Riak.mapValuesJson( value )[ 0 ]
+                result.key = value.key
+                return [ result ]
+                #[ [ value.bucket, value.key, Riak.mapValuesJson( value )[ 0 ] ] ]
+                #[ [ value.bucket_type, value.bucket, value.key, Riak.mapValuesJson( value )[ 0 ] ] ]
+              ).toString()
+          }
+        ]
+    , ( err, reply ) ->
+      representation = {}
+      representation._embedded = _.reduce( reply.body, ( memo, persona ) ->
+        memo[ 'joukou:persona' ].push(
+          name: persona.name
+          _links:
+            self: [
+              href: "/persona/#{persona.key}"
+            ]
+            'joukou:agent': _.map( persona.agents, ( agent ) ->
+              href: "/agent/#{agent.key}"
+              role: agent.role
+            )
+        )
+        memo
+      , { 'joukou:persona': [] } )
+
+      res.send( 200, representation )
+    )
 
   ###
   @api {post} /persona Create a Joukou Persona
