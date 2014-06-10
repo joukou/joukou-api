@@ -14,7 +14,9 @@ machine:
     - rm /etc/riak/app.config
     - cp joukou-api/.circle/riak.conf /etc/riak/riak.conf
     - sudo riak start
-    - sleep 5
+    - sleep 2
+    - ./joukou-api/setup.sh
+    - sleep 2
 deployment:
   staging:
     branch: develop
