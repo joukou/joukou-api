@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 #
 # Author: Isaac Johnston <isaac.johnston@joukou.com>
 # Copyright: (c) 2009-2014 Joukou Ltd. All rights reserved.
