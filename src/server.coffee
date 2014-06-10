@@ -24,6 +24,7 @@ cors          = require( 'restify-cors-middleware' )(
     'https://joukou.com'
   ]
   allowHeaders: [
+    'authorization'
     'accept',
     'accept-version',
     'content-type',
