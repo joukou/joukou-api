@@ -69,6 +69,7 @@ module.exports = self =
   authenticate: ( req, res, next ) ->
     # TODO config.jwt.secret
     token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
+    res.link( 'joukou:personas', '/persona' )
     res.send( 200, token: token )
 
   ###*
