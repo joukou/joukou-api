@@ -10,12 +10,12 @@ curl -XPUT http://localhost:8098/search/schema/agent -H'content-type:application
 sleep 5
 curl -XPUT http://localhost:8098/search/index/agent -H'content-type:application/json' -d'{"schema":"agent"}'
 sleep 5
-riak-admin bucket-type create agent '{"props":{"search_index":"agent","allow_mult":false}}'
-riak-admin bucket-type activate agent
+sudo riak-admin bucket-type create agent '{"props":{"search_index":"agent","allow_mult":false}}'
+sudo riak-admin bucket-type activate agent
 
 curl -XPUT http://localhost:8098/search/schema/persona -H'content-type:application/xml' --data-binary @dist/persona/schema.xml
 sleep 5
 curl -XPUT http://localhost:8098/search/index/persona -H'content-type:application/json' -d'{"schema":"persona"}'
 sleep 5
-riak-admin bucket-type create persona '{"props":{"search_index":"persona","allow_mult":false}}'
-riak-admin bucket-type activate persona
+sudo riak-admin bucket-type create persona '{"props":{"search_index":"persona","allow_mult":false}}'
+sudo riak-admin bucket-type activate persona
