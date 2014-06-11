@@ -31,4 +31,7 @@ module.exports = self =
     server.get( '/', self.index )
 
   index: ( req, res, next ) ->
+    res.link( 'joukou:agent-create', '/agent' )
+    res.link( 'joukou:agent-authn', '/agent/authenticate')
+    res.link( 'joukou:contact', '/contact' )
     res.send( 200 )
