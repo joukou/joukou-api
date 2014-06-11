@@ -34,4 +34,4 @@ module.exports = self =
     res.link( 'joukou:agent-create', '/agent' )
     res.link( 'joukou:agent-authn', '/agent/authenticate')
     res.link( 'joukou:contact', '/contact' )
-    res.send( 200 )
+    res.send( 200, {} )
