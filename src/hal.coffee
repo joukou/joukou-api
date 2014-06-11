@@ -69,8 +69,11 @@ module.exports =
         assert.string( rel )
 
         @_links ?= {}
-        ( @_links[ rel ] ?= [] ).push( _.extend( props,
-          href: href
-        ) )
+        if rel isnt 'self'
+          ( @_links[ rel ] ?= [] ).push( _.extend( props,
+            href: href
+          ) )
+        else
+          @_links[ rel ] = _.extend( props, href: href )
 
       next()
