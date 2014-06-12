@@ -166,8 +166,9 @@ module.exports = self =
     PersonaModel.create( data ).then( ( persona ) ->
       persona.save().then( ( reply ) ->
         self = "/persona/#{persona.getKey()}"
+        res.link( self, 'joukou:persona' )
         res.header( 'Location', self )
-        res.send( 201 )
+        res.send( 201, {} )
       ).fail( ( err ) ->
         next( err )
       )
