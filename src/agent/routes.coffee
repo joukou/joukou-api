@@ -50,8 +50,8 @@ module.exports = self =
       agent.save().then( ( reply ) ->
         self = "/agent/#{reply.getKey()}"
         res.header( 'Location', self )
-        res.link( self, 'location' ) # TODO rel uri
-        res.send( 201 )
+        res.link( self, 'joukou:agent' )
+        res.send( 201, {} )
       ).fail( ( err ) ->
         res.send( 503 )
       )
