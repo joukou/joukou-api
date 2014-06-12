@@ -31,7 +31,7 @@ module.exports = self =
     server.get( '/', self.index )
 
   index: ( req, res, next ) ->
-    res.link( '/agent', 'joukou:agent-create' )
-    res.link( '/agent/authenticate', 'joukou:agent-authn')
-    res.link( '/contact', 'joukou:contact' )
+    res.link( '/agent', 'joukou:agent-create', title: 'Create an Agent' )
+    res.link( '/agent/authenticate', 'joukou:agent-authn', title: 'Authenticate as an Agent')
+    res.link( '/contact', 'joukou:contact', title: 'Send a Message to Joukou Ltd' )
     res.send( 200, {} )
