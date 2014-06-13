@@ -19,4 +19,7 @@ PersonaModel = Model.define(
   schema: schema
 )
 
+PersonaModel::getName ->
+  @getValue().name
+
 module.exports = PersonaModel

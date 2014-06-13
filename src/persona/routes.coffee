@@ -195,6 +195,8 @@ module.exports = self =
     PersonaModel.retrieve( req.params.key ).then( ( persona ) ->
       for agent in persona.getValue().agents
         res.link( "/agent/#{agent.key}", 'joukou:agent', role: agent.role )
+        res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graphs', title: "List of Graphs for #{persona.getName()}" )
+        res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graph-create', title: "Create a Graph for #{persona.getName()}" )
       res.send( 200, _.pick( persona.getValue(), [ 'name' ] ) )
     ).fail( ( err ) ->
       next( err )
