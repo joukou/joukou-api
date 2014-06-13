@@ -67,9 +67,8 @@ module.exports = self =
         memo[ 'joukou:persona' ].push(
           name: persona.name
           _links:
-            self: [
+            self:
               href: "/persona/#{persona.key}"
-            ]
             'joukou:agent': _.map( persona.agents, ( agent ) ->
               href: "/agent/#{agent.key}"
               role: agent.role
