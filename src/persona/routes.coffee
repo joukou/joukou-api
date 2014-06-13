@@ -26,8 +26,8 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.post( '/persona', authn.authenticate, self.create )
     server.get(  '/persona', authn.authenticate, self.index )
+    server.post( '/persona', authn.authenticate, self.create )
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
   
     return
@@ -61,6 +61,7 @@ module.exports = self =
           }
         ]
     , ( err, reply ) ->
+
       representation = {}
       representation._embedded = _.reduce( reply.body, ( memo, persona ) ->
         memo[ 'joukou:persona' ].push(
@@ -76,6 +77,8 @@ module.exports = self =
         )
         memo
       , { 'joukou:persona': [] } )
+
+      res.link( '/persona', 'joukou:persona-create', title: 'Create a Persona')
 
       res.send( 200, representation )
     )
