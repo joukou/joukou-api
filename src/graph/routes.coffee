@@ -22,9 +22,20 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.post( '/graph', authn.authenticate, self.create )
-    server.get(  '/graph/:key', authn.authenticate, self.retrieve )
-    server.get(  '/graph', authn.authenticate, self.search )
+    server.get(  '/persona/:personaKey/graph', authn.authenticate, self.index )
+    server.post( '/persona/:personaKey/graph', authn.authenticate, self.create )
+    server.get(  '/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve )
+    server.post( '/persona/:personaKey/graph/:key/neuron', authn.authenticate, self.addNeuron )
+    server.post( '/persona/:personaKey/graph/:key/axon', authn.authenticate, self.addAxon )
+
+  ###*
+  Handles a request to search for graphs owned by a certain persona.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  index: ( req, res, next ) ->
+    res.send( 503 )
 
   ###
   @api {post} /graph Creates a new Joukou graph
@@ -85,11 +96,8 @@ module.exports = self =
         res.send( 503 )
     )
 
-  ###*
-  Handles a request to search for graphs owned by a certain persona.
-  @param {http.IncomingMessage} req
-  @param {http.ServerResponse} res
-  @param {function(Error)} next
-  ###
-  search: ( req, res, next ) ->
+  addNeuron: ( req, res, next ) ->
+    res.send( 503 )
+
+  addAxon: ( req, res, next ) ->
     res.send( 503 )

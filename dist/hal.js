@@ -80,9 +80,15 @@ module.exports = {
         if (this._links == null) {
           this._links = {};
         }
-        return ((_base = this._links)[rel] != null ? _base[rel] : _base[rel] = []).push(_.extend(props, {
-          href: href
-        }));
+        if (rel !== 'self') {
+          return ((_base = this._links)[rel] != null ? _base[rel] : _base[rel] = []).push(_.extend(props, {
+            href: href
+          }));
+        } else {
+          return this._links[rel] = _.extend(props, {
+            href: href
+          });
+        }
       };
       return next();
     };

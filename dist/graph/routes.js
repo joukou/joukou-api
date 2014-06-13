@@ -24,9 +24,21 @@ module.exports = self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
-    server.post('/graph', authn.authenticate, self.create);
-    server.get('/graph/:key', authn.authenticate, self.retrieve);
-    return server.get('/graph', authn.authenticate, self.search);
+    server.get('/persona/:personaKey/graph', authn.authenticate, self.index);
+    server.post('/persona/:personaKey/graph', authn.authenticate, self.create);
+    server.get('/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve);
+    server.post('/persona/:personaKey/graph/:key/neuron', authn.authenticate, self.addNeuron);
+    return server.post('/persona/:personaKey/graph/:key/axon', authn.authenticate, self.addAxon);
+  },
+
+  /**
+  Handles a request to search for graphs owned by a certain persona.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+   */
+  index: function(req, res, next) {
+    return res.send(503);
   },
 
   /*
@@ -87,14 +99,10 @@ module.exports = self = {
       }
     });
   },
-
-  /**
-  Handles a request to search for graphs owned by a certain persona.
-  @param {http.IncomingMessage} req
-  @param {http.ServerResponse} res
-  @param {function(Error)} next
-   */
-  search: function(req, res, next) {
+  addNeuron: function(req, res, next) {
+    return res.send(503);
+  },
+  addAxon: function(req, res, next) {
     return res.send(503);
   }
 };

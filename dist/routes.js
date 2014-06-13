@@ -36,7 +36,16 @@ module.exports = self = {
     return server.get('/', self.index);
   },
   index: function(req, res, next) {
-    return res.send(200);
+    res.link('/agent', 'joukou:agent-create', {
+      title: 'Create an Agent'
+    });
+    res.link('/agent/authenticate', 'joukou:agent-authn', {
+      title: 'Authenticate as an Agent'
+    });
+    res.link('/contact', 'joukou:contact', {
+      title: 'Send a Message to Joukou Ltd'
+    });
+    return res.send(200, {});
   }
 };
 

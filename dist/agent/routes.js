@@ -58,8 +58,8 @@ module.exports = self = {
       return agent.save().then(function(reply) {
         self = "/agent/" + (reply.getKey());
         res.header('Location', self);
-        res.link(self, 'location');
-        return res.send(201);
+        res.link(self, 'joukou:agent');
+        return res.send(201, {});
       }).fail(function(err) {
         return res.send(503);
       });
@@ -80,6 +80,7 @@ module.exports = self = {
     token = jwt.sign(req.user, 'abc', {
       expiresInMinutes: 60 * 5
     });
+    res.link('/persona', 'joukou:personas');
     return res.send(200, {
       token: token
     });

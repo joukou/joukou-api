@@ -32,8 +32,8 @@ module.exports = self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
-    server.post('/persona', authn.authenticate, self.create);
     server.get('/persona', authn.authenticate, self.index);
+    server.post('/persona', authn.authenticate, self.create);
     server.get('/persona/:key', authn.authenticate, self.retrieve);
   },
 
@@ -90,6 +90,9 @@ module.exports = self = {
         return memo;
       }, {
         'joukou:persona': []
+      });
+      res.link('/persona', 'joukou:persona-create', {
+        title: 'Create a Persona'
       });
       return res.send(200, representation);
     });
@@ -195,8 +198,9 @@ module.exports = self = {
     return PersonaModel.create(data).then(function(persona) {
       return persona.save().then(function(reply) {
         self = "/persona/" + (persona.getKey());
+        res.link(self, 'joukou:persona');
         res.header('Location', self);
-        return res.send(201);
+        return res.send(201, {});
       }).fail(function(err) {
         return next(err);
       });
@@ -225,6 +229,12 @@ module.exports = self = {
         agent = _ref[_i];
         res.link("/agent/" + agent.key, 'joukou:agent', {
           role: agent.role
+        });
+        res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graphs', {
+          title: "List of Graphs for " + (persona.getName())
+        });
+        res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graph-create', {
+          title: "Create a Graph for " + (persona.getName())
         });
       }
       return res.send(200, _.pick(persona.getValue(), ['name']));

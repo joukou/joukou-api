@@ -37,8 +37,8 @@ v:
   bucket: 'persona',
   key: '078b80e8-7f79-481c-bd7c-a61a5d0a5203',
   vclock: 'a85hYGBgzGDKBVIcypz/fgZPu6SewZTImMfKwBHLfZYvCwA=',
-  values: 
-   [ { metadata: 
+  values:
+   [ { metadata:
         { 'X-Riak-VTag': '4IXaKVVnMY7gSWYRqSXm8U',
           'content-type': 'application/json',
           index: [],
@@ -61,7 +61,7 @@ request(
 
 
 
-faulty: 
+faulty:
 
 
    {
@@ -78,7 +78,7 @@ faulty:
                       role: agent.role
                     )
                 values
-              ).toString() 
+              ).toString()
           }
  */
 

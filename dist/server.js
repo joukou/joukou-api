@@ -23,7 +23,7 @@ LoggerFactory = require('./log/LoggerFactory');
 
 cors = require('restify-cors-middleware')({
   origins: ['http://localhost:2100', 'http://127.0.0.1:2100', 'https://staging.joukou.com', 'https://joukou.com'],
-  allowHeaders: ['accept', 'accept-version', 'content-type', 'request-id', 'origin', 'x-api-version', 'x-request-id'],
+  allowHeaders: ['authorization', 'accept', 'accept-version', 'content-type', 'request-id', 'origin', 'x-api-version', 'x-request-id'],
   exposeHeaders: ['api-version', 'content-length', 'content-md5', 'content-type', 'date', 'request-id', 'response-time']
 });
 

@@ -21,6 +21,10 @@ PersonaModel = Model.define({
   schema: schema
 });
 
+PersonaModel.prototype.getName = function() {
+  return this.getValue().name;
+};
+
 module.exports = PersonaModel;
 
 /*
