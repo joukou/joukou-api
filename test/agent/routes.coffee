@@ -30,7 +30,7 @@ superagent.parse[ 'application/hal+json' ] = ( res, done ) ->
   )
 ###
 
-describe 'agent/routes', ->
+xdescribe 'agent/routes', ->
 
   describe 'POST /agent', ->
 

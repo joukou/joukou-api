@@ -13,7 +13,7 @@ PersonaModel  = require( '../../dist/persona/Model' )
 server        = require( '../../dist/server' )
 riakpbc       = require( '../../dist/riak/pbc' )
 
-describe 'persona/routes', ->
+xdescribe 'persona/routes', ->
 
   agentKey = null
 

@@ -37,7 +37,7 @@ describe 'server', ->
           res.should.have.header( 'access-control-allow-origin', 'https://joukou.com' )
           res.should.have.header( 'access-control-allow-credentials', 'true' )
           res.should.have.header( 'access-control-allow-methods', 'PUT, OPTIONS' )
-          res.should.have.header( 'access-control-allow-headers', 'accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id, x-requested-with, accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id' )
+          res.should.have.header( 'access-control-allow-headers', 'accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id, x-requested-with, authorization, accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id' )
         )
 
 

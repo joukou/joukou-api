@@ -13,7 +13,7 @@ GraphModel  = require( '../../dist/graph/Model' )
 server      = require( '../../dist/server' )
 riakpbc     = require( '../../dist/riak/pbc' )
 
-describe 'graph/routes', ->
+xdescribe 'graph/routes', ->
 
   agentKey = null
 
