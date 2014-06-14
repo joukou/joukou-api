@@ -25,8 +25,11 @@ module.exports = self =
     server.get(  '/persona/:personaKey/graph', authn.authenticate, self.index )
     server.post( '/persona/:personaKey/graph', authn.authenticate, self.create )
     server.get(  '/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve )
-    server.post( '/persona/:personaKey/graph/:key/neuron', authn.authenticate, self.addNeuron )
-    server.post( '/persona/:personaKey/graph/:key/axon', authn.authenticate, self.addAxon )
+    server.get(  '/persona/:personaKey/graph/:key/node', authn.authenticate, self.nodeIndex )
+    server.post( '/persona/:personaKey/graph/:key/node', authn.authenticate, self.addNode )
+    server.get(  '/persona/:personaKey/graph/:key/edge', authn.authenticate, self.edgeIndex )
+    server.post( '/persona/:personaKey/graph/:key/edge', authn.authenticate, self.addEdge )
+    return
 
   ###*
   Handles a request to search for graphs owned by a certain persona.
@@ -36,6 +39,7 @@ module.exports = self =
   ###
   index: ( req, res, next ) ->
     res.send( 503 )
+    return
 
   ###
   @api {post} /graph Creates a new Joukou graph
@@ -62,13 +66,15 @@ module.exports = self =
 
     GraphModel.create( req.body ).then( ( graph ) ->
       graph.save().then( ->
-        res.header( 'Location', "/graph/#{graph.getKey()}")
-        res.send( 201 )
+        self = "/persona/#{req.params.personaKey}/graph/#{graph.getKey()}"
+        res.link( self, 'joukou:graph' )
+        res.header( 'Location', self )
+        res.send( 201, {} )
       ).fail( ( err ) ->
-        res.send( 503 )
+        next( err )
       )
     ).fail( ( err ) ->
-      res.send( 403 )
+      next( err )
     )
 
   ###
@@ -96,8 +102,14 @@ module.exports = self =
         res.send( 503 )
     )
 
-  addNeuron: ( req, res, next ) ->
+  addNode: ( req, res, next ) ->
     res.send( 503 )
 
-  addAxon: ( req, res, next ) ->
+  nodeIndex: ( req, res, next ) ->
+    res.send( 503 )
+
+  addEdge: ( req, res, next ) ->
+    res.send( 503 )
+
+  edgeIndex: ( req, res, next ) ->
     res.send( 503 )

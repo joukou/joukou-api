@@ -27,8 +27,10 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph', authn.authenticate, self.index);
     server.post('/persona/:personaKey/graph', authn.authenticate, self.create);
     server.get('/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve);
-    server.post('/persona/:personaKey/graph/:key/neuron', authn.authenticate, self.addNeuron);
-    return server.post('/persona/:personaKey/graph/:key/axon', authn.authenticate, self.addAxon);
+    server.get('/persona/:personaKey/graph/:key/node', authn.authenticate, self.nodeIndex);
+    server.post('/persona/:personaKey/graph/:key/node', authn.authenticate, self.addNode);
+    server.get('/persona/:personaKey/graph/:key/edge', authn.authenticate, self.edgeIndex);
+    server.post('/persona/:personaKey/graph/:key/edge', authn.authenticate, self.addEdge);
   },
 
   /**
@@ -38,7 +40,7 @@ module.exports = self = {
   @param {function(Error)} next
    */
   index: function(req, res, next) {
-    return res.send(503);
+    res.send(503);
   },
 
   /*
@@ -63,13 +65,15 @@ module.exports = self = {
   create: function(req, res, next) {
     return GraphModel.create(req.body).then(function(graph) {
       return graph.save().then(function() {
-        res.header('Location', "/graph/" + (graph.getKey()));
-        return res.send(201);
+        self = "/persona/" + req.params.personaKey + "/graph/" + (graph.getKey());
+        res.link(self, 'joukou:graph');
+        res.header('Location', self);
+        return res.send(201, {});
       }).fail(function(err) {
-        return res.send(503);
+        return next(err);
       });
     }).fail(function(err) {
-      return res.send(403);
+      return next(err);
     });
   },
 
@@ -99,10 +103,16 @@ module.exports = self = {
       }
     });
   },
-  addNeuron: function(req, res, next) {
+  addNode: function(req, res, next) {
     return res.send(503);
   },
-  addAxon: function(req, res, next) {
+  nodeIndex: function(req, res, next) {
+    return res.send(503);
+  },
+  addEdge: function(req, res, next) {
+    return res.send(503);
+  },
+  edgeIndex: function(req, res, next) {
     return res.send(503);
   }
 };
