@@ -14,10 +14,10 @@ module.exports = schema.create({
   properties: {
     type: 'object'
   },
-  nodes: {
+  processes: {
     type: 'object'
   },
-  edges: {
+  connections: {
     type: 'array'
   },
   personas: {

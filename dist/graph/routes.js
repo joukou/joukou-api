@@ -168,16 +168,21 @@ module.exports = self = {
   retrieve: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var _i, _len, _ref;
+        var item, _i, _len, _ref;
         if (!persona.hasReadPermission(req.user)) {
           next(new UnauthorizedError());
           return;
         }
+        debugger;
         _ref = graph.getValue().personas;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          persona = _ref[_i];
-          res.link("/persona/" + persona.key, 'joukou:persona');
+          item = _ref[_i];
+          res.link("/persona/" + item.key, 'joukou:persona');
         }
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create');
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes');
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connection-create');
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections');
         return res.send(200, _.pick(graph.getValue(), ['properties', 'processes', 'connections']));
       }).fail(function(err) {
         return next(err);

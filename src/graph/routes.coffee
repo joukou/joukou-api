@@ -153,16 +153,19 @@ module.exports = self =
           next( new UnauthorizedError() )
           return
 
-        for persona in graph.getValue().personas
-          res.link( "/persona/#{persona.key}", 'joukou:persona' )
+        debugger
+
+        for item in graph.getValue().personas
+          res.link( "/persona/#{item.key}", 'joukou:persona' )
+
+        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create' )
+        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes' )
+        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create' )
+        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections' )
 
         res.send( 200, _.pick( graph.getValue(), [ 'properties', 'processes', 'connections' ] ) )
-      ).fail( ( err ) ->
-        next( err )
-      )
-    ).fail( ( err ) ->
-      next( err )
-    )
+      ).fail( ( err ) -> next( err ) )
+    ).fail( ( err ) -> next( err ) )
 
   ###*
   @api {post} /persona/:personaKey/graph/:graphKey/process
