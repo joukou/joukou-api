@@ -4,16 +4,19 @@
 {@link module:joukou-api/graph/model|Graph} APIs provide information about the
 graphs that an agent has authorization to access.
 
-At this time graph APIs are read-only and all write operations are performed via
-the `joukou-fbpp` WebSocket flow-based programming protocol server.
-
 @module joukou-api/graph/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-authn       = require( '../authn' )
-GraphModel  = require( './Model' )
+_             = require( 'lodash' )
+uuid          = require( 'node-uuid' )
+async         = require( 'async' )
+authn         = require( '../authn' )
+request       = require( 'request' )
+GraphModel    = require( './Model' )
+PersonaModel  = require( '../persona/Model')
+{ UnauthorizedError } = require( 'restify' )
 
 module.exports = self =
 
@@ -24,11 +27,11 @@ module.exports = self =
   registerRoutes: ( server ) ->
     server.get(  '/persona/:personaKey/graph', authn.authenticate, self.index )
     server.post( '/persona/:personaKey/graph', authn.authenticate, self.create )
-    server.get(  '/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve )
-    server.get(  '/persona/:personaKey/graph/:key/node', authn.authenticate, self.nodeIndex )
-    server.post( '/persona/:personaKey/graph/:key/node', authn.authenticate, self.addNode )
-    server.get(  '/persona/:personaKey/graph/:key/edge', authn.authenticate, self.edgeIndex )
-    server.post( '/persona/:personaKey/graph/:key/edge', authn.authenticate, self.addEdge )
+    server.get(  '/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve )
+    server.get(  '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.processIndex )
+    server.post( '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.addProcess )
+    server.get(  '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex )
+    server.post( '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection )
     return
 
   ###*
@@ -38,8 +41,47 @@ module.exports = self =
   @param {function(Error)} next
   ###
   index: ( req, res, next ) ->
-    res.send( 503 )
-    return
+    request(
+      uri: 'http://localhost:8098/mapred'
+      method: 'POST'
+      json:
+        inputs:
+          module: 'yokozuna'
+          function: 'mapred_search'
+          arg: [ 'graph', 'personas.key:' + req.params.personaKey ]
+        query: [
+          {
+            map:
+              language: 'javascript'
+              keep: true
+              source: ( ( value, keyData, arg ) ->
+                result = Riak.mapValuesJson( value )[ 0 ]
+                result.key = value.key
+                return [ result ]
+              ).toString()
+          }
+        ]
+    , ( err, reply ) ->
+      if err
+        res.send( 503 )
+        return
+
+      representation = {}
+      representation._embedded = _.reduce( reply.body, ( memo, graph ) ->
+        memo[ 'joukou:graph' ].push(
+          _links:
+            self:
+              href: "/persona/#{req.params.personaKey}/graph/#{graph.key}"
+            'joukou:persona':
+              href: "/persona/#{req.params.personaKey}"
+        )
+        memo
+      , { 'joukou:graph': [] } )
+
+      res.link( '/persona/#{req.params.personaKey}', 'joukou:persona' )
+
+      res.send( 200, representation )
+    )
 
   ###
   @api {post} /graph Creates a new Joukou graph
@@ -62,23 +104,35 @@ module.exports = self =
   ###
 
   create: ( req, res, next ) ->
-    #rawValue = _.assign( {}, req.body, createdBy: req.user.getKey() )
+    PersonaModel.retrieve( req.params.personaKey ).then( ( persona ) ->
+      unless persona.hasEditPermission( req.user )
+        next( new UnauthorizedError() )
+        return
 
-    GraphModel.create( req.body ).then( ( graph ) ->
-      graph.save().then( ->
-        self = "/persona/#{req.params.personaKey}/graph/#{graph.getKey()}"
-        res.link( self, 'joukou:graph' )
-        res.header( 'Location', self )
-        res.send( 201, {} )
+      data = {}
+      data.properties = req.body.properties
+      data.processs = req.body.processs
+      data.connections = req.body.connections
+      data.personas = [
+        key: persona.getKey()
+      ]
+
+      GraphModel.create( data ).then( ( graph ) ->
+        graph.save().then( ->
+          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
+          res.link( self, 'joukou:graph' )
+          res.header( 'Location', self )
+          res.send( 201, {} )
+        ).fail( ( err ) ->
+          next( err )
+        )
       ).fail( ( err ) ->
         next( err )
       )
-    ).fail( ( err ) ->
-      next( err )
     )
 
   ###
-  @api {get} /graph/:key Retrieve the definition of a Joukou graph
+  @api {get} /graph/:graphKey Retrieve the definition of a Joukou graph
   @apiName RetrieveGraph
   @apiGroup Graph
 
@@ -93,23 +147,88 @@ module.exports = self =
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
   ###
   retrieve: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.key ).then( ( graph ) ->
-      res.send( 200, graph.getValue() )
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+        unless persona.hasReadPermission( req.user )
+          next( new UnauthorizedError() )
+          return
+
+        for persona in graph.getValue().personas
+          res.link( "/persona/#{persona.key}", 'joukou:persona' )
+
+        res.send( 200, _.pick( graph.getValue(), [ 'properties', 'processs', 'connections' ] ) )
+      ).fail( ( err ) ->
+        next( err )
+      )
     ).fail( ( err ) ->
-      if err.notFound
-        res.send( 404 )
-      else
-        res.send( 503 )
+      next( err )
     )
 
-  addNode: ( req, res, next ) ->
-    res.send( 503 )
+  ###*
+  @api {post} /persona/:personaKey/graph/:graphKey/process
+  @apiName AddProcess
+  @apiGroup Graph
+  ###
+  addProcess: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+        unless persona.hasEditPermission( req.user )
+          throw new UnauthorizedError()
 
-  nodeIndex: ( req, res, next ) ->
-    res.send( 503 )
+        graph.addProcess( req.body ).then( ( processKey ) ->
+          graph.save().then( ->
+            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+            res.link( self, 'joukou:process' )
+            res.header( 'Location', self )
+            res.send( 201, {} )
+          ).fail( ( err ) -> next( err ) )
+        ).fail( ( err ) -> next( err ) )
+      ).fail( ( err ) -> next( err ) )
+    ).fail( ( err ) -> next( err ) )
 
-  addEdge: ( req, res, next ) ->
-    res.send( 503 )
+  processIndex: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+        unless persona.hasReadPermission( req.user )
+          throw new UnauthorizedError()
 
-  edgeIndex: ( req, res, next ) ->
+        graph.getProcesses( ( processes ) ->
+          personaHref = "/persona/#{persona.getKey()}"
+          res.link( personaHref, 'joukou:persona' )
+          graphHref = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
+          res.link( graphHref, 'joukou:graph' )
+          res.link( "#{graphHref}/process", 'joukou:process-add' )
+
+          representation = {}
+          representation._embedded = _.reduce( processes, ( process, key ) ->
+            component: process.component
+            metadata: process.metadata
+            _links:
+              self:
+                href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+              'joukou:persona':
+                href: personaHref
+              'joukou:graph':
+                href: graphHref
+          , { 'joukou:process': [] } )
+
+          res.send( 200, representation )
+        )
+      ).fail( ( err ) -> next( err ) )
+    ).fail( ( err ) -> next( err ) )
+
+  addConnection: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+        unless persona.hasEditPermission( req.user )
+          throw new UnauthorizedError()
+
+        graph.addConnection( req.body ).then( ( connection ) ->
+          # TODO
+          res.send( 503 )
+        )
+      ).fail( ( err ) -> next( err ) )
+    ).fail( ( err ) -> next( err ) )
+
+  connectionIndex: ( req, res, next ) ->
     res.send( 503 )

@@ -4,18 +4,27 @@
 {@link module:joukou-api/graph/model|Graph} APIs provide information about the
 graphs that an agent has authorization to access.
 
-At this time graph APIs are read-only and all write operations are performed via
-the `joukou-fbpp` WebSocket flow-based programming protocol server.
-
 @module joukou-api/graph/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var GraphModel, authn, self;
+var GraphModel, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _;
+
+_ = require('lodash');
+
+uuid = require('node-uuid');
+
+async = require('async');
 
 authn = require('../authn');
 
+request = require('request');
+
 GraphModel = require('./Model');
+
+PersonaModel = require('../persona/Model');
+
+UnauthorizedError = require('restify').UnauthorizedError;
 
 module.exports = self = {
 
@@ -26,11 +35,11 @@ module.exports = self = {
   registerRoutes: function(server) {
     server.get('/persona/:personaKey/graph', authn.authenticate, self.index);
     server.post('/persona/:personaKey/graph', authn.authenticate, self.create);
-    server.get('/persona/:personaKey/graph/:key', authn.authenticate, self.retrieve);
-    server.get('/persona/:personaKey/graph/:key/node', authn.authenticate, self.nodeIndex);
-    server.post('/persona/:personaKey/graph/:key/node', authn.authenticate, self.addNode);
-    server.get('/persona/:personaKey/graph/:key/edge', authn.authenticate, self.edgeIndex);
-    server.post('/persona/:personaKey/graph/:key/edge', authn.authenticate, self.addEdge);
+    server.get('/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve);
+    server.get('/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.processIndex);
+    server.post('/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.addProcess);
+    server.get('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex);
+    server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection);
   },
 
   /**
@@ -40,7 +49,55 @@ module.exports = self = {
   @param {function(Error)} next
    */
   index: function(req, res, next) {
-    res.send(503);
+    return request({
+      uri: 'http://localhost:8098/mapred',
+      method: 'POST',
+      json: {
+        inputs: {
+          module: 'yokozuna',
+          "function": 'mapred_search',
+          arg: ['graph', 'personas.key:' + req.params.personaKey]
+        },
+        query: [
+          {
+            map: {
+              language: 'javascript',
+              keep: true,
+              source: (function(value, keyData, arg) {
+                var result;
+                result = Riak.mapValuesJson(value)[0];
+                result.key = value.key;
+                return [result];
+              }).toString()
+            }
+          }
+        ]
+      }
+    }, function(err, reply) {
+      var representation;
+      if (err) {
+        res.send(503);
+        return;
+      }
+      representation = {};
+      representation._embedded = _.reduce(reply.body, function(memo, graph) {
+        memo['joukou:graph'].push({
+          _links: {
+            self: {
+              href: "/persona/" + req.params.personaKey + "/graph/" + graph.key
+            },
+            'joukou:persona': {
+              href: "/persona/" + req.params.personaKey
+            }
+          }
+        });
+        return memo;
+      }, {
+        'joukou:graph': []
+      });
+      res.link('/persona/#{req.params.personaKey}', 'joukou:persona');
+      return res.send(200, representation);
+    });
   },
 
   /*
@@ -63,22 +120,38 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure creating the graph, the client should try again later.
    */
   create: function(req, res, next) {
-    return GraphModel.create(req.body).then(function(graph) {
-      return graph.save().then(function() {
-        self = "/persona/" + req.params.personaKey + "/graph/" + (graph.getKey());
-        res.link(self, 'joukou:graph');
-        res.header('Location', self);
-        return res.send(201, {});
+    return PersonaModel.retrieve(req.params.personaKey).then(function(persona) {
+      var data;
+      if (!persona.hasEditPermission(req.user)) {
+        next(new UnauthorizedError());
+        return;
+      }
+      data = {};
+      data.properties = req.body.properties;
+      data.processs = req.body.processs;
+      data.connections = req.body.connections;
+      data.personas = [
+        {
+          key: persona.getKey()
+        }
+      ];
+      return GraphModel.create(data).then(function(graph) {
+        return graph.save().then(function() {
+          self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey());
+          res.link(self, 'joukou:graph');
+          res.header('Location', self);
+          return res.send(201, {});
+        }).fail(function(err) {
+          return next(err);
+        });
       }).fail(function(err) {
         return next(err);
       });
-    }).fail(function(err) {
-      return next(err);
     });
   },
 
   /*
-  @api {get} /graph/:key Retrieve the definition of a Joukou graph
+  @api {get} /graph/:graphKey Retrieve the definition of a Joukou graph
   @apiName RetrieveGraph
   @apiGroup Graph
   
@@ -93,26 +166,116 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
    */
   retrieve: function(req, res, next) {
-    return GraphModel.retrieve(req.params.key).then(function(graph) {
-      return res.send(200, graph.getValue());
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+        var _i, _len, _ref;
+        if (!persona.hasReadPermission(req.user)) {
+          next(new UnauthorizedError());
+          return;
+        }
+        _ref = graph.getValue().personas;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          persona = _ref[_i];
+          res.link("/persona/" + persona.key, 'joukou:persona');
+        }
+        return res.send(200, _.pick(graph.getValue(), ['properties', 'processs', 'connections']));
+      }).fail(function(err) {
+        return next(err);
+      });
     }).fail(function(err) {
-      if (err.notFound) {
-        return res.send(404);
-      } else {
-        return res.send(503);
-      }
+      return next(err);
     });
   },
-  addNode: function(req, res, next) {
-    return res.send(503);
+
+  /**
+  @api {post} /persona/:personaKey/graph/:graphKey/process
+  @apiName AddProcess
+  @apiGroup Graph
+   */
+  addProcess: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+        if (!persona.hasEditPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.addProcess(req.body).then(function(processKey) {
+          return graph.save().then(function() {
+            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey;
+            res.link(self, 'joukou:process');
+            res.header('Location', self);
+            return res.send(201, {});
+          }).fail(function(err) {
+            return next(err);
+          });
+        }).fail(function(err) {
+          return next(err);
+        });
+      }).fail(function(err) {
+        return next(err);
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   },
-  nodeIndex: function(req, res, next) {
-    return res.send(503);
+  processIndex: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+        if (!persona.hasReadPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.getProcesses(function(processes) {
+          var graphHref, personaHref, representation;
+          personaHref = "/persona/" + (persona.getKey());
+          res.link(personaHref, 'joukou:persona');
+          graphHref = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey());
+          res.link(graphHref, 'joukou:graph');
+          res.link("" + graphHref + "/process", 'joukou:process-add');
+          representation = {};
+          representation._embedded = _.reduce(processes, function(process, key) {
+            return {
+              component: process.component,
+              metadata: process.metadata,
+              _links: {
+                self: {
+                  href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + key
+                },
+                'joukou:persona': {
+                  href: personaHref
+                },
+                'joukou:graph': {
+                  href: graphHref
+                }
+              }
+            };
+          }, {
+            'joukou:process': []
+          });
+          return res.send(200, representation);
+        });
+      }).fail(function(err) {
+        return next(err);
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   },
-  addEdge: function(req, res, next) {
-    return res.send(503);
+  addConnection: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+        if (!persona.hasEditPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.addConnection(req.body).then(function(connection) {
+          return res.send(503);
+        });
+      }).fail(function(err) {
+        return next(err);
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   },
-  edgeIndex: function(req, res, next) {
+  connectionIndex: function(req, res, next) {
     return res.send(503);
   }
 };

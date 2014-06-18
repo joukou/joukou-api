@@ -25,6 +25,18 @@ PersonaModel.prototype.getName = function() {
   return this.getValue().name;
 };
 
+PersonaModel.prototype.hasEditPermission = function(user) {
+  return _.some(this.getValue().agents, function(agent) {
+    return agent.key === user.getKey() && (agent.role === 'admin' || agent.role === 'creator');
+  });
+};
+
+PersonaModel.prototype.hasReadPermission = function(user) {
+  return _.some(this.getValue().agents, function(agent) {
+    return agent.key === user.getKey();
+  });
+};
+
 module.exports = PersonaModel;
 
 /*

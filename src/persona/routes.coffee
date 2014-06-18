@@ -61,6 +61,9 @@ module.exports = self =
           }
         ]
     , ( err, reply ) ->
+      if err
+        res.send( 503 )
+        return
 
       representation = {}
       representation._embedded = _.reduce( reply.body, ( memo, persona ) ->

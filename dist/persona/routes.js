@@ -69,6 +69,10 @@ module.exports = self = {
       }
     }, function(err, reply) {
       var representation;
+      if (err) {
+        res.send(503);
+        return;
+      }
       representation = {};
       representation._embedded = _.reduce(reply.body, function(memo, persona) {
         memo['joukou:persona'].push({
