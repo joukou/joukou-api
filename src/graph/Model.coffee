@@ -13,6 +13,7 @@ graph are *Circles* (aka nodes), and the edges define connections between them.
 
 _                 = require( 'lodash' )
 Q                 = require( 'q' )
+uuid              = require( 'node-uuid' )
 Model             = require( '../riak/Model' )
 schema            = require( './schema' )
 PersonaModel      = require( '../persona/Model' )

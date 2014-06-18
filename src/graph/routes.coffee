@@ -153,8 +153,6 @@ module.exports = self =
           next( new UnauthorizedError() )
           return
 
-        debugger
-
         for item in graph.getValue().personas
           res.link( "/persona/#{item.key}", 'joukou:persona' )
 
@@ -174,7 +172,7 @@ module.exports = self =
   ###
   addProcess: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+      graph.getPersona().then( ( persona ) ->
         unless persona.hasEditPermission( req.user )
           throw new UnauthorizedError()
 
@@ -191,7 +189,7 @@ module.exports = self =
 
   processIndex: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+      graph.getPersona().then( ( persona ) ->
         unless persona.hasReadPermission( req.user )
           throw new UnauthorizedError()
 
@@ -222,7 +220,7 @@ module.exports = self =
 
   addConnection: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+      graph.getPersona().then( ( persona ) ->
         unless persona.hasEditPermission( req.user )
           throw new UnauthorizedError()
 

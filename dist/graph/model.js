@@ -10,11 +10,13 @@ graph are *Circles* (aka nodes), and the edges define connections between them.
 @requires joukou-api/graph/schema
 @requires restify
  */
-var ConflictError, GraphModel, Model, PersonaModel, Q, schema, _;
+var ConflictError, GraphModel, Model, PersonaModel, Q, schema, uuid, _;
 
 _ = require('lodash');
 
 Q = require('q');
+
+uuid = require('node-uuid');
 
 Model = require('../riak/Model');
 

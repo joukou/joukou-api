@@ -173,7 +173,6 @@ module.exports = self = {
           next(new UnauthorizedError());
           return;
         }
-        debugger;
         _ref = graph.getValue().personas;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -199,7 +198,7 @@ module.exports = self = {
    */
   addProcess: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+      return graph.getPersona().then(function(persona) {
         if (!persona.hasEditPermission(req.user)) {
           throw new UnauthorizedError();
         }
@@ -224,7 +223,7 @@ module.exports = self = {
   },
   processIndex: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+      return graph.getPersona().then(function(persona) {
         if (!persona.hasReadPermission(req.user)) {
           throw new UnauthorizedError();
         }
@@ -266,7 +265,7 @@ module.exports = self = {
   },
   addConnection: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+      return graph.getPersona().then(function(persona) {
         if (!persona.hasEditPermission(req.user)) {
           throw new UnauthorizedError();
         }
