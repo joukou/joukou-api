@@ -9,7 +9,11 @@ legal person (Latin: persona ficta) or a natural person
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 @author Isaac Johnston <isaac.johnston@joukou.com>
  */
-var Model, PersonaModel, schema;
+var Model, PersonaModel, Q, schema, _;
+
+_ = require('lodash');
+
+Q = require('q');
 
 Model = require('../riak/Model');
 

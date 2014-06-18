@@ -95,7 +95,7 @@ module.exports = self = {
       }, {
         'joukou:graph': []
       });
-      res.link('/persona/#{req.params.personaKey}', 'joukou:persona');
+      res.link("/persona/" + req.params.personaKey, 'joukou:persona');
       return res.send(200, representation);
     });
   },
@@ -128,7 +128,7 @@ module.exports = self = {
       }
       data = {};
       data.properties = req.body.properties;
-      data.processs = req.body.processs;
+      data.processes = req.body.processes;
       data.connections = req.body.connections;
       data.personas = [
         {
@@ -167,7 +167,7 @@ module.exports = self = {
    */
   retrieve: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return PersonaModel.retrieve(graph.personas[0].key).then(function(persona) {
+      return graph.getPersona().then(function(persona) {
         var _i, _len, _ref;
         if (!persona.hasReadPermission(req.user)) {
           next(new UnauthorizedError());
@@ -178,7 +178,7 @@ module.exports = self = {
           persona = _ref[_i];
           res.link("/persona/" + persona.key, 'joukou:persona');
         }
-        return res.send(200, _.pick(graph.getValue(), ['properties', 'processs', 'connections']));
+        return res.send(200, _.pick(graph.getValue(), ['properties', 'processes', 'connections']));
       }).fail(function(err) {
         return next(err);
       });

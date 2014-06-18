@@ -39,7 +39,7 @@ module.exports = self = {
 
   /*
   @api {get} /persona Get the list of Joukou Personas that you have access to
-  @apiName Persona Index
+  @apiName PersonaIndex
   @apiGroup Persona
    */
   index: function(req, res, next) {
@@ -102,7 +102,7 @@ module.exports = self = {
 
   /*
   @api {post} /persona Create a Joukou Persona
-  @apiName Create Persona
+  @apiName CreatePersona
   @apiGroup Persona
   
   @apiParam {String} name The name of the Persona; e.g. the company name.
@@ -198,7 +198,7 @@ module.exports = self = {
       role: 'creator'
     });
     return PersonaModel.create(data).then(function(persona) {
-      return persona.save().then(function(reply) {
+      return persona.save().then(function() {
         self = "/persona/" + (persona.getKey());
         res.link(self, 'joukou:persona');
         res.header('Location', self);
@@ -212,8 +212,8 @@ module.exports = self = {
   },
 
   /*
-  @api {get} /persona/:key Retrieve a Joukou Persona
-  @apiName Retrieve Persona
+  @api {get} /persona/:personaKey Retrieve a Joukou Persona
+  @apiName RetrievePersona
   @apiGroup Persona
    */
 

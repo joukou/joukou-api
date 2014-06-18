@@ -13,7 +13,7 @@ PersonaModel  = require( '../../dist/persona/Model' )
 server        = require( '../../dist/server' )
 riakpbc       = require( '../../dist/riak/pbc' )
 
-xdescribe 'persona/routes', ->
+describe 'persona/routes', ->
 
   agentKey = null
 
@@ -26,12 +26,8 @@ xdescribe 'persona/routes', ->
       agent.save().then( ->
         agentKey = agent.getKey()
         done()
-      ).fail( ( err ) ->
-        done( err )
-      )
-    ).fail( ( err ) ->
-      done( err )
-    )
+      ).fail( ( err ) -> done( err ) )
+    ).fail( ( err ) -> done( err ) )
 
   describe 'POST /persona', ->
 
@@ -57,11 +53,10 @@ xdescribe 'persona/routes', ->
               res.should.have.status( 200 )
 
               riakpbc.del(
+                type: 'persona'
                 bucket: 'persona'
                 key: key
-              , ( err, reply ) ->
-                done( err )
-              )
+              , ( err, reply ) -> done( err ) )
             )
         )
 
@@ -81,8 +76,7 @@ xdescribe 'persona/routes', ->
 
   after ( done ) ->
     riakpbc.del(
+      type: 'agent'
       bucket: 'agent'
       key: agentKey
-    , ( err, reply ) ->
-      done( err )
-    )
+    , ( err, reply ) -> done( err ) )

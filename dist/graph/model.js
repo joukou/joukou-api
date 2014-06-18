@@ -10,13 +10,17 @@ graph are *Circles* (aka nodes), and the edges define connections between them.
 @requires joukou-api/graph/schema
 @requires restify
  */
-var ConflictError, GraphModel, Model, Q, schema;
+var ConflictError, GraphModel, Model, PersonaModel, Q, schema, _;
+
+_ = require('lodash');
 
 Q = require('q');
 
 Model = require('../riak/Model');
 
 schema = require('./schema');
+
+PersonaModel = require('../persona/Model');
 
 ConflictError = require('restify').ConflictError;
 
@@ -25,6 +29,10 @@ GraphModel = Model.define({
   schema: schema,
   bucket: 'graph'
 });
+
+GraphModel.prototype.getPersona = function() {
+  return PersonaModel.retrieve(this.getValue().personas[0].key);
+};
 
 GraphModel.prototype.addProcess = function(_arg) {
   var component, key, metadata;

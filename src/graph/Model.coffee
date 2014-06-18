@@ -11,9 +11,11 @@ graph are *Circles* (aka nodes), and the edges define connections between them.
 @requires restify
 ###
 
+_                 = require( 'lodash' )
 Q                 = require( 'q' )
 Model             = require( '../riak/Model' )
 schema            = require( './schema' )
+PersonaModel      = require( '../persona/Model' )
 { ConflictError } = require( 'restify' )
 
 GraphModel = Model.define(
@@ -21,6 +23,9 @@ GraphModel = Model.define(
   schema: schema
   bucket: 'graph'
 )
+
+GraphModel::getPersona = ->
+  PersonaModel.retrieve( @getValue().personas[ 0 ].key )
 
 GraphModel::addProcess = ( { component, metadata } ) ->
   key = uuid.v4()

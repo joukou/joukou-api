@@ -78,7 +78,7 @@ module.exports = self =
         memo
       , { 'joukou:graph': [] } )
 
-      res.link( '/persona/#{req.params.personaKey}', 'joukou:persona' )
+      res.link( "/persona/#{req.params.personaKey}", 'joukou:persona' )
 
       res.send( 200, representation )
     )
@@ -111,7 +111,7 @@ module.exports = self =
 
       data = {}
       data.properties = req.body.properties
-      data.processs = req.body.processs
+      data.processes = req.body.processes
       data.connections = req.body.connections
       data.personas = [
         key: persona.getKey()
@@ -148,7 +148,7 @@ module.exports = self =
   ###
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      PersonaModel.retrieve( graph.personas[ 0 ].key ).then( ( persona ) ->
+      graph.getPersona().then( ( persona ) ->
         unless persona.hasReadPermission( req.user )
           next( new UnauthorizedError() )
           return
@@ -156,7 +156,7 @@ module.exports = self =
         for persona in graph.getValue().personas
           res.link( "/persona/#{persona.key}", 'joukou:persona' )
 
-        res.send( 200, _.pick( graph.getValue(), [ 'properties', 'processs', 'connections' ] ) )
+        res.send( 200, _.pick( graph.getValue(), [ 'properties', 'processes', 'connections' ] ) )
       ).fail( ( err ) ->
         next( err )
       )

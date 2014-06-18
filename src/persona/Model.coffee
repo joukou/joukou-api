@@ -10,6 +10,8 @@ legal person (Latin: persona ficta) or a natural person
 @author Isaac Johnston <isaac.johnston@joukou.com>
 ###
 
+_       = require( 'lodash' )
+Q       = require( 'q' )
 Model   = require( '../riak/Model' )
 schema  = require( './schema' )
 

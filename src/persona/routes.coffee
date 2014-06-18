@@ -34,7 +34,7 @@ module.exports = self =
 
   ###
   @api {get} /persona Get the list of Joukou Personas that you have access to
-  @apiName Persona Index
+  @apiName PersonaIndex
   @apiGroup Persona
   ###
   index: ( req, res, next ) ->
@@ -87,7 +87,7 @@ module.exports = self =
 
   ###
   @api {post} /persona Create a Joukou Persona
-  @apiName Create Persona
+  @apiName CreatePersona
   @apiGroup Persona
 
   @apiParam {String} name The name of the Persona; e.g. the company name.
@@ -169,21 +169,17 @@ module.exports = self =
     )
 
     PersonaModel.create( data ).then( ( persona ) ->
-      persona.save().then( ( reply ) ->
+      persona.save().then( ->
         self = "/persona/#{persona.getKey()}"
         res.link( self, 'joukou:persona' )
         res.header( 'Location', self )
         res.send( 201, {} )
-      ).fail( ( err ) ->
-        next( err )
-      )
-    ).fail( ( err ) ->
-      next( err )
-    )
+      ).fail( ( err ) -> next( err ) )
+    ).fail( ( err ) -> next( err ) )
 
   ###
-  @api {get} /persona/:key Retrieve a Joukou Persona
-  @apiName Retrieve Persona
+  @api {get} /persona/:personaKey Retrieve a Joukou Persona
+  @apiName RetrievePersona
   @apiGroup Persona
   ###
 
