@@ -84,9 +84,13 @@ module.exports = self = {
             'joukou:agent': _.map(persona.agents, function(agent) {
               return {
                 href: "/agent/" + agent.key,
-                role: agent.role
+                name: agent.role
               };
-            })
+            }),
+            'joukou:components': {
+              href: "/persona/" + persona.key + "/component",
+              title: 'List of Components available to this Persona'
+            }
           }
         });
         return memo;
@@ -233,11 +237,12 @@ module.exports = self = {
           role: agent.role
         });
         res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graphs', {
-          title: "List of Graphs for " + (persona.getName())
+          title: "List of Graphs owned by this Persona"
         });
         res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graph-create', {
-          title: "Create a Graph for " + (persona.getName())
+          title: "Create a Graph owned by this Persona"
         });
+        res.link("/persona/" + (persona.getKey()) + "/component", 'joukou:components', 'List of Components available to this Persona');
       }
       return res.send(200, _.pick(persona.getValue(), ['name']));
     }).fail(function(err) {
