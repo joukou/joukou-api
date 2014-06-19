@@ -8,6 +8,7 @@
 ###
 
 agent   = require( './agent/routes' )
+component = require( './component/routes' )
 contact = require( './contact/routes' )
 graph   = require( './graph/routes' )
 network = require( './network/routes' )
@@ -22,6 +23,7 @@ module.exports = self =
   ###
   registerRoutes: ( server ) ->
     agent.registerRoutes( server )
+    component.registerRoutes( server )
     contact.registerRoutes( server )
     graph.registerRoutes( server )
     network.registerRoutes( server )
