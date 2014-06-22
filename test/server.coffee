@@ -12,7 +12,7 @@ describe 'server', ->
 
   describe 'Cross Origin Resource Sharing', ->
 
-    specify 'sends the expected CORS response headers', ->
+    specify 'sends the expected CORS response headers', ( done ) ->
       chai.request( server )
         .get( '/' )
         .req( ( req ) ->
@@ -22,22 +22,24 @@ describe 'server', ->
           res.should.have.status( 200 )
           res.should.have.header( 'access-control-allow-origin', 'https://joukou.com' )
           res.should.have.header( 'access-control-expose-headers' )
+          done()
         )
 
-    specify 'responds to a CORS preflight request', ->
+    specify 'responds to a CORS preflight request', ( done ) ->
       chai.request( server )
-        .options( '/' )
+        .options( '/persona' )
         .req( ( req ) ->
           req.set( 'origin', 'https://joukou.com' )
-          req.set( 'access-control-request-method', 'PUT' )
-          #res.set( 'access-control-request-headers', 'x-custom-header' )
+          req.set( 'access-control-request-method', 'POST' )
+          req.set( 'access-control-request-headers', 'accept, authorization, content-type' )
         )
         .res( ( res ) ->
           res.should.have.status( 204 )
           res.should.have.header( 'access-control-allow-origin', 'https://joukou.com' )
           res.should.have.header( 'access-control-allow-credentials', 'true' )
-          res.should.have.header( 'access-control-allow-methods', 'PUT, OPTIONS' )
+          res.should.have.header( 'access-control-allow-methods', 'POST, OPTIONS' )
           res.should.have.header( 'access-control-allow-headers', 'accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id, x-requested-with, authorization, accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id' )
+          done()
         )
 
 

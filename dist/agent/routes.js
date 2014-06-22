@@ -80,6 +80,7 @@ module.exports = self = {
     token = jwt.sign(req.user, 'abc', {
       expiresInMinutes: 60 * 5
     });
+    res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
     res.link('/persona', 'joukou:personas');
     return res.send(200, {
       token: token

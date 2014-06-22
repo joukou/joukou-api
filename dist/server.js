@@ -22,7 +22,7 @@ routes = require('./routes');
 LoggerFactory = require('./log/LoggerFactory');
 
 cors = require('restify-cors-middleware')({
-  origins: ['http://localhost:2100', 'http://127.0.0.1:2100', 'https://staging.joukou.com', 'https://joukou.com'],
+  origins: ['http://localhost:2100', 'http://127.0.0.1:2100', 'https://staging.joukou.com', 'https://joukou.com', 'chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo'],
   allowHeaders: ['authorization', 'accept', 'accept-version', 'content-type', 'request-id', 'origin', 'x-api-version', 'x-request-id'],
   exposeHeaders: ['api-version', 'content-length', 'content-md5', 'content-type', 'date', 'request-id', 'response-time']
 });
@@ -46,8 +46,13 @@ module.exports = server = restify.createServer({
   },
   log: LoggerFactory.getLogger({
     name: 'server'
-  })
+  }),
+  acceptable: ['application/json', 'application/hal+json']
 });
+
+server.pre(cors.preflight);
+
+server.use(cors.actual);
 
 server.use(restify.acceptParser(server.acceptable));
 
@@ -64,10 +69,6 @@ server.use(restify.bodyParser({
 }));
 
 server.use(authn.middleware());
-
-server.pre(cors.preflight);
-
-server.use(cors.actual);
 
 server.use(hal.link());
 

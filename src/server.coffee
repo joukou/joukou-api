@@ -22,6 +22,7 @@ cors          = require( 'restify-cors-middleware' )(
     'http://127.0.0.1:2100'
     'https://staging.joukou.com'
     'https://joukou.com'
+    'chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo'
   ]
   allowHeaders: [
     'authorization'
@@ -59,8 +60,14 @@ module.exports = server = restify.createServer(
   formatters:
     'application/json': hal.formatter
   log: LoggerFactory.getLogger( name: 'server' )
+  acceptable: [
+    'application/json'
+    'application/hal+json'
+  ]
 )
 
+server.pre( cors.preflight )
+server.use( cors.actual )
 server.use( restify.acceptParser( server.acceptable ) )
 server.use( restify.dateParser() )
 server.use( restify.queryParser() )
@@ -68,8 +75,6 @@ server.use( restify.jsonp() )
 server.use( restify.gzipResponse() )
 server.use( restify.bodyParser( mapParams: false ) )
 server.use( authn.middleware( ) )
-server.pre( cors.preflight )
-server.use( cors.actual )
 server.use( hal.link( ) )
 
 server.on( 'after', restify.auditLogger(
