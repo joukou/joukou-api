@@ -39,7 +39,7 @@ GraphModel::getPersona = ->
 GraphModel::addProcess = ( { circle, metadata } ) ->
   key = uuid.v4()
   
-  @getValue().processes[ key ] =
+  (@getValue().processes ?= {})[ key ] =
     circle: circle
     metadata: metadata
 

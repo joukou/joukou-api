@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _, _ref;
+var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -24,7 +24,7 @@ GraphModel = require('./Model');
 
 PersonaModel = require('../persona/Model');
 
-_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError;
+_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 
 module.exports = self = {
 
@@ -38,6 +38,7 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve);
     server.get('/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.processIndex);
     server.post('/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.addProcess);
+    server.get('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieveProcess);
     server.get('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex);
     server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection);
   },
@@ -49,7 +50,7 @@ module.exports = self = {
   @param {function(Error)} next
    */
   index: function(req, res, next) {
-    return request({
+    request({
       uri: 'http://localhost:8098/mapred',
       method: 'POST',
       json: {
@@ -108,7 +109,7 @@ module.exports = self = {
         'joukou:graph': []
       });
       res.link("/persona/" + req.params.personaKey, 'joukou:persona');
-      return res.send(200, representation);
+      res.send(200, representation);
     });
   },
 
@@ -208,37 +209,6 @@ module.exports = self = {
       return next(err);
     });
   },
-
-  /**
-  @api {post} /persona/:personaKey/graph/:graphKey/process
-  @apiName AddProcess
-  @apiGroup Graph
-   */
-  addProcess: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return graph.getPersona().then(function(persona) {
-        if (!persona.hasEditPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
-        return graph.addProcess(req.body).then(function(processKey) {
-          return graph.save().then(function() {
-            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey;
-            res.link(self, 'joukou:process');
-            res.header('Location', self);
-            return res.send(201, {});
-          }).fail(function(err) {
-            return next(err);
-          });
-        }).fail(function(err) {
-          return next(err);
-        });
-      }).fail(function(err) {
-        return next(err);
-      });
-    }).fail(function(err) {
-      return next(err);
-    });
-  },
   processIndex: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
@@ -251,7 +221,7 @@ module.exports = self = {
           res.link(personaHref, 'joukou:persona');
           graphHref = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey());
           res.link(graphHref, 'joukou:graph');
-          res.link("" + graphHref + "/process", 'joukou:process-add');
+          res.link("" + graphHref + "/process", 'joukou:process-create');
           representation = {};
           representation._embedded = _.reduce(processes, function(process, key) {
             return {
@@ -274,8 +244,50 @@ module.exports = self = {
           });
           return res.send(200, representation);
         });
-      }).fail(function(err) {
-        return next(err);
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
+  },
+
+  /**
+  @api {post} /persona/:personaKey/graph/:graphKey/process
+  @apiName AddProcess
+  @apiGroup Graph
+   */
+  addProcess: function(req, res, next) {
+    GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return graph.getPersona().then(function(persona) {
+        if (!persona.hasEditPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.addProcess(req.body).then(function(processKey) {
+          return graph.save().then(function() {
+            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey;
+            res.link(self, 'joukou:process');
+            res.header('Location', self);
+            return res.send(201, {});
+          });
+        });
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
+  },
+  retrieveProcess: function(req, res, next) {
+    GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return graph.getPersona().then(function(persona) {
+        if (!persona.hasReadPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.getProcesses().then(function(processes) {
+          var process;
+          process = processes[req.params.processKey];
+          if (!process) {
+            throw new NotFoundError();
+          }
+          return res.send(200, process);
+        });
       });
     }).fail(function(err) {
       return next(err);

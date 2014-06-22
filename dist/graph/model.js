@@ -53,10 +53,10 @@ GraphModel.prototype.getPersona = function() {
 };
 
 GraphModel.prototype.addProcess = function(_arg) {
-  var circle, key, metadata;
+  var circle, key, metadata, _base;
   circle = _arg.circle, metadata = _arg.metadata;
   key = uuid.v4();
-  this.getValue().processes[key] = {
+  ((_base = this.getValue()).processes != null ? _base.processes : _base.processes = {})[key] = {
     circle: circle,
     metadata: metadata
   };

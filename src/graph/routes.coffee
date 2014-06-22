@@ -16,7 +16,7 @@ authn         = require( '../authn' )
 request       = require( 'request' )
 GraphModel    = require( './Model' )
 PersonaModel  = require( '../persona/Model')
-{ UnauthorizedError, ForbiddenError } = require( 'restify' )
+{ UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =
 
@@ -30,6 +30,7 @@ module.exports = self =
     server.get(  '/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve )
     server.get(  '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.processIndex )
     server.post( '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.addProcess )
+    server.get(  '/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieveProcess )
     server.get(  '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex )
     server.post( '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection )
     return
@@ -89,7 +90,9 @@ module.exports = self =
       res.link( "/persona/#{req.params.personaKey}", 'joukou:persona' )
 
       res.send( 200, representation )
+      return
     )
+    return
 
   ###
   @api {post} /persona/:personaKey/graph Creates a Joukou graph
@@ -175,28 +178,6 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
 
-  ###*
-  @api {post} /persona/:personaKey/graph/:graphKey/process
-  @apiName AddProcess
-  @apiGroup Graph
-  ###
-  addProcess: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        unless persona.hasEditPermission( req.user )
-          throw new UnauthorizedError()
-
-        graph.addProcess( req.body ).then( ( processKey ) ->
-          graph.save().then( ->
-            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
-            res.link( self, 'joukou:process' )
-            res.header( 'Location', self )
-            res.send( 201, {} )
-          ).fail( ( err ) -> next( err ) )
-        ).fail( ( err ) -> next( err ) )
-      ).fail( ( err ) -> next( err ) )
-    ).fail( ( err ) -> next( err ) )
-
   processIndex: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
@@ -208,7 +189,7 @@ module.exports = self =
           res.link( personaHref, 'joukou:persona' )
           graphHref = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
           res.link( graphHref, 'joukou:graph' )
-          res.link( "#{graphHref}/process", 'joukou:process-add' )
+          res.link( "#{graphHref}/process", 'joukou:process-create' )
 
           representation = {}
           representation._embedded = _.reduce( processes, ( process, key ) ->
@@ -225,8 +206,50 @@ module.exports = self =
 
           res.send( 200, representation )
         )
-      ).fail( ( err ) -> next( err ) )
-    ).fail( ( err ) -> next( err ) )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
+  ###*
+  @api {post} /persona/:personaKey/graph/:graphKey/process
+  @apiName AddProcess
+  @apiGroup Graph
+  ###
+  addProcess: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+        unless persona.hasEditPermission( req.user )
+          throw new UnauthorizedError()
+          
+        graph.addProcess( req.body ).then( ( processKey ) ->
+          graph.save().then( ->
+            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+            res.link( self, 'joukou:process' )
+            res.header( 'Location', self )
+            res.send( 201, {} )
+          )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+    return
+
+  retrieveProcess: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+        unless persona.hasReadPermission( req.user )
+          throw new UnauthorizedError()
+
+        graph.getProcesses().then( ( processes ) ->
+          process = processes[ req.params.processKey ]
+          unless process
+            throw new NotFoundError()
+          res.send( 200, process )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+    return
 
   addConnection: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->

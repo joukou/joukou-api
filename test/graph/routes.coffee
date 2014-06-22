@@ -67,7 +67,7 @@ describe 'graph/routes', ->
 
   describe 'POST /persona/:personaKey/graph', ->
 
-    specify 'creates a new graph', ( done ) ->
+    specify 'creates a graph', ( done ) ->
       chai.request( server )
         .post( "/persona/#{personaKey}/graph" )
         .req( ( req ) ->
@@ -88,8 +88,7 @@ describe 'graph/routes', ->
             )
             .res( ( res ) ->
               res.should.have.status( 200 )
-
-              expected =
+              res.body.should.deep.equal(
                 properties:
                   name: 'Test Graph Routes'
                 processes: {}
@@ -133,11 +132,6 @@ describe 'graph/routes', ->
                       href: 'https://rels.joukou.com/{rel}'
                     }
                   ]
-
-              console.log(require('util').inspect(res.body, depth: 10))
-              console.log(require('util').inspect(expected, depth: 10))  
-              res.body.should.deep.equal(
-                expected
               )
               riakpbc.del(
                 type: 'graph'
@@ -147,11 +141,11 @@ describe 'graph/routes', ->
             )
         )
 
-  describe 'GET /graph/:graphKey', ->
+  describe 'GET /persona/:personaKey/graph/:graphKey', ->
 
     specify 'responds with 404 NotFound status code if the provided graph key is not valid', ( done ) ->
       chai.request( server )
-        .get( '/graph/7ec23d7d-9522-478c-97a4-2f577335e023' )
+        .get( '/persona/e78cd405-8dce-472d-82bb-88c9862a58d1/graph/7ec23d7d-9522-478c-97a4-2f577335e023' )
         .req( ( req ) ->
           req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
         )
@@ -159,4 +153,46 @@ describe 'graph/routes', ->
           res.should.have.status( 404 )
           res.body.should.be.empty
           done()
+        )
+
+  describe 'POST /persona/:personaKey/graph/:graphKey/process', ->
+
+    graphKey = null
+
+    before ( done ) ->
+      GraphModel.create(
+        properties:
+          name: 'Add Process Test'
+        personas: [
+          {
+            key: personaKey
+          }
+        ]
+      )
+      .then( ( graph ) ->
+        graph.save()
+      )
+      .then( ( graph ) ->
+        graphKey = graph.getKey()
+        done()
+      )
+      .fail( ( err ) -> done( err ) )
+
+    specify 'adds a process to a graph', ( done ) ->
+      chai.request( server )
+        .post( "/persona/#{personaKey}/graph/#{graphKey}/process" )
+        .req( ( req ) ->
+          req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
+          req.send(
+            circle: '7eee9052-5a7e-410d-9cb7-6e099c489001'
+            metadata:
+              x: 100
+              y: 100
+          )
+        )
+        .res( ( res ) ->
+          res.should.have.status( 201 )
+          #res.headers.location.should.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
+          #graphKey = res.headers.location.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+          done()          
         )
