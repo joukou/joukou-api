@@ -60,7 +60,43 @@ describe 'persona/routes', ->
             )
             .res( ( res ) ->
               res.should.have.status( 200 )
-
+              res.body.should.deep.equal(
+                name: 'Joukou Ltd'
+                _links:
+                  curies: [
+                    {
+                      name: 'joukou'
+                      templated: true
+                      href: 'https://rels.joukou.com/{rel}'
+                    }
+                  ]
+                  self:
+                    href: "/persona/#{personaKey}"
+                  'joukou:agent': [
+                    {
+                      name: 'creator'
+                      href: "/agent/#{agentKey}"
+                    }
+                  ]
+                  'joukou:graphs': [
+                    {
+                      title: 'List of Graphs owned by this Persona'
+                      href: "/persona/#{personaKey}/graph"
+                    }
+                  ]
+                  'joukou:graph-create': [
+                    {
+                      title: 'Create a Graph owned by this Persona'
+                      href: "/persona/#{personaKey}/graph"
+                    }
+                  ]
+                  'joukou:circles': [
+                    {
+                      title: 'List of Circles available to this Persona'
+                      href: "/persona/#{personaKey}/circle"
+                    }
+                  ]
+              )
               riakpbc.del(
                 type: 'persona'
                 bucket: 'persona'

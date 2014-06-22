@@ -88,6 +88,18 @@ module.exports = self = {
             },
             'joukou:persona': {
               href: "/persona/" + req.params.personaKey
+            },
+            'joukou:process-create': {
+              href: "/persona/" + req.params.personaKey + "/graph/" + graph.key + "/process"
+            },
+            'joukou:processes': {
+              href: "/persona/" + req.params.personaKey + "/graph/" + graph.key + "/process"
+            },
+            'joukou:connection-create': {
+              href: "/persona/" + req.params.personaKey + "/graph/" + graph.key + "/connection"
+            },
+            'joukou:connections': {
+              href: "/persona/" + req.params.personaKey + "/graph/" + graph.key + "/connection"
             }
           }
         });
@@ -101,18 +113,16 @@ module.exports = self = {
   },
 
   /*
-  @api {post} /graph Creates a new Joukou graph
+  @api {post} /persona/:personaKey/graph Creates a Joukou graph
   @apiName CreateGraph
   @apiGroup Graph
   
-  @apiParam {Object.<String, String>} properties
-  @apiParam {Object.<String, !Object>} processes
-  @apiParam {Array.<Object>} connections
+  @apiParam {Object} properties
   
   @apiExample CURL Example:
-    curl -i -X POST https://api.joukou.com/graph \
+    curl -i -X POST https://api.joukou.com/persona/7bcb937e-3938-49c5-a1ce-5eb45f194f2f/graph \
       -H 'Content-Type: application/json' \
-      -d '{ "properties": { "name": "MySQL to REST API" }, "processes": { "Query Database": { "component": "MySQLQuery", "metadata": { ... } }, "Publish REST API": { "component": "RestfulAPIEndpoint", "metadata": { ... } } }, "connections": [ { "src": { "process": "Query Database", "port": "out" }, "tgt": { process: "Publish REST API", "port": "in" } } ] }'
+      -d '{ "properties": { "name": "CRM to Sharepoint Integration" } }'
   
   @apiSuccess (201) Created The graph has been created successfully.
   
@@ -128,6 +138,7 @@ module.exports = self = {
       }
       if (req.body.processes || req.body.connections) {
         next(new ForbiddenError('definition of processes or connections is not supported at the time of graph creation'));
+        return;
       }
       data = {};
       data.properties = req.body.properties;
@@ -177,13 +188,21 @@ module.exports = self = {
           item = _ref1[_i];
           res.link("/persona/" + item.key, 'joukou:persona');
         }
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create');
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes');
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connection-create');
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections');
-        return res.send(200, _.pick(graph.getValue(), ['properties', 'processes', 'connections']));
-      }).fail(function(err) {
-        return next(err);
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create', {
+          title: 'Add a Process to this Graph'
+        });
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes', {
+          title: 'List of Processes for this Graph'
+        });
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connection-create', {
+          title: 'Add a Connection to this Graph'
+        });
+        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections', {
+          title: 'List of Connections for this Graph'
+        });
+        return graph.getRepresentation();
+      }).then(function(representation) {
+        return res.send(200, representation);
       });
     }).fail(function(err) {
       return next(err);
@@ -236,7 +255,7 @@ module.exports = self = {
           representation = {};
           representation._embedded = _.reduce(processes, function(process, key) {
             return {
-              component: process.component,
+              circle: process.circle,
               metadata: process.metadata,
               _links: {
                 self: {

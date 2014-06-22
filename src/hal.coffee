@@ -36,7 +36,7 @@ module.exports =
       body =
         logref: body.restCode
         message: body.message
-        _links: res._links
+      #  _links: res._links DANGER!
 
     # HAL+JSON
     else

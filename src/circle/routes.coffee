@@ -3,13 +3,13 @@
 module.exports = self =
 
   registerRoutes: ( server ) ->
-    server.get( '/persona/:personaKey/component', self.index )
+    server.get( '/persona/:personaKey/circle', self.index )
     return
 
   index: ( req, res, next ) ->
     res.send( 200,
       _embedded:
-        'joukou:component': [
+        'joukou:circle': [
           {
             name: 'MySQLQuery'
             description: 'Obtain data from a MySQL database.'

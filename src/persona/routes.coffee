@@ -76,9 +76,9 @@ module.exports = self =
               href: "/agent/#{agent.key}"
               name: agent.role
             )
-            'joukou:components':
-              href: "/persona/#{persona.key}/component"
-              title: 'List of Components available to this Persona'
+            'joukou:circles':
+              href: "/persona/#{persona.key}/circle"
+              title: 'List of Circles available to this Persona'
         )
         memo
       , { 'joukou:persona': [] } )
@@ -196,10 +196,10 @@ module.exports = self =
   retrieve: ( req, res, next ) ->
     PersonaModel.retrieve( req.params.key ).then( ( persona ) ->
       for agent in persona.getValue().agents
-        res.link( "/agent/#{agent.key}", 'joukou:agent', role: agent.role )
+        res.link( "/agent/#{agent.key}", 'joukou:agent', name: agent.role )
         res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graphs', title: "List of Graphs owned by this Persona" )
         res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graph-create', title: "Create a Graph owned by this Persona" )
-        res.link( "/persona/#{persona.getKey()}/component", 'joukou:components', title: 'List of Components available to this Persona' )
+        res.link( "/persona/#{persona.getKey()}/circle", 'joukou:circles', title: 'List of Circles available to this Persona' )
       res.send( 200, _.pick( persona.getValue(), [ 'name' ] ) )
     ).fail( ( err ) ->
       next( err )

@@ -32,16 +32,32 @@ GraphModel = Model.define({
   bucket: 'graph'
 });
 
+GraphModel.prototype.getRepresentation = function() {
+  return Q.fcall((function(_this) {
+    return function() {
+      var representation;
+      representation = _.pick(_this.getValue(), ['properties', 'processes', 'connections']);
+      if (representation.processes == null) {
+        representation.processes = {};
+      }
+      if (representation.connections == null) {
+        representation.connections = [];
+      }
+      return representation;
+    };
+  })(this));
+};
+
 GraphModel.prototype.getPersona = function() {
   return PersonaModel.retrieve(this.getValue().personas[0].key);
 };
 
 GraphModel.prototype.addProcess = function(_arg) {
-  var component, key, metadata;
-  component = _arg.component, metadata = _arg.metadata;
+  var circle, key, metadata;
+  circle = _arg.circle, metadata = _arg.metadata;
   key = uuid.v4();
   this.getValue().processes[key] = {
-    component: component,
+    circle: circle,
     metadata: metadata
   };
   return Q.fcall(function() {

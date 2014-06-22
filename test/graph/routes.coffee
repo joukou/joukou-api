@@ -89,6 +89,56 @@ describe 'graph/routes', ->
             .res( ( res ) ->
               res.should.have.status( 200 )
 
+              expected =
+                properties:
+                  name: 'Test Graph Routes'
+                processes: {}
+                connections: []
+                _links:
+                  'joukou:persona': [
+                    {
+                      href: "/persona/#{personaKey}"
+                    }
+                  ]
+                  'joukou:process-create': [
+                    {
+                      title: 'Add a Process to this Graph'
+                      href: "/persona/#{personaKey}/graph/#{graphKey}/process"
+                    }
+                  ]
+                  'joukou:processes': [
+                    {
+                      title: 'List of Processes for this Graph'
+                      href: "/persona/#{personaKey}/graph/#{graphKey}/process"
+                    }
+                  ]
+                  'joukou:connection-create': [
+                    {
+                      title: 'Add a Connection to this Graph'
+                      href: "/persona/#{personaKey}/graph/#{graphKey}/connection"
+                    }
+                  ]
+                  'joukou:connections': [
+                    {
+                      title: 'List of Connections for this Graph'
+                      href: "/persona/#{personaKey}/graph/#{graphKey}/connection"
+                    }
+                  ]
+                  self:
+                    href: "/persona/#{personaKey}/graph/#{graphKey}"
+                  curies: [
+                    {
+                      name: 'joukou'
+                      templated: true
+                      href: 'https://rels.joukou.com/{rel}'
+                    }
+                  ]
+
+              console.log(require('util').inspect(res.body, depth: 10))
+              console.log(require('util').inspect(expected, depth: 10))  
+              res.body.should.deep.equal(
+                expected
+              )
               riakpbc.del(
                 type: 'graph'
                 bucket: 'graph'

@@ -38,8 +38,7 @@ module.exports = {
       res.statusCode = body.statusCode || 500;
       body = {
         logref: body.restCode,
-        message: body.message,
-        _links: res._links
+        message: body.message
       };
     } else {
       res.link(req.path(), 'self');

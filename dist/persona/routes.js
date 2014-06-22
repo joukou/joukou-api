@@ -87,9 +87,9 @@ module.exports = self = {
                 name: agent.role
               };
             }),
-            'joukou:components': {
-              href: "/persona/" + persona.key + "/component",
-              title: 'List of Components available to this Persona'
+            'joukou:circles': {
+              href: "/persona/" + persona.key + "/circle",
+              title: 'List of Circles available to this Persona'
             }
           }
         });
@@ -234,7 +234,7 @@ module.exports = self = {
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         agent = _ref[_i];
         res.link("/agent/" + agent.key, 'joukou:agent', {
-          role: agent.role
+          name: agent.role
         });
         res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graphs', {
           title: "List of Graphs owned by this Persona"
@@ -242,8 +242,8 @@ module.exports = self = {
         res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graph-create', {
           title: "Create a Graph owned by this Persona"
         });
-        res.link("/persona/" + (persona.getKey()) + "/component", 'joukou:components', {
-          title: 'List of Components available to this Persona'
+        res.link("/persona/" + (persona.getKey()) + "/circle", 'joukou:circles', {
+          title: 'List of Circles available to this Persona'
         });
       }
       return res.send(200, _.pick(persona.getValue(), ['name']));

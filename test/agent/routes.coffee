@@ -84,6 +84,13 @@ describe 'agent/routes', ->
       )
       .fail( ( err ) -> done( err ) )
 
+    after ( done ) ->
+      riakpbc.del(
+        type: 'agent'
+        bucket: 'agent'
+        key: agentKey
+      , ( err, reply ) -> done( err ) )
+
     specify 'retrieves the agent identified by the given key', ( done ) ->
       chai.request( server )
         .get( "/agent/#{agentKey}" )
@@ -98,6 +105,12 @@ describe 'agent/routes', ->
             _links:
               self:
                 href: "/agent/#{agentKey}"
+              'joukou:personas': [
+                {
+                  title: 'List of Personas that this Agent has access to'
+                  href: '/persona'
+                }
+              ]
               curies: [
                 name: 'joukou'
                 templated: true
@@ -106,13 +119,6 @@ describe 'agent/routes', ->
           )
           done()
         )
-
-    after ( done ) ->
-      riakpbc.del(
-        type: 'agent'
-        bucket: 'agent'
-        key: agentKey
-      , ( err, reply ) -> done( err ) )
 
   describe 'POST /agent/authenticate', ->
 
@@ -131,6 +137,13 @@ describe 'agent/routes', ->
         done()
       )
       .fail( ( err ) -> done( err ) )
+
+    after ( done ) ->
+      riakpbc.del(
+        type: 'agent'
+        bucket: 'agent'
+        key: agentKey
+      , ( err, reply ) -> done( err ) )
 
     specify 'responds with a JSON Web Token if the provided Authorization header is authenticated', ( done ) ->
       chai.request( server )
@@ -188,10 +201,3 @@ describe 'agent/routes', ->
           res.body.should.be.empty
           done()
         )
-
-    after ( done ) ->
-      riakpbc.del(
-        type: 'agent'
-        bucket: 'agent'
-        key: agentKey
-      , ( err, reply ) -> done( err ) )
