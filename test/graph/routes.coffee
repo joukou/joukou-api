@@ -49,6 +49,22 @@ describe 'graph/routes', ->
     )
     .fail( ( err ) -> done( err ) )
 
+  after ( done ) ->
+    async.parallel([
+      ( next ) ->
+        riakpbc.del(
+          type: 'agent'
+          bucket: 'agent'
+          key: agentKey
+        , ( err, reply ) -> next( err ) )
+      ( next ) ->
+        riakpbc.del(
+          type: 'persona'
+          bucket: 'persona'
+          key: personaKey
+        , ( err, reply ) -> next( err ) )
+    ], ( err ) -> done( err ) )
+
   describe 'POST /persona/:personaKey/graph', ->
 
     specify 'creates a new graph', ( done ) ->
@@ -71,7 +87,7 @@ describe 'graph/routes', ->
               req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
             )
             .res( ( res ) ->
-              #res.should.have.status( 200 )
+              res.should.have.status( 200 )
 
               riakpbc.del(
                 type: 'graph'
@@ -94,19 +110,3 @@ describe 'graph/routes', ->
           res.body.should.be.empty
           done()
         )
-
-  after ( done ) ->
-    async.parallel([
-      ( next ) ->
-        riakpbc.del(
-          type: 'agent'
-          bucket: 'agent'
-          key: agentKey
-        , ( err, reply ) -> next( err ) )
-      ( next ) ->
-        riakpbc.del(
-          type: 'persona'
-          bucket: 'persona'
-          key: personaKey
-        , ( err, reply ) -> next( err ) )
-    ], ( err ) -> done( err ) )

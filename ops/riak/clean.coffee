@@ -13,6 +13,11 @@ riakpbc.getKeys(
     process.exit( 1 )
     return
 
+  unless reply.keys
+    console.log( 'zero keys found in ' + (argv.type or 'default') + '/' + argv.bucket)
+    process.exit(0)
+    return
+
   async.eachLimit( reply.keys, 4, ( key, next ) ->
     riakpbc.del(
       type: argv.type or 'default'

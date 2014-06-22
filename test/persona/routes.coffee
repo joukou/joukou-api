@@ -23,11 +23,20 @@ describe 'persona/routes', ->
       name: 'test/persona/routes'
       password: 'password'
     ).then( ( agent ) ->
-      agent.save().then( ->
-        agentKey = agent.getKey()
-        done()
-      ).fail( ( err ) -> done( err ) )
-    ).fail( ( err ) -> done( err ) )
+      agent.save()
+    )
+    .then( ( agent ) ->
+      agentKey = agent.getKey()
+      done()
+    )
+    .fail( ( err ) -> done( err ) )
+
+  after ( done ) ->
+    riakpbc.del(
+      type: 'agent'
+      bucket: 'agent'
+      key: agentKey
+    , ( err, reply ) -> done( err ) )
 
   describe 'POST /persona', ->
 
@@ -43,7 +52,7 @@ describe 'persona/routes', ->
         .res( ( res ) ->
           res.should.have.status( 201 )
           res.headers.location.should.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
-          key = res.headers.location.match( /^\/persona\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+          personaKey = res.headers.location.match( /^\/persona\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
           chai.request( server )
             .get( res.headers.location )
             .req( ( req ) ->
@@ -55,12 +64,12 @@ describe 'persona/routes', ->
               riakpbc.del(
                 type: 'persona'
                 bucket: 'persona'
-                key: key
+                key: personaKey
               , ( err, reply ) -> done( err ) )
             )
         )
 
-  describe 'GET /persona/:key', ->
+  describe 'GET /persona/:personaKey', ->
 
     specify 'responds with 404 NotFound status code if the provided persona key is not valid', ( done ) ->
       chai.request( server )
@@ -74,9 +83,4 @@ describe 'persona/routes', ->
         )
 
 
-  after ( done ) ->
-    riakpbc.del(
-      type: 'agent'
-      bucket: 'agent'
-      key: agentKey
-    , ( err, reply ) -> done( err ) )
+

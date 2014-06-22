@@ -48,7 +48,7 @@ describe 'agent/routes', ->
         .res( ( res ) ->
           res.should.have.status( 201 )
           res.headers.location.should.match( /^\/agent\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
-          key = res.headers.location.match( /^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+          agentKey = res.headers.location.match( /^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
           chai.request( server )
             .get( res.headers.location )
             .req( ( req ) ->
@@ -60,15 +60,15 @@ describe 'agent/routes', ->
               riakpbc.del(
                 type: 'agent'
                 bucket: 'agent'
-                key: key
+                key: agentKey
               , ( err ,reply ) -> done( err ) )
             )
         )
 
 
-  describe 'GET /agent/:key', ->
+  describe 'GET /agent/:agentKey', ->
   
-    key = null
+    agentKey = null
 
     before ( done ) ->
       AgentModel.create(
@@ -79,14 +79,14 @@ describe 'agent/routes', ->
         agent.save()
       )
       .then( ( agent ) ->
-        key = agent.getKey()
+        agentKey = agent.getKey()
         done()
       )
       .fail( ( err ) -> done( err ) )
 
     specify 'retrieves the agent identified by the given key', ( done ) ->
       chai.request( server )
-        .get( "/agent/#{key}" )
+        .get( "/agent/#{agentKey}" )
         .req( ( req ) ->
           req.set( 'Authorization', "Basic #{new Buffer( 'test+agent+routes+retrieve@joukou.com:password' ).toString( 'base64' )}")
         )
@@ -97,7 +97,7 @@ describe 'agent/routes', ->
             name: 'test/agent/routes/retrieve'
             _links:
               self:
-                href: "/agent/#{key}"
+                href: "/agent/#{agentKey}"
               curies: [
                 name: 'joukou'
                 templated: true
@@ -111,12 +111,12 @@ describe 'agent/routes', ->
       riakpbc.del(
         type: 'agent'
         bucket: 'agent'
-        key: key
+        key: agentKey
       , ( err, reply ) -> done( err ) )
 
   describe 'POST /agent/authenticate', ->
 
-    key = null
+    agentKey = null
 
     before ( done ) ->
       AgentModel.create(
@@ -124,11 +124,13 @@ describe 'agent/routes', ->
         name: 'test/agent/routes/authenticate'
         password: 'password'
       ).then( ( agent ) ->
-        agent.save().then( ->
-          key = agent.getKey()
-          done()
-        ).fail( ( err ) -> done( err ) )
-      ).fail( ( err ) -> done( err ) )
+        agent.save()
+      )
+      .then( ( agent ) ->
+        agentKey = agent.getKey()
+        done()
+      )
+      .fail( ( err ) -> done( err ) )
 
     specify 'responds with a JSON Web Token if the provided Authorization header is authenticated', ( done ) ->
       chai.request( server )
@@ -151,7 +153,7 @@ describe 'agent/routes', ->
           #     href: '/agent/authenticate'
           #   'joukou:agent': [
           #     {
-          #       href: "/agent/#{key}"
+          #       href: "/agent/#{agentKey}"
           #     }
           #   ]
           #   'joukou:personas': [
@@ -163,7 +165,7 @@ describe 'agent/routes', ->
           done()
         )
 
-    specify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated', ( done ) ->
+    specify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated due to an incorrect password', ( done ) ->
       chai.request( server )
         .post( '/agent/authenticate' )
         .req( ( req ) ->
@@ -175,9 +177,21 @@ describe 'agent/routes', ->
           done()
         )
 
+    xspecify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated due to an incorrect email', ( done ) ->
+      chai.request( server )
+        .post( '/agent/authenticate' )
+        .req( ( req ) ->
+          req.set( 'Authorization', "Basic #{new Buffer( 'bogus:password' ).toString( 'base64' )}")
+        )
+        .res( ( res ) ->
+          res.should.have.status( 401 )
+          res.body.should.be.empty
+          done()
+        )
+
     after ( done ) ->
       riakpbc.del(
         type: 'agent'
         bucket: 'agent'
-        key: key
+        key: agentKey
       , ( err, reply ) -> done( err ) )

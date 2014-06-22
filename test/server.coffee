@@ -41,9 +41,3 @@ describe 'server', ->
           res.should.have.header( 'access-control-allow-headers', 'accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id, x-requested-with, authorization, accept, accept-version, content-type, request-id, origin, x-api-version, x-request-id' )
           done()
         )
-
-
-
-  #after ( done ) ->
-  #  server.once( 'close', done )
-  #  server.close()
