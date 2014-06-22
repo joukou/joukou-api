@@ -13,6 +13,7 @@ _             = require( 'lodash' )
 uuid          = require( 'node-uuid' )
 async         = require( 'async' )
 authn         = require( '../authn' )
+hal           = require( '../hal' )
 request       = require( 'request' )
 GraphModel    = require( './Model' )
 PersonaModel  = require( '../persona/Model')
@@ -220,7 +221,27 @@ module.exports = self =
       graph.getPersona().then( ( persona ) ->
         unless persona.hasEditPermission( req.user )
           throw new UnauthorizedError()
-          
+        
+        data = {}
+        data.metadata = req.body.metadata
+
+        document = hal.parse( req.body,
+          links:
+            'joukou:circle':
+              min: 1
+              max: 1
+              match: '/persona/:personaKey/circle/:key'
+        )
+
+        console.log( 'persona.getKey', persona.getKey() )
+        console.log( document.links['joukou:circle'])
+
+        unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
+          throw new ForbiddenError( 'attempt to use a circle from a different persona' )
+
+        data.circle =
+          key: document.links[ 'joukou:circle' ]?[ 0 ].key
+
         graph.addProcess( req.body ).then( ( processKey ) ->
           graph.save().then( ->
             self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
@@ -234,6 +255,11 @@ module.exports = self =
     .fail( ( err ) -> next( err ) )
     return
 
+  ###*
+  @api {get} /persona/:personaKey/graph/:graphKey/process/:processKey
+  @apiName RetrieveProcess
+  @apiGroup Graph
+  ###
   retrieveProcess: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
@@ -251,6 +277,9 @@ module.exports = self =
     .fail( ( err ) -> next( err ) )
     return
 
+  connectionIndex: ( req, res, next ) ->
+    res.send( 503 )
+
   addConnection: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
@@ -264,5 +293,6 @@ module.exports = self =
       ).fail( ( err ) -> next( err ) )
     ).fail( ( err ) -> next( err ) )
 
-  connectionIndex: ( req, res, next ) ->
+  retrieveConnection: ( req, res, next ) ->
     res.send( 503 )
+

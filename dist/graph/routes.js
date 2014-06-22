@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _, _ref;
+var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, hal, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -17,6 +17,8 @@ uuid = require('node-uuid');
 async = require('async');
 
 authn = require('../authn');
+
+hal = require('../hal');
 
 request = require('request');
 
@@ -258,9 +260,29 @@ module.exports = self = {
   addProcess: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
+        var data, document, _ref1, _ref2;
         if (!persona.hasEditPermission(req.user)) {
           throw new UnauthorizedError();
         }
+        data = {};
+        data.metadata = req.body.metadata;
+        document = hal.parse(req.body, {
+          links: {
+            'joukou:circle': {
+              min: 1,
+              max: 1,
+              match: '/persona/:personaKey/circle/:key'
+            }
+          }
+        });
+        console.log('persona.getKey', persona.getKey());
+        console.log(document.links['joukou:circle']);
+        if (((_ref1 = document.links['joukou:circle']) != null ? _ref1[0].personaKey : void 0) !== persona.getKey()) {
+          throw new ForbiddenError('attempt to use a circle from a different persona');
+        }
+        data.circle = {
+          key: (_ref2 = document.links['joukou:circle']) != null ? _ref2[0].key : void 0
+        };
         return graph.addProcess(req.body).then(function(processKey) {
           return graph.save().then(function() {
             self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey;
@@ -274,6 +296,12 @@ module.exports = self = {
       return next(err);
     });
   },
+
+  /**
+  @api {get} /persona/:personaKey/graph/:graphKey/process/:processKey
+  @apiName RetrieveProcess
+  @apiGroup Graph
+   */
   retrieveProcess: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
@@ -293,6 +321,9 @@ module.exports = self = {
       return next(err);
     });
   },
+  connectionIndex: function(req, res, next) {
+    return res.send(503);
+  },
   addConnection: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
@@ -309,7 +340,7 @@ module.exports = self = {
       return next(err);
     });
   },
-  connectionIndex: function(req, res, next) {
+  retrieveConnection: function(req, res, next) {
     return res.send(503);
   }
 };

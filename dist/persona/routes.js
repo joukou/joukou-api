@@ -11,7 +11,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var PersonaModel, async, authn, authz, request, self, _;
+var PersonaModel, async, authn, authz, hal, request, self, _;
 
 _ = require('lodash');
 
@@ -20,6 +20,8 @@ async = require('async');
 authn = require('../authn');
 
 authz = require('../authz');
+
+hal = require('../hal');
 
 request = require('request');
 
@@ -150,46 +152,31 @@ module.exports = self = {
   @param {function(Error)} next
    */
   create: function(req, res, next) {
-    var data, err, link, links, match, rel, _i, _len, _ref, _ref1;
+    var agent, data, document, err, _i, _len, _ref;
     data = {};
     data.name = req.body.name;
     data.agents = [];
     try {
-      if (req.body._links) {
-        _ref = req.body._links;
-        for (rel in _ref) {
-          links = _ref[rel];
-          if (!(rel === 'curies' || rel === 'joukou:agent')) {
-            throw new restify.ForbiddenError('link relation types must be "curies" or "joukou:agent"');
-          }
-          if (_.isObject(links)) {
-            links = [links];
-          }
-          if (!_.isArray(links)) {
-            throw new restify.ForbiddenError('link values must be a Link Object or an array of Link Objects');
-          }
-          if (rel === 'joukou:agent') {
-            for (_i = 0, _len = links.length; _i < _len; _i++) {
-              link = links[_i];
-              if (!(link.href && _.isString(link.href))) {
-                throw new restify.ForbiddenError('Link Objects must have a href property');
-              }
-              match = link.href(/^\/agent\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/);
-              if (!match) {
-                throw new restify.ForbiddenError('joukou:agent Link Objects must have a href property that is a server-relative URI to an agent resource');
-              }
-              if (!(link.role && _.isString(link.role))) {
-                throw new restify.ForbiddenError('joukou:agent Link Objects must have a role property');
-              }
-              if ((_ref1 = link.role) !== 'admin') {
-                throw new restify.ForbiddenError('joukou:agent Link Objects role property may only be "admin" at this time');
-              }
-              data.agents.push({
-                key: match[1],
-                role: link.role
-              });
+      document = hal.parse(req.body, {
+        links: {
+          'joukou:agent': {
+            match: '/agent/:key',
+            name: {
+              required: false,
+              type: 'enum',
+              values: ['admin']
             }
           }
+        }
+      });
+      if (document.links['joukou:agent']) {
+        _ref = document.links['joukou:agent'];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          agent = _ref[_i];
+          data.agents.push({
+            key: agent.key,
+            role: agent.name
+          });
         }
       }
     } catch (_error) {
@@ -201,15 +188,13 @@ module.exports = self = {
       key: req.user.getKey(),
       role: 'creator'
     });
-    return PersonaModel.create(data).then(function(persona) {
-      return persona.save().then(function() {
-        self = "/persona/" + (persona.getKey());
-        res.link(self, 'joukou:persona');
-        res.header('Location', self);
-        return res.send(201, {});
-      }).fail(function(err) {
-        return next(err);
-      });
+    PersonaModel.create(data).then(function(persona) {
+      return persona.save();
+    }).then(function(persona) {
+      self = "/persona/" + (persona.getKey());
+      res.link(self, 'joukou:persona');
+      res.header('Location', self);
+      return res.send(201, {});
     }).fail(function(err) {
       return next(err);
     });

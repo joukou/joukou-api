@@ -184,7 +184,9 @@ describe 'graph/routes', ->
         .req( ( req ) ->
           req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
           req.send(
-            circle: '7eee9052-5a7e-410d-9cb7-6e099c489001'
+            _links:
+              'joukou:circle':
+                href: "/persona/#{personaKey}/circle/7eee9052-5a7e-410d-9cb7-6e099c489001"
             metadata:
               x: 100
               y: 100
