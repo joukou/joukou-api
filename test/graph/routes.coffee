@@ -3,19 +3,22 @@
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-assert      = require( 'assert' )
-chai        = require( 'chai' )
-should      = chai.should()
+assert        = require( 'assert' )
+chai          = require( 'chai' )
+should        = chai.should()
 chai.use( require( 'chai-http' ) )
 
-AgentModel  = require( '../../dist/agent/Model' )
-GraphModel  = require( '../../dist/graph/Model' )
-server      = require( '../../dist/server' )
-riakpbc     = require( '../../dist/riak/pbc' )
+async         = require( 'async' )
+server        = require( '../../dist/server' )
+riakpbc       = require( '../../dist/riak/pbc' )
+AgentModel    = require( '../../dist/agent/Model' )
+GraphModel    = require( '../../dist/graph/Model' )
+PersonaModel  = require( '../../dist/persona/Model' )
 
-xdescribe 'graph/routes', ->
+describe 'graph/routes', ->
 
   agentKey = null
+  personaKey = null
 
   before ( done ) ->
     AgentModel.create(
@@ -23,66 +26,62 @@ xdescribe 'graph/routes', ->
       name: 'test/graph/routes'
       password: 'password'
     ).then( ( agent ) ->
-      agent.save().then( ->
-        agentKey = agent.getKey()
-        done()
-      ).fail( ( err ) ->
-        done( err )
-      )
-    ).fail( ( err ) ->
-      done( err )
+      agent.save()
     )
+    .then( ( agent ) ->
+      agentKey = agent.getKey()
+      PersonaModel.create(
+        name: 'test/graph/routes'
+        agents: [
+          {
+            key: agentKey
+            role: 'creator'
+          }
+        ]
+      )
+    )
+    .then( ( persona ) ->
+      persona.save()
+    )
+    .then( ( persona ) ->
+      personaKey = persona.getKey()
+      done()
+    )
+    .fail( ( err ) -> done( err ) )
 
-  describe 'POST /graph', ->
+  describe 'POST /persona/:personaKey/graph', ->
 
-    specify 'creates a new graph given valid data', ( done ) ->
+    specify 'creates a new graph', ( done ) ->
       chai.request( server )
-        .post( '/graph' )
+        .post( "/persona/#{personaKey}/graph" )
         .req( ( req ) ->
           req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
-          #req.type( 'json' )
           req.send(
             properties:
-              name: 'MySQL to CSV'
-            processes:
-              'Query Database':
-                component: 'MySQLQuery'
-              'CSV':
-                component: 'ToCsv'
-            connections: [
-              {
-                src:
-                  process: 'Query Database'
-                  port: 'out'
-                tgt:
-                  process: 'CSV'
-                  port: 'in'
-              }
-            ]
+              name: 'Test Graph Routes'
           )
         )
         .res( ( res ) ->
           res.should.have.status( 201 )
-          res.headers.location.should.match( /^\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
-          key = res.headers.location.match( /^\/graph\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+          res.headers.location.should.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
+          graphKey = res.headers.location.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
           chai.request( server )
             .get( res.headers.location )
             .req( ( req ) ->
               req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
             )
             .res( ( res ) ->
-              res.should.have.status( 200 )
+              #res.should.have.status( 200 )
 
               riakpbc.del(
+                type: 'graph'
                 bucket: 'graph'
-                key: key
-              , ( err, reply ) ->
-                done( err )
-              )
+                key: graphKey
+              , ( err, reply ) -> done( err ) )
             )
         )
 
-  describe 'GET /graph/:key', ->
+  describe 'GET /graph/:graphKey', ->
 
     specify 'responds with 404 NotFound status code if the provided graph key is not valid', ( done ) ->
       chai.request( server )
@@ -97,9 +96,17 @@ xdescribe 'graph/routes', ->
         )
 
   after ( done ) ->
-    AgentModel.deleteByEmail( 'test+graph+routes@joukou.com' )
-      .then( ->
-        done()
-      ).fail( ( err ) ->
-        done( err )
-      )
+    async.parallel([
+      ( next ) ->
+        riakpbc.del(
+          type: 'agent'
+          bucket: 'agent'
+          key: agentKey
+        , ( err, reply ) -> next( err ) )
+      ( next ) ->
+        riakpbc.del(
+          type: 'persona'
+          bucket: 'persona'
+          key: personaKey
+        , ( err, reply ) -> next( err ) )
+    ], ( err ) -> done( err ) )

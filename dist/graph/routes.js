@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var GraphModel, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _;
+var ForbiddenError, GraphModel, PersonaModel, UnauthorizedError, async, authn, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -24,7 +24,7 @@ GraphModel = require('./Model');
 
 PersonaModel = require('../persona/Model');
 
-UnauthorizedError = require('restify').UnauthorizedError;
+_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError;
 
 module.exports = self = {
 
@@ -126,24 +126,23 @@ module.exports = self = {
         next(new UnauthorizedError());
         return;
       }
+      if (req.body.processes || req.body.connections) {
+        next(new ForbiddenError('definition of processes or connections is not supported at the time of graph creation'));
+      }
       data = {};
       data.properties = req.body.properties;
-      data.processes = req.body.processes;
-      data.connections = req.body.connections;
       data.personas = [
         {
           key: persona.getKey()
         }
       ];
       return GraphModel.create(data).then(function(graph) {
-        return graph.save().then(function() {
-          self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey());
-          res.link(self, 'joukou:graph');
-          res.header('Location', self);
-          return res.send(201, {});
-        }).fail(function(err) {
-          return next(err);
-        });
+        return graph.save();
+      }).then(function(graph) {
+        self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey());
+        res.link(self, 'joukou:graph');
+        res.header('Location', self);
+        return res.send(201, {});
       }).fail(function(err) {
         return next(err);
       });
@@ -168,14 +167,14 @@ module.exports = self = {
   retrieve: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var item, _i, _len, _ref;
+        var item, _i, _len, _ref1;
         if (!persona.hasReadPermission(req.user)) {
           next(new UnauthorizedError());
           return;
         }
-        _ref = graph.getValue().personas;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          item = _ref[_i];
+        _ref1 = graph.getValue().personas;
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          item = _ref1[_i];
           res.link("/persona/" + item.key, 'joukou:persona');
         }
         res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create');

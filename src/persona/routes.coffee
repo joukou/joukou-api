@@ -29,7 +29,7 @@ module.exports = self =
     server.get(  '/persona', authn.authenticate, self.index )
     server.post( '/persona', authn.authenticate, self.create )
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
-  
+
     return
 
   ###
@@ -198,7 +198,7 @@ module.exports = self =
         res.link( "/agent/#{agent.key}", 'joukou:agent', role: agent.role )
         res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graphs', title: "List of Graphs owned by this Persona" )
         res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graph-create', title: "Create a Graph owned by this Persona" )
-        res.link( "/persona/#{persona.getKey()}/component", 'joukou:components', 'List of Components available to this Persona' )
+        res.link( "/persona/#{persona.getKey()}/component", 'joukou:components', title: 'List of Components available to this Persona' )
       res.send( 200, _.pick( persona.getValue(), [ 'name' ] ) )
     ).fail( ( err ) ->
       next( err )

@@ -16,7 +16,7 @@ authn         = require( '../authn' )
 request       = require( 'request' )
 GraphModel    = require( './Model' )
 PersonaModel  = require( '../persona/Model')
-{ UnauthorizedError } = require( 'restify' )
+{ UnauthorizedError, ForbiddenError } = require( 'restify' )
 
 module.exports = self =
 
@@ -109,26 +109,25 @@ module.exports = self =
         next( new UnauthorizedError() )
         return
 
+      if req.body.processes or req.body.connections
+        next( new ForbiddenError( 'definition of processes or connections is not supported at the time of graph creation' ) )
+
       data = {}
       data.properties = req.body.properties
-      data.processes = req.body.processes
-      data.connections = req.body.connections
       data.personas = [
         key: persona.getKey()
       ]
 
       GraphModel.create( data ).then( ( graph ) ->
-        graph.save().then( ->
-          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
-          res.link( self, 'joukou:graph' )
-          res.header( 'Location', self )
-          res.send( 201, {} )
-        ).fail( ( err ) ->
-          next( err )
-        )
-      ).fail( ( err ) ->
-        next( err )
+        graph.save()
       )
+      .then( ( graph ) ->
+        self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
+        res.link( self, 'joukou:graph' )
+        res.header( 'Location', self )
+        res.send( 201, {} )
+      )
+      .fail( ( err ) -> next( err ) )
     )
 
   ###

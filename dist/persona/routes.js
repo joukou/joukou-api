@@ -242,7 +242,9 @@ module.exports = self = {
         res.link("/persona/" + (persona.getKey()) + "/graph", 'joukou:graph-create', {
           title: "Create a Graph owned by this Persona"
         });
-        res.link("/persona/" + (persona.getKey()) + "/component", 'joukou:components', 'List of Components available to this Persona');
+        res.link("/persona/" + (persona.getKey()) + "/component", 'joukou:components', {
+          title: 'List of Components available to this Persona'
+        });
       }
       return res.send(200, _.pick(persona.getValue(), ['name']));
     }).fail(function(err) {
