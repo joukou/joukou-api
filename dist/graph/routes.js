@@ -275,15 +275,13 @@ module.exports = self = {
             }
           }
         });
-        console.log('persona.getKey', persona.getKey());
-        console.log(document.links['joukou:circle']);
         if (((_ref1 = document.links['joukou:circle']) != null ? _ref1[0].personaKey : void 0) !== persona.getKey()) {
           throw new ForbiddenError('attempt to use a circle from a different persona');
         }
         data.circle = {
           key: (_ref2 = document.links['joukou:circle']) != null ? _ref2[0].key : void 0
         };
-        return graph.addProcess(req.body).then(function(processKey) {
+        return graph.addProcess(data).then(function(processKey) {
           return graph.save().then(function() {
             self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey;
             res.link(self, 'joukou:process');
@@ -309,12 +307,15 @@ module.exports = self = {
           throw new UnauthorizedError();
         }
         return graph.getProcesses().then(function(processes) {
-          var process;
+          var process, representation;
           process = processes[req.params.processKey];
           if (!process) {
             throw new NotFoundError();
           }
-          return res.send(200, process);
+          representation = {};
+          representation.metadata = process.metadata;
+          res.link("/persona/" + (persona.getKey()) + "/circle/" + process.circle.key, 'joukou:circle');
+          return res.send(200, representation);
         });
       });
     }).fail(function(err) {

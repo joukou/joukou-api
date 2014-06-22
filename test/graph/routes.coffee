@@ -194,7 +194,50 @@ describe 'graph/routes', ->
         )
         .res( ( res ) ->
           res.should.have.status( 201 )
-          #res.headers.location.should.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
-          #graphKey = res.headers.location.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
-          done()          
+          res.headers.location.should.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/process\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/ )
+          processKey = res.headers.location.match( /^\/persona\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/graph\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/process\/(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})$/ )[ 1 ]
+          res.body.should.deep.equal(
+            _links:
+              self:
+                href: "/persona/#{personaKey}/graph/#{graphKey}/process"
+              curies: [
+                {
+                  name: 'joukou'
+                  templated: true
+                  href: 'https://rels.joukou.com/{rel}'
+                }
+              ]
+              'joukou:process': [
+                href: "/persona/#{personaKey}/graph/#{graphKey}/process/#{processKey}"
+              ]          
+          )
+          chai.request( server )
+            .get( res.headers.location )
+            .req( ( req ) ->
+              req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
+            )
+            .res( ( res ) ->
+              res.should.have.status( 200 )
+              res.body.should.deep.equal(
+                metadata:
+                  x: 100
+                  y: 100
+                _links:
+                  self:
+                    href: "/persona/#{personaKey}/graph/#{graphKey}/process/#{processKey}"
+                  curies: [
+                    {
+                      name: 'joukou'
+                      templated: true
+                      href: 'https://rels.joukou.com/{rel}'
+                    }
+                  ]
+                  'joukou:circle': [
+                    {
+                      href: "/persona/#{personaKey}/circle/7eee9052-5a7e-410d-9cb7-6e099c489001"
+                    }
+                  ]          
+              )
+              done()
+            )
         )

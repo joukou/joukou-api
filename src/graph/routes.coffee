@@ -233,16 +233,13 @@ module.exports = self =
               match: '/persona/:personaKey/circle/:key'
         )
 
-        console.log( 'persona.getKey', persona.getKey() )
-        console.log( document.links['joukou:circle'])
-
         unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
           throw new ForbiddenError( 'attempt to use a circle from a different persona' )
 
         data.circle =
           key: document.links[ 'joukou:circle' ]?[ 0 ].key
 
-        graph.addProcess( req.body ).then( ( processKey ) ->
+        graph.addProcess( data ).then( ( processKey ) ->
           graph.save().then( ->
             self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
             res.link( self, 'joukou:process' )
@@ -270,7 +267,10 @@ module.exports = self =
           process = processes[ req.params.processKey ]
           unless process
             throw new NotFoundError()
-          res.send( 200, process )
+          representation = {}
+          representation.metadata = process.metadata
+          res.link( "/persona/#{persona.getKey()}/circle/#{process.circle.key}", 'joukou:circle' )
+          res.send( 200, representation )
         )
       )
     )

@@ -6,9 +6,6 @@ chai.use( require( 'chai-http' ) )
 server = require( '../dist/server' )
 
 describe 'server', ->
-  
-  it 'true is true', ->
-    true.should.be.true
 
   describe 'Cross Origin Resource Sharing', ->
 
