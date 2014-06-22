@@ -87,6 +87,7 @@ module.exports = self =
 
       res.send( 200, representation )
     )
+    return
 
   ###
   @api {post} /persona Create a Joukou Persona

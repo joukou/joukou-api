@@ -23,7 +23,7 @@ Search is supported via solr-client.
 _                = require( 'lodash' )
 Q                = require( 'q' )
 uuid             = require( 'node-uuid' )
-NotFoundError    = require( './NotFoundError' )
+{ NotFoundError } = require( 'restify' )
 ValidationError  = require( './ValidationError' )
 RiakError        = require( './RiakError' )
 pbc              = require( './pbc' )

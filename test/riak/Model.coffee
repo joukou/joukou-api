@@ -10,7 +10,7 @@ Q                 = require( 'q' )
 pbc               = require( '../../dist/riak/pbc' )
 schemajs          = require( 'schemajs' )
 Model             = require( '../../dist/riak/Model' )
-NotFoundError     = require( '../../dist/riak/NotFoundError' )
+{ NotFoundError } = require( 'restify' )
 
 describe 'riak/Model', ->
 

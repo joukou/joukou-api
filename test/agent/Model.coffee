@@ -6,7 +6,7 @@ should            = chai.should()
 
 bcrypt            = require( 'bcrypt' )
 AgentModel        = require( '../../dist/agent/Model' )
-NotFoundError     = require( '../../dist/riak/NotFoundError' )
+{ NotFoundError } = require( 'restify' )
 pbc               = require( '../../dist/riak/pbc' )
 
 describe 'agent/Model', ->

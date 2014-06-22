@@ -30,7 +30,7 @@ Q = require('q');
 
 uuid = require('node-uuid');
 
-NotFoundError = require('./NotFoundError');
+NotFoundError = require('restify').NotFoundError;
 
 ValidationError = require('./ValidationError');
 

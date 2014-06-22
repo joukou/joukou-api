@@ -43,7 +43,7 @@ module.exports = self = {
   @apiGroup Persona
    */
   index: function(req, res, next) {
-    return request({
+    request({
       uri: 'http://localhost:8098/mapred',
       method: 'POST',
       json: {

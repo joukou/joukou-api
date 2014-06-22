@@ -177,7 +177,7 @@ describe 'agent/routes', ->
           done()
         )
 
-    xspecify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated due to an incorrect email', ( done ) ->
+    specify 'responds with 401 Unauthorized status code if the provided Authorization header is not authenticated due to an incorrect email', ( done ) ->
       chai.request( server )
         .post( '/agent/authenticate' )
         .req( ( req ) ->
