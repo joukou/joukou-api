@@ -32,22 +32,6 @@ GraphModel = Model.define({
   bucket: 'graph'
 });
 
-GraphModel.prototype.getRepresentation = function() {
-  return Q.fcall((function(_this) {
-    return function() {
-      var representation;
-      representation = _.pick(_this.getValue(), ['properties', 'processes', 'connections']);
-      if (representation.processes == null) {
-        representation.processes = {};
-      }
-      if (representation.connections == null) {
-        representation.connections = [];
-      }
-      return representation;
-    };
-  })(this));
-};
-
 GraphModel.prototype.getPersona = function() {
   return PersonaModel.retrieve(this.getValue().personas[0].key);
 };

@@ -25,13 +25,7 @@ GraphModel = Model.define(
   bucket: 'graph'
 )
 
-GraphModel::getRepresentation = ->
-  Q.fcall( =>
-    representation = _.pick( @getValue(), [ 'properties', 'processes', 'connections' ] )
-    representation.processes ?= {}
-    representation.connections ?= []
-    representation
-  )
+
 
 GraphModel::getPersona = ->
   PersonaModel.retrieve( @getValue().personas[ 0 ].key )

@@ -108,6 +108,9 @@ module.exports = {
 
       _Class.create = function(rawValue) {
         var afterCreate, data, deferred, errors, instance, key, valid, _ref;
+        if (rawValue == null) {
+          rawValue = {};
+        }
         deferred = Q.defer();
         _ref = self.getSchema().validate(rawValue), data = _ref.data, errors = _ref.errors, valid = _ref.valid;
         if (!valid) {

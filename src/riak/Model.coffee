@@ -79,7 +79,7 @@ module.exports =
       @param {Object.<string,(string|number)>} rawValue The raw data from the client.
       @return {q.promise}
       ###
-      @create = ( rawValue ) ->
+      @create = ( rawValue = {} ) ->
         deferred = Q.defer()
 
         # Check if the raw data is valid according to the schema
