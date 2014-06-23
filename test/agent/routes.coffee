@@ -34,7 +34,7 @@ describe 'agent/routes', ->
 
   describe 'POST /agent', ->
 
-    specify 'creates a new agent given valid data', ( done ) ->
+    specify 'creates an agent given valid data', ( done ) ->
       chai.request( server )
         .post( '/agent' )
         .req( ( req ) ->
@@ -65,6 +65,16 @@ describe 'agent/routes', ->
             )
         )
 
+    specify 'does not create an agent given invalid data', ( done ) ->
+      chai.request( server )
+        .post( '/agent' )
+        .req( ( req ) ->
+          req.type( 'json' )
+        )
+        .res( ( res ) ->
+          res.should.have.status( 403 )
+          done()
+        )
 
   describe 'GET /agent/:agentKey', ->
   
@@ -156,25 +166,26 @@ describe 'agent/routes', ->
           should.exist( res.body.token )
           res.body.token.should.be.a( 'string' )
 
-          # res.body._links.should.deep.equal(
-          #   curies: [
-          #     name: 'joukou'
-          #     templated: true
-          #     href: 'https://rels.joukou.com/{rel}'
-          #   ]
-          #   self:
-          #     href: '/agent/authenticate'
-          #   'joukou:agent': [
-          #     {
-          #       href: "/agent/#{agentKey}"
-          #     }
-          #   ]
-          #   'joukou:personas': [
-          #     {
-          #       href: '/persona'
-          #     }
-          #   ]
-          # )
+          res.body._links.should.deep.equal(
+            curies: [
+              name: 'joukou'
+              templated: true
+              href: 'https://rels.joukou.com/{rel}'
+            ]
+            self:
+              href: '/agent/authenticate'
+            'joukou:agent': [
+              {
+                href: "/agent/#{agentKey}"
+              }
+            ]
+            'joukou:personas': [
+              {
+                href: '/persona'
+                title: 'List of Personas that this Agent has access to'
+              }
+            ]
+          )
           done()
         )
 
