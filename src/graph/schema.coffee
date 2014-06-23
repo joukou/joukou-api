@@ -10,8 +10,8 @@
 schema = require( 'schemajs' )
 
 module.exports = schema.create(
-  properties:
-    type: 'object'
+  name:
+    type: 'string+'
   processes:
     type: 'object'
   connections:

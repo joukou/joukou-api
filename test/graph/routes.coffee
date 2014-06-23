@@ -73,8 +73,7 @@ describe 'graph/routes', ->
         .req( ( req ) ->
           req.set( 'Authorization', "Basic #{new Buffer('test+graph+routes@joukou.com:password').toString('base64')}" )
           req.send(
-            properties:
-              name: 'Test Graph Routes'
+            name: 'Test Graph Routes'
           )
         )
         .res( ( res ) ->
@@ -89,10 +88,10 @@ describe 'graph/routes', ->
             .res( ( res ) ->
               res.should.have.status( 200 )
               res.body.should.deep.equal(
-                properties:
-                  name: 'Test Graph Routes'
-                processes: {}
-                connections: []
+                name: 'Test Graph Routes'
+                _embedded:
+                  'joukou:process': []
+                  'joukou:connection': []
                 _links:
                   'joukou:persona': [
                     {

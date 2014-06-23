@@ -105,7 +105,7 @@ module.exports = self =
   @apiExample CURL Example:
     curl -i -X POST https://api.joukou.com/persona/7bcb937e-3938-49c5-a1ce-5eb45f194f2f/graph \
       -H 'Content-Type: application/json' \
-      -d '{ "properties": { "name": "CRM to Sharepoint Integration" } }'
+      -d '{ "name": "CRM to Sharepoint Integration" }'
   
   @apiSuccess (201) Created The graph has been created successfully.
 
@@ -119,12 +119,8 @@ module.exports = self =
         next( new UnauthorizedError() )
         return
 
-      if req.body.processes or req.body.connections
-        next( new ForbiddenError( 'definition of processes or connections is not supported at the time of graph creation' ) )
-        return
-
       data = {}
-      data.properties = req.body.properties
+      data.name = req.body.name
       data.personas = [
         key: persona.getKey()
       ]
@@ -171,13 +167,43 @@ module.exports = self =
         res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
         res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
 
-        graph.getRepresentation()
-      )
-      .then( ( representation ) ->
+        representation = _.pick( graph.getValue(), [ 'name' ] )
+        representation._embedded =
+          'joukou:process': _.reduce( graph.getValue().processes or {}, ( memo, process, processKey ) ->
+            memo.push(
+              _links:
+                self:
+                  href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+                #'joukou:circle':
+                #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
+              metadata: process.metadata
+            )
+            memo
+          , [] )
+          'joukou:connection': _.reduce( graph.getValue().connections or [], ( memo, connection, i ) ->
+            memo.push(
+              _links:
+                self:
+                  href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
+                'joukou:process': [
+                  {
+                    name: 'src'
+                  }
+                  {
+                    name: 'tgt'
+                  }
+                ]
+            )
+            memo
+          , [] )
+
+
         res.send( 200, representation )
+        return
       )
     )
     .fail( ( err ) -> next( err ) )
+    return
 
   processIndex: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
@@ -194,11 +220,12 @@ module.exports = self =
 
           representation = {}
           representation._embedded = _.reduce( processes, ( process, key ) ->
-            circle: process.circle
             metadata: process.metadata
             _links:
               self:
                 href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+              'joukou:circle':
+                href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
               'joukou:persona':
                 href: personaHref
               'joukou:graph':

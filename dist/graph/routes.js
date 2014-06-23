@@ -125,7 +125,7 @@ module.exports = self = {
   @apiExample CURL Example:
     curl -i -X POST https://api.joukou.com/persona/7bcb937e-3938-49c5-a1ce-5eb45f194f2f/graph \
       -H 'Content-Type: application/json' \
-      -d '{ "properties": { "name": "CRM to Sharepoint Integration" } }'
+      -d '{ "name": "CRM to Sharepoint Integration" }'
   
   @apiSuccess (201) Created The graph has been created successfully.
   
@@ -139,12 +139,8 @@ module.exports = self = {
         next(new UnauthorizedError());
         return;
       }
-      if (req.body.processes || req.body.connections) {
-        next(new ForbiddenError('definition of processes or connections is not supported at the time of graph creation'));
-        return;
-      }
       data = {};
-      data.properties = req.body.properties;
+      data.name = req.body.name;
       data.personas = [
         {
           key: persona.getKey()
@@ -179,9 +175,9 @@ module.exports = self = {
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
    */
   retrieve: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+    GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var item, _i, _len, _ref1;
+        var item, representation, _i, _len, _ref1;
         if (!persona.hasReadPermission(req.user)) {
           next(new UnauthorizedError());
           return;
@@ -203,9 +199,38 @@ module.exports = self = {
         res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections', {
           title: 'List of Connections for this Graph'
         });
-        return graph.getRepresentation();
-      }).then(function(representation) {
-        return res.send(200, representation);
+        representation = _.pick(graph.getValue(), ['name']);
+        representation._embedded = {
+          'joukou:process': _.reduce(graph.getValue().processes || {}, function(memo, process, processKey) {
+            memo.push({
+              _links: {
+                self: {
+                  href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey
+                }
+              },
+              metadata: process.metadata
+            });
+            return memo;
+          }, []),
+          'joukou:connection': _.reduce(graph.getValue().connections || [], function(memo, connection, i) {
+            memo.push({
+              _links: {
+                self: {
+                  href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key
+                },
+                'joukou:process': [
+                  {
+                    name: 'src'
+                  }, {
+                    name: 'tgt'
+                  }
+                ]
+              }
+            });
+            return memo;
+          }, [])
+        };
+        res.send(200, representation);
       });
     }).fail(function(err) {
       return next(err);
@@ -227,11 +252,13 @@ module.exports = self = {
           representation = {};
           representation._embedded = _.reduce(processes, function(process, key) {
             return {
-              circle: process.circle,
               metadata: process.metadata,
               _links: {
                 self: {
                   href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + key
+                },
+                'joukou:circle': {
+                  href: "/persona/" + (persona.getKey()) + "/circle/" + process.circle.key
                 },
                 'joukou:persona': {
                   href: personaHref
