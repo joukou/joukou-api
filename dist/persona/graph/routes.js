@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, hal, network_routes, process_routes, request, self, uuid, _, _ref;
+var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, connection_routes, hal, network_routes, process_routes, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -21,6 +21,8 @@ authn = require('../../authn');
 hal = require('../../hal');
 
 request = require('request');
+
+connection_routes = require('./connection/routes');
 
 process_routes = require('./process/routes');
 
@@ -42,8 +44,7 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph', authn.authenticate, self.index);
     server.post('/persona/:personaKey/graph', authn.authenticate, self.create);
     server.get('/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve);
-    server.get('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex);
-    server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection);
+    connection_routes.registerRoutes(server);
     process_routes.registerRoutes(server);
     network_routes.registerRoutes(server);
   },
@@ -238,56 +239,6 @@ module.exports = self = {
     }).fail(function(err) {
       return next(err);
     });
-  },
-  connectionIndex: function(req, res, next) {
-    return res.send(503);
-  },
-  addConnection: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return graph.getPersona().then(function(persona) {
-        var data, document, process, _i, _len, _ref1;
-        if (!persona.hasEditPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
-        data = {};
-        data.data = req.body.data;
-        data.metadata = req.body.metadata;
-        document = hal.parse(req.body, {
-          links: {
-            'joukou:process': {
-              min: 2,
-              max: 2,
-              match: '/persona/:personaKey/graph/:graphKey/process/:key',
-              name: {
-                required: true,
-                type: 'enum',
-                values: ['src', 'tgt']
-              }
-            }
-          }
-        });
-        _ref1 = document.links['joukou:process'];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          process = _ref1[_i];
-          data[process.name] = {
-            key: process.key
-          };
-        }
-        return graph.addConnection(data).then(function(connection) {
-          return graph.save().then(function() {
-            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key;
-            res.link(self, 'joukou:connection');
-            res.header('Location', self);
-            return res.send(201, {});
-          });
-        });
-      });
-    }).fail(function(err) {
-      return next(err);
-    });
-  },
-  retrieveConnection: function(req, res, next) {
-    return res.send(503);
   }
 };
 

@@ -15,6 +15,7 @@ async         = require( 'async' )
 authn         = require( '../../authn' )
 hal           = require( '../../hal' )
 request       = require( 'request' )
+connection_routes = require( './connection/routes' )
 process_routes = require( './process/routes' )
 network_routes = require( './network/routes' )
 GraphModel    = require( './Model' )
@@ -31,8 +32,7 @@ module.exports = self =
     server.get(  '/persona/:personaKey/graph', authn.authenticate, self.index )
     server.post( '/persona/:personaKey/graph', authn.authenticate, self.create )
     server.get(  '/persona/:personaKey/graph/:graphKey', authn.authenticate, self.retrieve )
-    server.get(  '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex )
-    server.post( '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection )
+    connection_routes.registerRoutes( server )
     process_routes.registerRoutes( server )
     network_routes.registerRoutes( server )
     return
@@ -205,48 +205,3 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
     return
-
-  connectionIndex: ( req, res, next ) ->
-    res.send( 503 )
-
-  addConnection: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        unless persona.hasEditPermission( req.user )
-          throw new UnauthorizedError()
-
-        data = {}
-        data.data = req.body.data
-        data.metadata = req.body.metadata
-
-        document = hal.parse( req.body,
-          links:
-            'joukou:process':
-              min: 2
-              max: 2
-              match: '/persona/:personaKey/graph/:graphKey/process/:key'
-              name:
-                required: true
-                type: 'enum'
-                values: [ 'src', 'tgt' ]
-        )
-
-        for process in document.links[ 'joukou:process' ]
-          data[ process.name ] =
-            key: process.key # TODO process.port
-
-        graph.addConnection( data ).then( ( connection ) ->
-          graph.save().then( ->
-            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
-            res.link( self, 'joukou:connection' )
-            res.header( 'Location', self )
-            res.send( 201, {} )
-          )
-        )
-      )
-    )
-    .fail( ( err ) -> next( err ) )
-
-  retrieveConnection: ( req, res, next ) ->
-    res.send( 503 )
-
