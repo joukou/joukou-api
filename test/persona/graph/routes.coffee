@@ -1,21 +1,24 @@
+"use strict"
+
 ###*
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-assert        = require( 'assert' )
-chai          = require( 'chai' )
-should        = chai.should()
+assert = require( 'assert' )
+chai = require( 'chai' )
+should = chai.should()
 chai.use( require( 'chai-http' ) )
 
-async         = require( 'async' )
-server        = require( '../../dist/server' )
-riakpbc       = require( '../../dist/riak/pbc' )
-AgentModel    = require( '../../dist/agent/Model' )
-GraphModel    = require( '../../dist/persona/graph/Model' )
-PersonaModel  = require( '../../dist/persona/Model' )
+async = require( 'async' )
+server = require( '../../../dist/server' )
+riakpbc = require( '../../../dist/riak/pbc' )
 
-describe 'graph/routes', ->
+AgentModel = require( '../../../dist/agent/Model' )
+GraphModel = require( '../../../dist/persona/graph/Model' )
+PersonaModel = require( '../../../dist/persona/Model' )
+
+describe 'persona/graph/routes', ->
 
   agentKey = null
   personaKey = null
