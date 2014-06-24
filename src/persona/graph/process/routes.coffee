@@ -116,6 +116,7 @@ module.exports = self =
 
         data.circle =
           key: document.links[ 'joukou:circle' ]?[ 0 ].key
+        #console.log(require('util').inspect(data, depth: 10))
 
         graph.addProcess( data ).then( ( processKey ) ->
           graph.save().then( ->
