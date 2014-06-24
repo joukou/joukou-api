@@ -22,7 +22,6 @@ cors          = require( 'restify-cors-middleware' )(
     'http://127.0.0.1:2100'
     'https://staging.joukou.com'
     'https://joukou.com'
-    'chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo'
   ]
   allowHeaders: [
     'authorization'
