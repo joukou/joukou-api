@@ -18,6 +18,7 @@ describe 'server', ->
         .res( ( res ) ->
           res.should.have.status( 200 )
           res.should.have.header( 'access-control-allow-origin', 'https://joukou.com' )
+          res.should.have.header( 'access-control-allow-credentials', 'true' )
           res.should.have.header( 'access-control-expose-headers' )
           done()
         )
