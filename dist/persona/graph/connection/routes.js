@@ -29,8 +29,34 @@ module.exports = self = {
     server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.create);
     server.get('/persona/:personaKey/graph/:graphKey/connection/:connectionKey', authn.authenticate, self.retrieve);
   },
+
+  /*
+  @api {get} /persona/:personaKey/graph/:graphKey/connection List of Connections for a Graph
+  @apiName ConnectionIndex
+  @apiGroup Graph
+  @apiParam {String} personaKey Persona's unique key
+  @apiParam {String} graphKey Graph's unique key
+   */
+
+  /**
+  Handles a request for a list of *Connections* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+   */
   index: function(req, res, next) {
-    return res.send(503);
+    GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return graph.getPersona().then(function(persona) {
+        if (!persona.hasReadPermission(req.user)) {
+          throw new UnauthorizedError();
+        }
+        return graph.getConnections(function(connections) {
+          return res.send(200, connections.getRepresentation());
+        });
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   },
   create: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {

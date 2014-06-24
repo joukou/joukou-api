@@ -21,13 +21,47 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.get(  '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.index )
-    server.post( '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.create )
-    server.get(  '/persona/:personaKey/graph/:graphKey/connection/:connectionKey', authn.authenticate, self.retrieve )
+    server.get(
+      '/persona/:personaKey/graph/:graphKey/connection',
+      authn.authenticate, self.index
+    )
+    server.post(
+      '/persona/:personaKey/graph/:graphKey/connection',
+      authn.authenticate, self.create
+    )
+    server.get(
+      '/persona/:personaKey/graph/:graphKey/connection/:connectionKey',
+      authn.authenticate, self.retrieve
+    )
     return
 
+  ###
+  @api {get} /persona/:personaKey/graph/:graphKey/connection List of Connections for a Graph
+  @apiName ConnectionIndex
+  @apiGroup Graph
+  @apiParam {String} personaKey Persona's unique key
+  @apiParam {String} graphKey Graph's unique key
+  ###
+
+  ###*
+  Handles a request for a list of *Connections* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
   index: ( req, res, next ) ->
-    res.send( 503 )
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      # TODO associations and security model should be handled by the model layer
+      graph.getPersona().then( ( persona ) ->
+        unless persona.hasReadPermission( req.user )
+          throw new UnauthorizedError()
+
+        graph.getConnections( ( connections ) ->
+          res.send( 200, connections.getRepresentation() )
+        )
+      )
+    ).fail( ( err ) -> next( err ) )
+    return
 
   create: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
@@ -39,6 +73,7 @@ module.exports = self =
         data.data = req.body.data
         data.metadata = req.body.metadata
 
+        # TODO HyperSchema vs schemajs+hal
         document = hal.parse( req.body,
           links:
             'joukou:process':
