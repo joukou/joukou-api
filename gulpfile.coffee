@@ -38,6 +38,7 @@ lazypipes =
     compilers: 'coffee:coffee-script/register'
   )
 
+process.env.NODE_ENV = 'production' # Test as if we are running in production
 process.env.JOUKOU_CONFIG = path.join( __dirname, 'test', 'config.yml' )
 
 ###*

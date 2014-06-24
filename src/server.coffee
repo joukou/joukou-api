@@ -5,57 +5,23 @@
 @requires source-map-support
 @requires restify
 @author Isaac Johnston <isaac.johnston@joukou.com>
-@copyright &copy; 2009-2013 Joukou Ltd. All rights reserved.
+@copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
 require( 'source-map-support' ).install()
 
 restify       = require( 'restify' )
 authn         = require( './authn' )
+cors          = require( './cors' )
+env           = require( './env' )
 hal           = require( './hal' )
 routes        = require( './routes' )
 
 LoggerFactory = require( './log/LoggerFactory' )
-cors          = require( 'restify-cors-middleware' )(
-  origins: [
-    'http://localhost:2100'
-    'http://127.0.0.1:2100'
-    'https://staging.joukou.com'
-    'https://joukou.com'
-  ]
-  allowHeaders: [
-    'authorization'
-    'accept',
-    'accept-version',
-    'content-type',
-    'request-id',
-    'origin',
-    'x-api-version',
-    'x-request-id'
-  ]
-  exposeHeaders: [
-    'api-version',
-    'content-length',
-    'content-md5',
-    'content-type',
-    'date',
-    'request-id',
-    'response-time'
-  ]
-)
-
-getServerName = ->
-  switch process.env.NODE_ENV
-    when 'production'
-      'api.joukou.com'
-    when 'staging'
-      'staging-api.joukou.com'
-    else
-      require( '../package.json' ).name
 
 module.exports = server = restify.createServer(
-  name: getServerName()
-  version: require( '../package.json' ).version
+  name: env.getServerName()
+  version: env.getVersion()
   formatters:
     'application/json': hal.formatter
   log: LoggerFactory.getLogger( name: 'server' )
@@ -90,7 +56,7 @@ server.listen(
     server.log.info(
       '%s-%s listening at %s',
       server.name,
-      require('../package.json').version,
+      env.getVersion(),
       server.url
     )
 )
