@@ -1,5 +1,15 @@
 "use strict"
 
+###*
+{@link module:joukou-api/persona/circle/Model|Circle} APIs provide information
+about the available Circles. In future the ability to create, sell and buy
+Circles will be added.
+
+@module joukou-api/persona/circle/routes
+@author Isaac Johnston <isaac.johnston@joukou.com>
+@copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
+###
+
 module.exports = self =
 
   registerRoutes: ( server ) ->

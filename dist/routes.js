@@ -6,11 +6,9 @@
 @author Juan Morales <juan@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var agent, circle, contact, network, persona, runtime, self;
+var agent, contact, network, persona, runtime, self;
 
 agent = require('./agent/routes');
-
-circle = require('./circle/routes');
 
 contact = require('./contact/routes');
 
@@ -28,13 +26,18 @@ module.exports = self = {
    */
   registerRoutes: function(server) {
     agent.registerRoutes(server);
-    circle.registerRoutes(server);
     contact.registerRoutes(server);
     network.registerRoutes(server);
     persona.registerRoutes(server);
     runtime.registerRoutes(server);
     return server.get('/', self.index);
   },
+
+  /*
+  @api {get} / Joukou API entry point.
+  @apiName EntryPoint
+  @apiGroup Joukou
+   */
   index: function(req, res, next) {
     res.link('/agent', 'joukou:agent-create', {
       title: 'Create an Agent'

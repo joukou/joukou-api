@@ -18,6 +18,7 @@ authn         = require( '../authn' )
 authz         = require( '../authz' )
 hal           = require( '../hal' )
 request       = require( 'request' )
+circle_routes = require( './circle/routes' )
 graph_routes  = require( './graph/routes' )
 PersonaModel  = require( './Model' )
 
@@ -31,11 +32,12 @@ module.exports = self =
     server.get(  '/persona', authn.authenticate, self.index )
     server.post( '/persona', authn.authenticate, self.create )
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
+    circle_routes.registerRoutes( server )
     graph_routes.registerRoutes( server )
     return
 
   ###
-  @api {get} /persona Get the list of Joukou Personas that you have access to
+  @api {get} /persona List of Personas that you have access to
   @apiName PersonaIndex
   @apiGroup Persona
   ###

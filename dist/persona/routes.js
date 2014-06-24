@@ -11,7 +11,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var PersonaModel, async, authn, authz, graph_routes, hal, request, self, _;
+var PersonaModel, async, authn, authz, circle_routes, graph_routes, hal, request, self, _;
 
 _ = require('lodash');
 
@@ -24,6 +24,8 @@ authz = require('../authz');
 hal = require('../hal');
 
 request = require('request');
+
+circle_routes = require('./circle/routes');
 
 graph_routes = require('./graph/routes');
 
@@ -39,11 +41,12 @@ module.exports = self = {
     server.get('/persona', authn.authenticate, self.index);
     server.post('/persona', authn.authenticate, self.create);
     server.get('/persona/:key', authn.authenticate, self.retrieve);
+    circle_routes.registerRoutes(server);
     graph_routes.registerRoutes(server);
   },
 
   /*
-  @api {get} /persona Get the list of Joukou Personas that you have access to
+  @api {get} /persona List of Personas that you have access to
   @apiName PersonaIndex
   @apiGroup Persona
    */
