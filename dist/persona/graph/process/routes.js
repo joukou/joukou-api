@@ -2,7 +2,7 @@
 
 /**
 {@link module:joukou-api/persona/graph/process/Model|Process} APIs provide the
-ability to inspect and create connections for a graph.
+ability to inspect and create *Processes* for a *Graph*.
 
 @module joukou-api/persona/graph/process/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
@@ -30,13 +30,19 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieve);
   },
 
-  /**
-  @api {get} /persona/:personaKey/graph/:graphKey/process Process index
+  /*
+  @api {get} /persona/:personaKey/graph/:graphKey/process List of Processes for a Graph
   @apiName ProcessIndex
   @apiGroup Graph
-  
   @apiParam {String} personaKey Personas unique key.
   @apiParam {String} graphKey Graphs unique key.
+   */
+
+  /**
+  Handles a request for a list of *Processes* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
    */
   index: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
@@ -81,10 +87,17 @@ module.exports = self = {
     });
   },
 
-  /**
+  /*
   @api {post} /persona/:personaKey/graph/:graphKey/process
-  @apiName AddProcess
+  @apiName CreateProcess
   @apiGroup Graph
+   */
+
+  /**
+  Handles a request to create a *Process* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
    */
   create: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
@@ -124,10 +137,17 @@ module.exports = self = {
     });
   },
 
-  /**
+  /*
   @api {get} /persona/:personaKey/graph/:graphKey/process/:processKey
   @apiName RetrieveProcess
   @apiGroup Graph
+   */
+
+  /**
+  Handles a request to retrieve a *Process*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
    */
   retrieve: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {

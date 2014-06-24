@@ -2,16 +2,16 @@
 
 ###*
 {@link module:joukou-api/persona/graph/process/Model|Process} APIs provide the
-ability to inspect and create connections for a graph.
+ability to inspect and create *Processes* for a *Graph*.
 
 @module joukou-api/persona/graph/process/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-authn         = require( '../../../authn' )
-hal           = require( '../../../hal' )
-GraphModel    = require( '../Model' )
+authn = require( '../../../authn' )
+hal = require( '../../../hal' )
+GraphModel = require( '../Model' )
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =
@@ -21,18 +21,33 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
-    server.get(  '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.index )
-    server.post( '/persona/:personaKey/graph/:graphKey/process', authn.authenticate, self.create )
-    server.get(  '/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieve )
+    server.get(
+      '/persona/:personaKey/graph/:graphKey/process',
+      authn.authenticate, self.index
+    )
+    server.post(
+      '/persona/:personaKey/graph/:graphKey/process',
+      authn.authenticate, self.create
+    )
+    server.get(
+      '/persona/:personaKey/graph/:graphKey/process/:processKey',
+      authn.authenticate, self.retrieve
+    )
     return
 
-  ###*
-  @api {get} /persona/:personaKey/graph/:graphKey/process Process index
+  ###
+  @api {get} /persona/:personaKey/graph/:graphKey/process List of Processes for a Graph
   @apiName ProcessIndex
   @apiGroup Graph
-
   @apiParam {String} personaKey Personas unique key.
   @apiParam {String} graphKey Graphs unique key.
+  ###
+
+  ###*
+  Handles a request for a list of *Processes* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
   ###
   index: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
@@ -67,10 +82,17 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
 
-  ###*
+  ###
   @api {post} /persona/:personaKey/graph/:graphKey/process
-  @apiName AddProcess
+  @apiName CreateProcess
   @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to create a *Process* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
   ###
   create: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
@@ -108,10 +130,17 @@ module.exports = self =
     .fail( ( err ) -> next( err ) )
     return
 
-  ###*
+  ###
   @api {get} /persona/:personaKey/graph/:graphKey/process/:processKey
   @apiName RetrieveProcess
   @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to retrieve a *Process*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
   ###
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
