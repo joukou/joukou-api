@@ -174,7 +174,7 @@ module.exports = self =
               _links:
                 self:
                   href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
-                #'joukou:circle':
+                #'joukou:circle': TODO
                 #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
               metadata: process.metadata
             )
@@ -187,10 +187,10 @@ module.exports = self =
                   href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
                 'joukou:process': [
                   {
-                    name: 'src'
+                    name: 'src' # TODO href
                   }
                   {
-                    name: 'tgt'
+                    name: 'tgt' # TODO href
                   }
                 ]
             )
@@ -205,6 +205,14 @@ module.exports = self =
     .fail( ( err ) -> next( err ) )
     return
 
+  ###*
+  @api {get} /persona/:personaKey/graph/:graphKey/process Process index
+  @apiName ProcessIndex
+  @apiGroup Graph
+
+  @apiParam {String} personaKey Personas unique key.
+  @apiParam {String} graphKey Graphs unique key.
+  ###
   processIndex: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
@@ -313,12 +321,37 @@ module.exports = self =
         unless persona.hasEditPermission( req.user )
           throw new UnauthorizedError()
 
-        graph.addConnection( req.body ).then( ( connection ) ->
-          # TODO
-          res.send( 503 )
+        data = {}
+        data.data = req.body.data
+        data.metadata = req.body.metadata
+
+        document = hal.parse( req.body,
+          links:
+            'joukou:process':
+              min: 2
+              max: 2
+              match: '/persona/:personaKey/graph/:graphKey/process/:key'
+              name:
+                required: true
+                type: 'enum'
+                values: [ 'src', 'tgt' ]
         )
-      ).fail( ( err ) -> next( err ) )
-    ).fail( ( err ) -> next( err ) )
+
+        for process in document.links[ 'joukou:process' ]
+          data[ process.name ] =
+            key: process.key # TODO process.port
+
+        graph.addConnection( data ).then( ( connection ) ->
+          graph.save().then( ->
+            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
+            res.link( self, 'joukou:connection' )
+            res.header( 'Location', self )
+            res.send( 201, {} )            
+          )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
 
   retrieveConnection: ( req, res, next ) ->
     res.send( 503 )
