@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, hal, request, self, uuid, _, _ref;
+var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, hal, network_routes, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -21,6 +21,8 @@ authn = require('../../authn');
 hal = require('../../hal');
 
 request = require('request');
+
+network_routes = require('./network/routes');
 
 GraphModel = require('./Model');
 
@@ -43,6 +45,7 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieveProcess);
     server.get('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex);
     server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection);
+    network_routes.registerRoutes(server);
   },
 
   /**

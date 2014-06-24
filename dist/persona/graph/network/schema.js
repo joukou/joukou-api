@@ -1,7 +1,7 @@
 "use strict";
 
 /**
-@module joukou-api/network/schema
+@module joukou-api/persona/graph/network/schema
  */
 
 

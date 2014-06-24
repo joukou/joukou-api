@@ -15,6 +15,7 @@ async         = require( 'async' )
 authn         = require( '../../authn' )
 hal           = require( '../../hal' )
 request       = require( 'request' )
+network_routes = require( './network/routes' )
 GraphModel    = require( './Model' )
 PersonaModel  = require( '../Model')
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
@@ -34,6 +35,7 @@ module.exports = self =
     server.get(  '/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieveProcess )
     server.get(  '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.connectionIndex )
     server.post( '/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.addConnection )
+    network_routes.registerRoutes( server )
     return
 
   ###*

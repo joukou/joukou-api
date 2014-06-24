@@ -1,9 +1,9 @@
 "use strict";
 
 /**
-{@link module:joukou-api/network/model|Network} APIs.
+{@link module:joukou-api/persona/graph/network/Model|Network} APIs.
 
-@module joukou-api/network/routes
+@module joukou-api/persona/graph/network/routes
  */
 var self;
 

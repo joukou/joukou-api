@@ -9,7 +9,6 @@
 
 agent   = require( './agent/routes' )
 contact = require( './contact/routes' )
-network = require( './network/routes' )
 persona = require( './persona/routes' )
 runtime = require( './runtime/routes' )
 
@@ -22,7 +21,6 @@ module.exports = self =
   registerRoutes: ( server ) ->
     agent.registerRoutes( server )
     contact.registerRoutes( server )
-    network.registerRoutes( server )
     persona.registerRoutes( server )
     runtime.registerRoutes( server )
 
