@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "schema.js",
-  "sourceRoot": "../../src/graph",
+  "sourceRoot": "../../../src/persona/graph",
   "sources": [
     "schema.coffee"
   ],

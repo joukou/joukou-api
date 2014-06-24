@@ -1,10 +1,10 @@
 "use strict";
 
 /**
-{@link module:joukou-api/graph/model|Graph} APIs provide information about the
+{@link module:joukou-api/persona/graph/model|Graph} APIs provide information about the
 graphs that an agent has authorization to access.
 
-@module joukou-api/graph/routes
+@module joukou-api/persona/graph/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
@@ -16,15 +16,15 @@ uuid = require('node-uuid');
 
 async = require('async');
 
-authn = require('../authn');
+authn = require('../../authn');
 
-hal = require('../hal');
+hal = require('../../hal');
 
 request = require('request');
 
 GraphModel = require('./Model');
 
-PersonaModel = require('../persona/Model');
+PersonaModel = require('../Model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 
@@ -236,6 +236,15 @@ module.exports = self = {
       return next(err);
     });
   },
+
+  /**
+  @api {get} /persona/:personaKey/graph/:graphKey/process Process index
+  @apiName ProcessIndex
+  @apiGroup Graph
+  
+  @apiParam {String} personaKey Personas unique key.
+  @apiParam {String} graphKey Graphs unique key.
+   */
   processIndex: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
@@ -355,14 +364,42 @@ module.exports = self = {
   addConnection: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
+        var data, document, process, _i, _len, _ref1;
         if (!persona.hasEditPermission(req.user)) {
           throw new UnauthorizedError();
         }
-        return graph.addConnection(req.body).then(function(connection) {
-          return res.send(503);
+        data = {};
+        data.data = req.body.data;
+        data.metadata = req.body.metadata;
+        document = hal.parse(req.body, {
+          links: {
+            'joukou:process': {
+              min: 2,
+              max: 2,
+              match: '/persona/:personaKey/graph/:graphKey/process/:key',
+              name: {
+                required: true,
+                type: 'enum',
+                values: ['src', 'tgt']
+              }
+            }
+          }
         });
-      }).fail(function(err) {
-        return next(err);
+        _ref1 = document.links['joukou:process'];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          process = _ref1[_i];
+          data[process.name] = {
+            key: process.key
+          };
+        }
+        return graph.addConnection(data).then(function(connection) {
+          return graph.save().then(function() {
+            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key;
+            res.link(self, 'joukou:connection');
+            res.header('Location', self);
+            return res.send(201, {});
+          });
+        });
       });
     }).fail(function(err) {
       return next(err);

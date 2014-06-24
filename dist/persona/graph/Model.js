@@ -1,14 +1,19 @@
 "use strict";
 
 /**
-In flow-based programs, the logic is defined as a *Graph*. The nodes of the
-graph are *Circles* (aka nodes), and the edges define connections between them.
+In flow-based programs, the logic is defined as a *Graph*. Each node of the
+*Graph* is a *Process* that is implemented by a *Circle*, and the edges define
+the *Connections* between them.
 
-@class joukou-api/graph/Model
+@class joukou-api/persona/graph/Model
 @extends joukou-api/riak/Model
+@requires joukou-api/persona/graph/schema
+@requires restify.ConflictError
+@requires lodash
 @requires q
-@requires joukou-api/graph/schema
-@requires restify
+@requires node-uuid
+@author Isaac Johnston <isaac.johnston@joukou.com>
+@copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
 var ConflictError, GraphModel, Model, PersonaModel, Q, schema, uuid, _;
 
@@ -18,11 +23,11 @@ Q = require('q');
 
 uuid = require('node-uuid');
 
-Model = require('../riak/Model');
+Model = require('../../riak/Model');
 
 schema = require('./schema');
 
-PersonaModel = require('../persona/Model');
+PersonaModel = require('../Model');
 
 ConflictError = require('restify').ConflictError;
 

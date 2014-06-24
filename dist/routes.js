@@ -6,15 +6,13 @@
 @author Juan Morales <juan@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var agent, circle, contact, graph, network, persona, runtime, self;
+var agent, circle, contact, network, persona, runtime, self;
 
 agent = require('./agent/routes');
 
 circle = require('./circle/routes');
 
 contact = require('./contact/routes');
-
-graph = require('./graph/routes');
 
 network = require('./network/routes');
 
@@ -32,7 +30,6 @@ module.exports = self = {
     agent.registerRoutes(server);
     circle.registerRoutes(server);
     contact.registerRoutes(server);
-    graph.registerRoutes(server);
     network.registerRoutes(server);
     persona.registerRoutes(server);
     runtime.registerRoutes(server);

@@ -18,6 +18,7 @@ authn         = require( '../authn' )
 authz         = require( '../authz' )
 hal           = require( '../hal' )
 request       = require( 'request' )
+graph_routes  = require( './graph/routes' )
 PersonaModel  = require( './Model' )
 
 module.exports = self =
@@ -30,7 +31,7 @@ module.exports = self =
     server.get(  '/persona', authn.authenticate, self.index )
     server.post( '/persona', authn.authenticate, self.create )
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
-
+    graph_routes.registerRoutes( server )
     return
 
   ###

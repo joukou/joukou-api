@@ -12,7 +12,7 @@ async         = require( 'async' )
 server        = require( '../../dist/server' )
 riakpbc       = require( '../../dist/riak/pbc' )
 AgentModel    = require( '../../dist/agent/Model' )
-GraphModel    = require( '../../dist/graph/Model' )
+GraphModel    = require( '../../dist/persona/graph/Model' )
 PersonaModel  = require( '../../dist/persona/Model' )
 
 describe 'graph/routes', ->

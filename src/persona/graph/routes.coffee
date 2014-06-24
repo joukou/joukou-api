@@ -1,10 +1,10 @@
 "use strict"
 
 ###*
-{@link module:joukou-api/graph/model|Graph} APIs provide information about the
+{@link module:joukou-api/persona/graph/model|Graph} APIs provide information about the
 graphs that an agent has authorization to access.
 
-@module joukou-api/graph/routes
+@module joukou-api/persona/graph/routes
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
@@ -12,11 +12,11 @@ graphs that an agent has authorization to access.
 _             = require( 'lodash' )
 uuid          = require( 'node-uuid' )
 async         = require( 'async' )
-authn         = require( '../authn' )
-hal           = require( '../hal' )
+authn         = require( '../../authn' )
+hal           = require( '../../hal' )
 request       = require( 'request' )
 GraphModel    = require( './Model' )
-PersonaModel  = require( '../persona/Model')
+PersonaModel  = require( '../Model')
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =
@@ -346,7 +346,7 @@ module.exports = self =
             self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
             res.link( self, 'joukou:connection' )
             res.header( 'Location', self )
-            res.send( 201, {} )            
+            res.send( 201, {} )
           )
         )
       )
