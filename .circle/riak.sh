@@ -26,7 +26,7 @@ sleep 10
 sudo riak-admin bucket-type create persona '{"props":{"search_index":"persona","allow_mult":false}}'
 sudo riak-admin bucket-type activate persona
 
-curl -XPUT http://localhost:8098/search/schema/graph -H'content-type:application/xml' --data-binary @dist/graph/schema.xml
+curl -XPUT http://localhost:8098/search/schema/graph -H'content-type:application/xml' --data-binary @dist/persona/graph/schema.xml
 curl -XPUT http://localhost:8098/search/index/graph -H'content-type:application/json' -d'{"schema":"graph"}'
 sleep 10
 sudo riak-admin bucket-type create graph '{"props":{"search_index":"graph","allow_mult":false}}'
