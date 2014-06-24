@@ -40,10 +40,10 @@ module.exports = self = {
       title: 'Create an Agent'
     });
     res.link('/agent/authenticate', 'joukou:agent-authn', {
-      title: 'Authenticate as an Agent'
+      title: 'Authenticate'
     });
     res.link('/contact', 'joukou:contact', {
-      title: 'Send a Message to Joukou Ltd'
+      title: 'Send a Message to Joukou'
     });
     return res.send(200, {});
   }

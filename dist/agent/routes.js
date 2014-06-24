@@ -13,7 +13,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, UnauthorizedError, authn, authz, config, jwt, self, _;
+var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, jwt, self, _, _ref;
 
 _ = require('lodash');
 
@@ -27,7 +27,7 @@ config = require('../config');
 
 AgentModel = require('./Model');
 
-UnauthorizedError = require('restify').UnauthorizedError;
+_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
 
 module.exports = self = {
 
@@ -78,7 +78,7 @@ module.exports = self = {
     });
     res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
     res.link('/persona', 'joukou:personas', {
-      title: 'List of Personas that this Agent has access to'
+      title: 'List of Personas'
     });
     return res.send(200, {
       token: token
@@ -98,14 +98,14 @@ module.exports = self = {
         return;
       }
       res.link('/persona', 'joukou:personas', {
-        title: 'List of Personas that this Agent has access to'
+        title: 'List of Personas'
       });
       return res.send(200, agent.getRepresentation());
     }).fail(function(err) {
-      if (err.notFound) {
+      if (err instanceof NotFoundError) {
         return res.send(401);
       } else {
-        return res.send(503);
+        return next(err);
       }
     });
   }

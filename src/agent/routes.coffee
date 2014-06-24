@@ -20,7 +20,7 @@ authn         = require( '../authn' )
 authz         = require( '../authz' )
 config        = require( '../config' )
 AgentModel    = require( './Model' )
-{ UnauthorizedError } = require( 'restify' )
+{ UnauthorizedError, NotFoundError } = require( 'restify' )
 
 module.exports = self =
   ###*
@@ -65,7 +65,7 @@ module.exports = self =
     # TODO config.jwt.secret
     token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
     res.link( "/agent/#{req.user.getKey()}", 'joukou:agent' )
-    res.link( '/persona', 'joukou:personas', title: 'List of Personas that this Agent has access to' )
+    res.link( '/persona', 'joukou:personas', title: 'List of Personas' )
     res.send( 200, token: token )
 
   ###*
@@ -81,13 +81,13 @@ module.exports = self =
         next( new UnauthorizedError() )
         return
 
-      res.link( '/persona', 'joukou:personas', title: 'List of Personas that this Agent has access to' )
+      res.link( '/persona', 'joukou:personas', title: 'List of Personas' )
       res.send( 200, agent.getRepresentation() )
     ).fail( ( err ) ->
-      if err.notFound
+      if err instanceof NotFoundError
         # Technically this should be a 404 NotFound, but that could be abused by
         # an attacker to discover valid user keys.
         res.send( 401 )
       else
-        res.send( 503 )
+        next( err )
     )
