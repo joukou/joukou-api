@@ -20,11 +20,19 @@ module.exports = self = {
       _embedded: {
         'joukou:circle': [
           {
+            _links: {
+              self: {
+                href: "/persona/" + req.params.personaKey + "/circle/cdb6bc33-1e8a-46de-8049-3dcf0d8bddec"
+              },
+              'joukou:persona': {
+                href: "/persona/" + req.params.personaKey
+              }
+            },
             name: 'MySQLQuery',
             description: 'Obtain data from a MySQL database.',
             icon: 'database',
             subgraph: false,
-            inPorts: [
+            inports: [
               {
                 id: 'query',
                 type: 'string',
@@ -45,7 +53,7 @@ module.exports = self = {
                 required: true
               }
             ],
-            outPorts: [
+            outports: [
               {
                 id: 'data',
                 type: 'datum',

@@ -30,7 +30,7 @@ module.exports = self =
             description: 'Obtain data from a MySQL database.'
             icon: 'database'
             subgraph: false
-            inPorts: [
+            inports: [
               {
                 id: 'query'
                 type: 'string'
@@ -53,7 +53,7 @@ module.exports = self =
                 required: true
               }
             ]
-            outPorts: [
+            outports: [
               {
                 id: 'data'
                 type: 'datum'
