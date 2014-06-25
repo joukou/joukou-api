@@ -1,6 +1,6 @@
 {
   "name": "joukou-api",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "description": "Joukou platform API.",
   "main": "dist/cluster.js",
