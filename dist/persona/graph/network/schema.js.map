@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "schema.js",
+  "sourceRoot": "../../../../src/persona/graph/network",
+  "sources": [
+    "schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;GAFA;AAAA"
+}

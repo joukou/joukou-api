@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "routes.js",
+  "sourceRoot": "../../../../src/persona/graph/network",
+  "sources": [
+    "routes.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;GAFA;AAAA,IAAA,IAAA;;AAAA,MAQM,CAAC,OAAP,GAAiB,IAAA,GACf;AAAA;AAAA;;KAAA;AAAA,EAGA,cAAA,EAAgB,SAAE,MAAF,GAAA,CAHhB;CATF,CAAA"
+}

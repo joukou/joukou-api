@@ -13,7 +13,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, authn, authz, config, jwt, self, _;
+var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, jwt, self, _, _ref;
 
 _ = require('lodash');
 
@@ -27,6 +27,8 @@ config = require('../config');
 
 AgentModel = require('./Model');
 
+_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
+
 module.exports = self = {
 
   /**
@@ -34,12 +36,13 @@ module.exports = self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
+    server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
     server.post('/agent/authenticate', authn.authenticate, self.authenticate);
-    server.get('/agent/:key', authn.authenticate, self.retrieve);
-    server.post('/agent/:key/persona', authn.authenticate, self.addPersona);
-    server.get('/agent/:key/persona', authn.authenticate, self.personaSearch);
-    return server.get('/agent/:key/persona/facet', authn.authenticate, self.personaSearchFacets);
+    return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
+  },
+  index: function(req, res, next) {
+    return res.send(503);
   },
 
   /**
@@ -50,16 +53,14 @@ module.exports = self = {
    */
   create: function(req, res, next) {
     return AgentModel.create(req.body).then(function(agent) {
-      return agent.save().then(function(reply) {
-        self = "/agent/" + (reply.getKey());
-        res.header('Location', self);
-        res.link(self, 'location');
-        return res.send(201);
-      }).fail(function(err) {
-        return res.send(503);
-      });
+      return agent.save();
+    }).then(function(agent) {
+      self = "/agent/" + (agent.getKey());
+      res.header('Location', self);
+      res.link(self, 'joukou:agent');
+      return res.send(201, {});
     }).fail(function(err) {
-      return res.send(403);
+      return res.send(err);
     });
   },
 
@@ -75,6 +76,10 @@ module.exports = self = {
     token = jwt.sign(req.user, 'abc', {
       expiresInMinutes: 60 * 5
     });
+    res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
+    res.link('/persona', 'joukou:personas', {
+      title: 'List of Personas'
+    });
     return res.send(200, {
       token: token
     });
@@ -87,50 +92,22 @@ module.exports = self = {
   @param {Function} next
    */
   retrieve: function(req, res, next) {
-    return AgentModel.retrieve(req.params.key).then(function(agent) {
+    return AgentModel.retrieve(req.params.agentKey).then(function(agent) {
       if (!(agent.getEmail() === req.user.getEmail() || req.user.hasRole('operator'))) {
-        return res.send(401);
-      } else {
-        return res.send(200, agent.getRepresentation());
+        next(new UnauthorizedError());
+        return;
       }
+      res.link('/persona', 'joukou:personas', {
+        title: 'List of Personas'
+      });
+      return res.send(200, agent.getRepresentation());
     }).fail(function(err) {
-      if (err.notFound) {
+      if (err instanceof NotFoundError) {
         return res.send(401);
       } else {
-        return res.send(503);
+        return next(err);
       }
     });
-  },
-
-  /**
-  Handles a request to create a relationship between an agent and a persona.
-  @param {http.IncomingMessage} req
-  @param {http.ServerResponse} res
-  @param {Function} next
-   */
-  addPersona: function(req, res, next) {
-    return res.send(503);
-  },
-
-  /**
-  Handles a request to search for relationships between an agent and personas.
-  @param {http.IncomingMessage} req
-  @param {http.ServerResponse} res
-  @param {Function} next
-   */
-  personaSearch: function(req, res, next) {
-    return res.send(503);
-  },
-
-  /**
-  Handles a request to retrieve facets for a search for relationships between
-  an agent and personas.
-  @param {http.IncomingMessage} req
-  @param {http.ServerResponse} res
-  @param {Function} next
-   */
-  personaSearchFacets: function(req, res, next) {
-    return res.send(503);
   }
 };
 

@@ -10,12 +10,29 @@ legal person (Latin: persona ficta) or a natural person
 @author Isaac Johnston <isaac.johnston@joukou.com>
 ###
 
-Model = require( '../riak/Model' )
-schema = require( './schema' )
+_       = require( 'lodash' )
+Q       = require( 'q' )
+Model   = require( '../riak/Model' )
+schema  = require( './schema' )
 
 PersonaModel = Model.define(
+  type: 'persona'
   bucket: 'persona'
   schema: schema
 )
+
+PersonaModel::getName = ->
+  @getValue().name
+
+PersonaModel::hasEditPermission = ( user ) ->
+  _.some( @getValue().agents, ( agent ) ->
+    agent.key is user.getKey() and
+    (agent.role is 'admin' or agent.role is 'creator')
+  )
+
+PersonaModel::hasReadPermission = ( user ) ->
+  _.some( @getValue().agents, ( agent ) ->
+    agent.key is user.getKey()
+  )
 
 module.exports = PersonaModel

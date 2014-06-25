@@ -9,8 +9,6 @@
 
 agent   = require( './agent/routes' )
 contact = require( './contact/routes' )
-graph   = require( './graph/routes' )
-network = require( './network/routes' )
 persona = require( './persona/routes' )
 runtime = require( './runtime/routes' )
 
@@ -23,12 +21,18 @@ module.exports = self =
   registerRoutes: ( server ) ->
     agent.registerRoutes( server )
     contact.registerRoutes( server )
-    graph.registerRoutes( server )
-    network.registerRoutes( server )
     persona.registerRoutes( server )
     runtime.registerRoutes( server )
 
     server.get( '/', self.index )
 
+  ###
+  @api {get} / Joukou API entry point.
+  @apiName EntryPoint
+  @apiGroup Joukou
+  ###
   index: ( req, res, next ) ->
-    res.send( 200 )
+    res.link( '/agent', 'joukou:agent-create', title: 'Create an Agent' )
+    res.link( '/agent/authenticate', 'joukou:agent-authn', title: 'Authenticate')
+    res.link( '/contact', 'joukou:contact', title: 'Send a Message to Joukou' )
+    res.send( 200, {} )

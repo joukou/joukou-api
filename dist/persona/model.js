@@ -9,16 +9,37 @@ legal person (Latin: persona ficta) or a natural person
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 @author Isaac Johnston <isaac.johnston@joukou.com>
  */
-var Model, PersonaModel, schema;
+var Model, PersonaModel, Q, schema, _;
+
+_ = require('lodash');
+
+Q = require('q');
 
 Model = require('../riak/Model');
 
 schema = require('./schema');
 
 PersonaModel = Model.define({
+  type: 'persona',
   bucket: 'persona',
   schema: schema
 });
+
+PersonaModel.prototype.getName = function() {
+  return this.getValue().name;
+};
+
+PersonaModel.prototype.hasEditPermission = function(user) {
+  return _.some(this.getValue().agents, function(agent) {
+    return agent.key === user.getKey() && (agent.role === 'admin' || agent.role === 'creator');
+  });
+};
+
+PersonaModel.prototype.hasReadPermission = function(user) {
+  return _.some(this.getValue().agents, function(agent) {
+    return agent.key === user.getKey();
+  });
+};
 
 module.exports = PersonaModel;
 

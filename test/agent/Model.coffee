@@ -6,13 +6,14 @@ should            = chai.should()
 
 bcrypt            = require( 'bcrypt' )
 AgentModel        = require( '../../dist/agent/Model' )
-NotFoundError     = require( '../../dist/riak/NotFoundError' )
+{ NotFoundError } = require( 'restify' )
 pbc               = require( '../../dist/riak/pbc' )
 
 describe 'agent/Model', ->
 
   before ( done ) ->
     pbc.put(
+      type: 'agent'
       bucket: 'agent'
       key: '7ec23d7d-9522-478c-97a4-2f577335e023'
       content:
@@ -29,9 +30,14 @@ describe 'agent/Model', ->
           name: 'Isaac'
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG' # "password" in bcrypt w/ 10 rounds
         )
-    , ( err, reply ) ->
-      done( err )
-    )
+    , ( err, reply ) -> done( err ) )
+
+  after ( done ) ->
+    pbc.del(
+      type: 'agent'
+      bucket: 'agent'
+      key: '7ec23d7d-9522-478c-97a4-2f577335e023'
+    , ( err, reply ) -> done( err ) )
 
   specify 'is defined', ->
     should.exist( AgentModel )
@@ -43,15 +49,19 @@ describe 'agent/Model', ->
         email: 'ben.brabant@joukou.com'
         name: 'Ben Brabant'
         password: 'password'
-      ).then( ( agent ) ->
+      )
+      .then( ( agent ) ->
         { email, name, password } = agent.getValue()
         email.should.equal( 'ben.brabant@joukou.com' )
         name.should.equal( 'Ben Brabant' )
         bcrypt.compareSync( 'password', password ).should.be.true
-        done()
-      ).fail( ( err ) ->
-        done( err )
+        pbc.del(
+          type: 'agent'
+          bucket: 'agent'
+          key: agent.getKey()
+        , ( err, reply ) -> done( err ) )
       )
+      .fail( ( err ) -> done( err ) )
 
   describe '::save( )', ->
 
@@ -60,25 +70,22 @@ describe 'agent/Model', ->
         email: 'ben.brabant@joukou.com'
         name: 'Ben Brabant'
         password: 'password'
-      ).then( ( agent ) ->
-        agent.save().then( ( saved ) ->
-          AgentModel.retrieveByEmail( 'ben.brabant@joukou.com' ).then( ( retrieved ) ->
-            retrieved.getName().should.equal( 'Ben Brabant' )
-            pbc.del(
-              bucket: 'agent'
-              key: retrieved.getKey()
-            , ( err, reply ) ->
-              done()
-            )
-          ).fail( ( err ) ->
-            done( err )
-          )
-        ).fail( ( err ) ->
-          done( err )
-        )
-      ).fail( ( err ) ->
-        done( err )
       )
+      .then( ( agent ) ->
+        agent.save()
+      )
+      .then( ( agent ) ->
+        AgentModel.retrieveByEmail( 'ben.brabant@joukou.com' )
+      )
+      .then( ( agent ) ->
+        agent.getName().should.equal( 'Ben Brabant' )
+        pbc.del(
+          type: 'agent'
+          bucket: 'agent'
+          key: agent.getKey()
+        , ( err, reply ) -> done( err ) )
+      )
+      .fail( ( err ) -> done( err ) )
 
   describe '.retrieveByEmail( email )', ->
 

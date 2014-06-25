@@ -28,6 +28,7 @@ BcryptError     = require( '../error/BcryptError' )
 
 AgentModel      = Model.define(
   schema: schema
+  type: 'agent'
   bucket: 'agent'
 )
 
@@ -78,14 +79,10 @@ AgentModel.deleteByEmail = ( email ) ->
   deferred = Q.defer()
 
   AgentModel.retrieveByEmail( email ).then( ( agent ) ->
-    agent.delete().then( ->
-      deferred.resolve()
-    ).fail( ( err ) ->
-      deferred.reject( err )
-    )
-  ).fail( ( err ) ->
-    deferred.reject( err )
+    agent.delete()
   )
+  .then( -> deferred.resolve() )
+  .fail( ( err ) -> deferred.reject( err ) )
 
   deferred.promise
 

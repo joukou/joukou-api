@@ -14,6 +14,7 @@ Authentication based on Passport.
 passport          = require( 'passport' )
 { BasicStrategy } = require( 'passport-http' )
 AgentModel        = require( './agent/Model' )
+{ UnauthorizedError, NotFoundError } = require( 'restify' )
 
 ###*
 @private
@@ -29,10 +30,11 @@ verify = ( username, password, next ) ->
         next( null, agent )
       else
         next( null, false )
-    ).fail( ( err ) ->
-      next( err )
     )
-  ).fail( ( err ) ->
+  )
+  .fail( ( err ) ->
+    if err instanceof NotFoundError
+      err = new UnauthorizedError()
     next( err )
   )
 

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "Schema.js",
+  "sourceRoot": "../../src/hyper",
+  "sources": [
+    "Schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;GAFA;AAAA,MAQM,CAAC,OAAP;AAEe,EAAA,gBAAG,MAAH,GAAA;AAAa,IAAX,IAAC,CAAA,SAAA,MAAU,CAAb;EAAA,CAAb;;gBAAA;;IAVF,CAAA"
+}

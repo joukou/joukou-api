@@ -14,4 +14,6 @@ module.exports = schema.create(
     required: true
     allownull: false
     filters: [ 'trim' ]
+  agents:
+    type: 'array'
 )

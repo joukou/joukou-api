@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "Link.js",
+  "sourceRoot": "../../src/hyper",
+  "sources": [
+    "Link.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,YAAA,CAAA;AAEA;AAAA;;;;GAFA;AAAA,MAQM,CAAC,OAAP;AAEe,EAAA,gBAAE,IAAF,GAAA;AAA4E,IAAxE,IAAC,CAAA,WAAA,KAAK,IAAC,CAAA,YAAA,MAAM,IAAC,CAAA,iBAAA,WAAW,IAAC,CAAA,YAAA,MAAM,IAAC,CAAA,YAAA,MAAM,IAAC,CAAA,eAAA,SAAS,IAAC,CAAA,aAAA,OAAO,IAAC,CAAA,gBAAA,QAAc,CAA5E;EAAA,CAAb;;gBAAA;;IAVF,CAAA"
+}

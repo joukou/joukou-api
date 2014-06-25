@@ -10,13 +10,15 @@ Authentication based on Passport.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, BasicStrategy, passport, self, verify;
+var AgentModel, BasicStrategy, NotFoundError, UnauthorizedError, passport, self, verify, _ref;
 
 passport = require('passport');
 
 BasicStrategy = require('passport-http').BasicStrategy;
 
 AgentModel = require('./agent/Model');
+
+_ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
 
 
 /**
@@ -35,10 +37,11 @@ verify = function(username, password, next) {
       } else {
         return next(null, false);
       }
-    }).fail(function(err) {
-      return next(err);
     });
   }).fail(function(err) {
+    if (err instanceof NotFoundError) {
+      err = new UnauthorizedError();
+    }
     return next(err);
   });
 };
