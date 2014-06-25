@@ -73,7 +73,6 @@ describe 'GET /', ->
           req.type( 'json' )
           req.send(
             email: 'test+one@joukou.com'
-            name: 'Test One'
             password: 'password'
           )
         )
@@ -124,7 +123,6 @@ describe 'GET /', ->
               res.should.have.status( 200 )
               res.body.should.deep.equal(
                 email: 'test+one@joukou.com'
-                name: 'Test One'
                 _links:
                   curies: [
                     {
