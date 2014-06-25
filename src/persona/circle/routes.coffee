@@ -33,6 +33,7 @@ module.exports = self =
             inports: [
               {
                 id: 'query'
+                name: 'query'
                 type: 'string'
                 description: 'The SELECT query to run against the MySQL database.'
                 addressable: false
@@ -40,6 +41,7 @@ module.exports = self =
               }
               {
                 id: 'hostname'
+                name: 'hostname'
                 type: 'string'
                 description: 'The hostname of the MySQL database.'
                 addressable: false
@@ -47,6 +49,7 @@ module.exports = self =
               }
               {
                 id: 'username'
+                name: 'username'
                 type: 'string'
                 description: 'The username for the MySQL database.'
                 addressable: false
@@ -56,6 +59,7 @@ module.exports = self =
             outports: [
               {
                 id: 'data'
+                name: 'data'
                 type: 'datum'
                 description: 'The rows found by the MySQL query.'
                 addressable: false
@@ -63,6 +67,7 @@ module.exports = self =
               }
               {
                 id: 'error'
+                name: 'error'
                 type: 'error'
                 description: 'Any errors as a result of connecting to the database or executing the query'
                 addressable: false
