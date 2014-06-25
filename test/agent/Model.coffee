@@ -27,7 +27,6 @@ describe 'agent/Model', ->
         value: JSON.stringify(
           email: 'isaac.johnston@joukou.com'
           roles: [ 'operator' ]
-          name: 'Isaac'
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG' # "password" in bcrypt w/ 10 rounds
         )
     , ( err, reply ) -> done( err ) )
@@ -47,13 +46,11 @@ describe 'agent/Model', ->
     specify 'creates a new agent', ( done ) ->
       AgentModel.create(
         email: 'ben.brabant@joukou.com'
-        name: 'Ben Brabant'
         password: 'password'
       )
       .then( ( agent ) ->
         { email, name, password } = agent.getValue()
         email.should.equal( 'ben.brabant@joukou.com' )
-        name.should.equal( 'Ben Brabant' )
         bcrypt.compareSync( 'password', password ).should.be.true
         pbc.del(
           type: 'agent'
@@ -68,7 +65,6 @@ describe 'agent/Model', ->
     specify 'persists an agent model instance to Basho Riak', ( done ) ->
       AgentModel.create(
         email: 'ben.brabant@joukou.com'
-        name: 'Ben Brabant'
         password: 'password'
       )
       .then( ( agent ) ->
@@ -78,7 +74,6 @@ describe 'agent/Model', ->
         AgentModel.retrieveByEmail( 'ben.brabant@joukou.com' )
       )
       .then( ( agent ) ->
-        agent.getName().should.equal( 'Ben Brabant' )
         pbc.del(
           type: 'agent'
           bucket: 'agent'
@@ -97,7 +92,6 @@ describe 'agent/Model', ->
         agent.getValue().should.deep.equal(
           email: 'isaac.johnston@joukou.com'
           roles: [ 'operator' ]
-          name: 'Isaac'
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
         )
       )
@@ -130,13 +124,11 @@ describe 'agent/Model', ->
       instance = new AgentModel(
         value:
           email: 'isaac.johnston@joukou.com'
-          name: 'Isaac Johnston'
           roles: [ 'operator' ]
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
       )
       instance.getRepresentation().should.deep.equal(
         email: 'isaac.johnston@joukou.com'
-        name: 'Isaac Johnston'
         roles: [ 'operator' ]
       )
 
@@ -150,7 +142,6 @@ describe 'agent/Model', ->
       instance = new AgentModel(
         value:
           email: 'isaac.johnston@joukou.com'
-          name: 'Isaac Johnston'
           roles: [ 'operator' ]
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
       )
@@ -166,7 +157,6 @@ describe 'agent/Model', ->
       instance = new AgentModel(
         value:
           email: 'isaac.johnston@joukou.com'
-          name: 'Isaac Johnston'
           roles: [ 'operator' ]
           password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'
       )
@@ -177,7 +167,6 @@ describe 'agent/Model', ->
     hasSomeRolesInstance = new AgentModel(
       value:
         email: 'isaac.johnston@joukou.com'
-        name: 'Isaac Johnston'
         roles: [ 'operator', 'administrator' ]
         password: '$2a$10$JMhLJZ2DZiLMSvfGXHHo2e7jkrONex08eSLaStW15P0SavzyPF5GG'       
     )

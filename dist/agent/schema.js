@@ -17,12 +17,6 @@ module.exports = schema.create({
     allownull: false,
     filters: ['trim']
   },
-  name: {
-    type: 'string+',
-    required: true,
-    allownull: false,
-    filters: ['trim']
-  },
   password: {
     type: 'string+',
     required: true,
