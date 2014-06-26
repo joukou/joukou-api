@@ -78,6 +78,45 @@ module.exports = self =
           {
             _links:
               self:
+                href: "/persona/#{req.params.personaKey}/circle/bec12bdf-df65-48cf-80af-d2a609f5cbf4"
+              'joukou:persona':
+                href: "/persona/#{req.params.personaKey}"
+            name: 'Anonymizer'
+            description: 'Anonymize data'
+            icon: 'user'
+            subgraph: false
+            inports: [
+              {
+                id: 'data'
+                name: 'data'
+                type: 'datum'
+                description: 'The data to anonymize'
+                addressable: false
+                required: true
+              }
+            ]
+            outports: [
+              {
+                id: 'data'
+                name: 'data'
+                type: 'datum'
+                description: 'TThe anonymized data'
+                addressable: false
+                required: true
+              }
+              {
+                id: 'err'
+                name: 'err'
+                type: 'error'
+                description: 'Any errors'
+                addressable: false
+                required: true
+              }
+            ]    
+          }
+          {
+            _links:
+              self:
                 href: "/persona/#{req.params.personaKey}/circle/bafbf2f8-0dc4-4ae5-85ec-00aea219fed6"
               'joukou:persona':
                 href: "/persona/#{req.params.personaKey}"
