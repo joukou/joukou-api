@@ -97,6 +97,14 @@ module.exports = self =
             ]
             outports: [
               {
+                id: 'endpoint'
+                name: 'endpoint'
+                type: 'string'
+                description: 'The URL of the search API endpoint'
+                addressable: false
+                required: true
+              }
+              {
                 id: 'err'
                 name: 'err'
                 type: 'error'
