@@ -26,7 +26,7 @@ module.exports = self =
                 href: "/persona/#{req.params.personaKey}/circle/cdb6bc33-1e8a-46de-8049-3dcf0d8bddec"
               'joukou:persona':
                 href: "/persona/#{req.params.personaKey}"
-            name: 'MySQLQuery'
+            name: 'MySQL Query'
             description: 'Obtain data from a MySQL database.'
             icon: 'database'
             subgraph: false
@@ -72,6 +72,37 @@ module.exports = self =
                 description: 'Any errors as a result of connecting to the database or executing the query'
                 addressable: false
                 required: false
+              }
+            ]
+          }
+          {
+            _links:
+              self:
+                href: "/persona/#{req.params.personaKey}/circle/bafbf2f8-0dc4-4ae5-85ec-00aea219fed6"
+              'joukou:persona':
+                href: "/persona/#{req.params.personaKey}"
+            name: 'Publish Search API'
+            description: 'Publish a search API.'
+            icon: 'search'
+            subgraph: false
+            inports: [
+              {
+                id: 'data'
+                name: 'data'
+                type: 'datum'
+                description: 'The data to index for searching'
+                addressable: false
+                required: true
+              }
+            ]
+            outports: [
+              {
+                id: 'err'
+                name: 'err'
+                type: 'error'
+                description: 'Any errors'
+                addressable: false
+                required: true
               }
             ]
           }
