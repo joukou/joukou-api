@@ -191,33 +191,17 @@ gulp.task( 'ci', [ 'test:build' ], tasks.coveralls )
 gulp.task( 'zip:deploy', tasks.deployPackageZip )
 
 # Upload package ZIP file
-gulp.task( 'upload-akl1:deploy', [ 'zip:deploy' ], joukou.doPackageDeploymentUpload( host: 'akl1.joukou.com' ) )
-gulp.task( 'upload-akl2:deploy', [ 'zip:deploy' ], joukou.doPackageDeploymentUpload( host: 'akl2.joukou.com' ) )
-gulp.task( 'upload-akl3:deploy', [ 'zip:deploy' ], joukou.doPackageDeploymentUpload( host: 'akl3.joukou.com' ) )
-gulp.task( 'upload:deploy', [ 'upload-akl1:deploy', 'upload-akl2:deploy', 'upload-akl3:deploy' ] )
-
-gulp.task( 'commands-akl1:deploy', [ 'upload:deploy' ], joukou.doPackageDeploymentCommands( host: 'akl1.joukou.com' ) )
-gulp.task( 'commands-akl2:deploy', [ 'upload:deploy' ], joukou.doPackageDeploymentCommands( host: 'akl2.joukou.com' ) )
-gulp.task( 'commands-akl3:deploy', [ 'upload:deploy' ], joukou.doPackageDeploymentCommands( host: 'akl3.joukou.com' ) )
-gulp.task( 'commands:deploy', [ 'commands-akl1:deploy', 'commands-akl2:deploy', 'commands-akl3:deploy' ] )
+gulp.task( 'upload:deploy', [ 'zip:deploy' ], joukou.doPackageDeploymentUpload )
+gulp.task( 'commands:deploy', [ 'upload:deploy' ], joukou.doPackageDeploymentCommands )
 gulp.task( 'notification:deploy', [ 'commands:deploy' ], joukou.doPackageDeploymentNotification() )
-
 
 # Create documentation ZIP file
 gulp.task( 'zip:deploy-apidoc', [ 'notification:deploy'], tasks.deployDocZip )
 
 # Upload documentation ZIP file
-gulp.task( 'upload-akl1:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDeploymentUpload( host: 'akl1.joukou.com' ) )
-gulp.task( 'upload-akl2:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDeploymentUpload( host: 'akl2.joukou.com' ) )
-gulp.task( 'upload-akl3:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDeploymentUpload( host: 'akl3.joukou.com' ) )
-gulp.task( 'upload:deploy-apidoc', [ 'upload-akl1:deploy-apidoc', 'upload-akl2:deploy-apidoc', 'upload-akl3:deploy-apidoc' ] )
-
-gulp.task( 'commands-akl1:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl1.joukou.com' ) )
-gulp.task( 'commands-akl2:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl2.joukou.com' ) )
-gulp.task( 'commands-akl3:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands( host: 'akl3.joukou.com' ) )
-gulp.task( 'commands:deploy-apidoc', [ 'commands-akl1:deploy-apidoc', 'commands-akl2:deploy-apidoc', 'commands-akl3:deploy-apidoc' ] )
+gulp.task( 'upload:deploy-apidoc', [ 'zip:deploy-apidoc' ], joukou.doDocDeploymentUpload )
+gulp.task( 'commands:deploy-apidoc', [ 'upload:deploy-apidoc' ], joukou.doDocDeploymentCommands )
 gulp.task( 'notification:deploy-apidoc', [ 'commands:deploy-apidoc' ], joukou.doDocDeploymentNotification() )
-
 
 gulp.task( 'deploy', [ 'notification:deploy-apidoc' ] )
 
