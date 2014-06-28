@@ -9,7 +9,7 @@ machine:
   timezone:
     Pacific/Auckland
   node:
-    version: 0.10.22
+    version: 0.10.29
   post:
     - cd joukou-api && ./.circle/riak.sh
 deployment:
