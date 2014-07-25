@@ -6,20 +6,26 @@ machine:
     COVERALLS_REPO_TOKEN: aIa7lLfPW8q5aenyoaL5m9dojhIZfzhix
     COVERALLS_SERVICE_JOB_ID: "${CIRCLE_BUILD_NUM}"
     COVERALLS_SERVICE_NAME: CircleCI
+    PATH: $HOME/$CIRCLE_PROJECT_REPONAME/.circle:$PATH
+    DOCKER_IMAGE_NAME: joukou/api
   timezone:
     Pacific/Auckland
   node:
     version: 0.10.29
+  services:
+    - docker
   post:
     - cd joukou-api && ./.circle/riak.sh
 deployment:
   staging:
     branch: develop
     commands:
-      - sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
-      - sudo docker build --no-cache=true --tag=joukou/api:staging .
+      - docker-login
+      - docker-build
+      - trigger-builds
   production:
     branch: master
     commands:
-      - sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
-      - sudo docker build --no-cache=true --tag=joukou/api:production .
+      - docker-login
+      - docker-build
+      - trigger-builds

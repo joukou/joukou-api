@@ -1,0 +1,8 @@
+#!/bin/bash
+if [[ $CIRCLE_BRANCH = "master" ]]; then
+  echo -n "production"
+elif [[ $CIRCLE_BRANCH = "develop" ]]; then
+  echo -n "staging"
+else
+  echo -n "canary"
+fi

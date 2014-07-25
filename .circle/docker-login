@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD

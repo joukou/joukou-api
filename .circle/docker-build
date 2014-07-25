@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo docker build --no-cache=true --tag=$DOCKER_IMAGE_NAME:`docker-tag-name` .
