@@ -16,8 +16,10 @@ deployment:
   staging:
     branch: develop
     commands:
-      - ./node_modules/.bin/gulp deploy
+      - sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
+      - sudo docker build --no-cache=true --tag=joukou/api:staging .
   production:
     branch: master
     commands:
-      - ./node_modules/.bin/gulp deploy
+      - sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
+      - sudo docker build --no-cache=true --tag=joukou/api:production .
