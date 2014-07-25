@@ -28,7 +28,7 @@ module.exports = self = {
                 href: "/persona/" + req.params.personaKey
               }
             },
-            name: 'MySQLQuery',
+            name: 'MySQL Query',
             description: 'Obtain data from a MySQL database.',
             icon: 'database',
             subgraph: false,
@@ -71,6 +71,86 @@ module.exports = self = {
                 description: 'Any errors as a result of connecting to the database or executing the query',
                 addressable: false,
                 required: false
+              }
+            ]
+          }, {
+            _links: {
+              self: {
+                href: "/persona/" + req.params.personaKey + "/circle/bec12bdf-df65-48cf-80af-d2a609f5cbf4"
+              },
+              'joukou:persona': {
+                href: "/persona/" + req.params.personaKey
+              }
+            },
+            name: 'Anonymizer',
+            description: 'Anonymize data',
+            icon: 'user',
+            subgraph: false,
+            inports: [
+              {
+                id: 'data',
+                name: 'data',
+                type: 'datum',
+                description: 'The data to anonymize',
+                addressable: false,
+                required: true
+              }
+            ],
+            outports: [
+              {
+                id: 'data',
+                name: 'data',
+                type: 'datum',
+                description: 'TThe anonymized data',
+                addressable: false,
+                required: true
+              }, {
+                id: 'err',
+                name: 'err',
+                type: 'error',
+                description: 'Any errors',
+                addressable: false,
+                required: true
+              }
+            ]
+          }, {
+            _links: {
+              self: {
+                href: "/persona/" + req.params.personaKey + "/circle/bafbf2f8-0dc4-4ae5-85ec-00aea219fed6"
+              },
+              'joukou:persona': {
+                href: "/persona/" + req.params.personaKey
+              }
+            },
+            name: 'Publish Search API',
+            description: 'Publish a search API.',
+            icon: 'search',
+            subgraph: false,
+            inports: [
+              {
+                id: 'data',
+                name: 'data',
+                type: 'datum',
+                description: 'The data to index for searching',
+                addressable: false,
+                required: true
+              }
+            ],
+            outports: [
+              {
+                id: 'endpoint',
+                name: 'endpoint',
+                type: 'string',
+                description: 'The URL of the search API endpoint',
+                addressable: false,
+                required: true
+              }, {
+                id: 'err',
+                name: 'err',
+                type: 'error',
+                description: 'Any errors',
+                addressable: false,
+                required: true
               }
             ]
           }

@@ -37,7 +37,7 @@ module.exports = new class
     if process.env.NODE_ENV is 'production'
       @logLevel = bunyan.INFO
     else
-      @logLevel = bunyan.TRACE
+      @logLevel = bunyan.INFO
 
   ###*
   @method getLogger
@@ -57,9 +57,9 @@ module.exports = new class
     bunyan.createLogger(
       name: config.name
       streams: [
-        # {
-        #   stream: process.stdout
-        #   level: @logLevel
-        # }
+        {
+          stream: process.stdout
+          level: @logLevel
+        }
       ]
     )

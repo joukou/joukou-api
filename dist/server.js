@@ -67,7 +67,7 @@ server.on('after', restify.auditLogger({
 
 routes.registerRoutes(server);
 
-server.listen(process.env.JOUKOU_PORT || 2101, process.env.JOUKOU_HOST || 'localhost', function() {
+server.listen(process.env.JOUKOU_API_PORT || 2101, process.env.JOUKOU_API_HOST || 'localhost', function() {
   return server.log.info('%s-%s listening at %s', server.name, env.getVersion(), server.url);
 });
 
