@@ -1,4 +1,4 @@
-FROM joukou/nodejs:staging
+FROM joukou/nodejs
 MAINTAINER Isaac Johnston isaac.johnston@joukou.com
 
 ENV DEBIAN_FRONTEND noninteractive

@@ -2,7 +2,7 @@
 if [[ $CIRCLE_BRANCH = "master" ]]; then
   echo -n "production"
 elif [[ $CIRCLE_BRANCH = "develop" ]]; then
-  echo -n "staging"
+  echo -n "latest"
 else
-  echo -n "canary"
+  echo -n $CIRCLE_SHA1
 fi
