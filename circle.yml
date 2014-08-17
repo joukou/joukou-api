@@ -22,10 +22,12 @@ deployment:
     commands:
       - docker-login
       - docker-build
+      - docker-push
       - trigger-builds
   production:
     branch: master
     commands:
       - docker-login
       - docker-build
+      - docker-push
       - trigger-builds
