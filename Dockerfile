@@ -5,12 +5,12 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV JOUKOU_API_PORT 2101
 ENV JOUKOU_API_HOST 0.0.0.0
 
-ADD src /var/node/src
-ADD coffeelint.json /var/node/
-ADD gulpfile.coffee /var/node/
-ADD gulpfile.js /var/node/
-ADD package.json /var/node/
-WORKDIR /var/node
+ADD src /var/nodejs/src
+ADD coffeelint.json /var/nodejs/
+ADD gulpfile.coffee /var/nodejs/
+ADD gulpfile.js /var/nodejs/
+ADD package.json /var/nodejs/
+WORKDIR /var/nodejs
 RUN npm install
 RUN ./node_modules/.bin/gulp build
 
