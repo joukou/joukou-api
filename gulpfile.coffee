@@ -53,7 +53,7 @@ tasks =
 
   clean: ->
     gulp.src( paths.dist.dir, read: false )
-      .pipe( plugins.clean( force: true ) )
+      .pipe( plugins.rimraf( force: true ) )
       .on( 'error', plugins.util.log )
 
   coffeelint: ->
@@ -86,7 +86,7 @@ tasks =
 
   deleteHtml: ->
     gulp.src( 'dist/**/*.html', read: false )
-      .pipe( plugins.clean( force: true ) )
+      .pipe( plugins.rimraf( force: true ) )
       .on( 'error', plugins.util.log )
 
   jsdoc: ->

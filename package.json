@@ -47,7 +47,7 @@
     "gulp": "3.8.7",
     "joukou-gulp": "git+https://4b59aac46c51477f6ea49e1f083686d43bf8c9a4:x-oauth-basic@github.com/joukou/joukou-gulp.git#master",
     "gulp-changed": "1.0.0",
-    "gulp-clean": "0.3.1",
+    "gulp-rimraf": "0.1.0",
     "gulp-coffee": "git://github.com/joukou/gulp-coffee.git#b94c412839",
     "gulp-coffeelint": "0.3.3",
     "gulp-contribs": "0.0.2",
