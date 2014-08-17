@@ -112,7 +112,7 @@ module.exports = self =
                 addressable: false
                 required: true
               }
-            ]    
+            ]
           }
           {
             _links:
