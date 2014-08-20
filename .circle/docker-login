@@ -1,2 +1,3 @@
 #!/bin/sh
-sudo docker login --email=$DOCKER_EMAIL --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
+sed "s/<EMAIL>/$DOCKER_EMAIL/;s/<AUTH>/$DOCKER_AUTH/" \
+  .dockercfg.template > ~/.dockercfg

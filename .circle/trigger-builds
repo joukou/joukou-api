@@ -1,2 +1,2 @@
 #!/bin/sh
-curl -X POST https://circleci.com/api/v1/project/joukou/joukou-docker-nginx/tree/$CIRCLE_BRANCH?circle-token=9f20fa5e0a17bdd6dc2d686aad17c1364c51dd04
+true
