@@ -1,4 +1,4 @@
-Joukou API [![Build Status](https://circleci.com/gh/joukou/joukou-api/tree/develop.png?circle-token=2eaaef867852e13944b9667a6234821ec1325d4d)](https://circleci.com/gh/joukou/joukou-api/tree/develop) [![Coverage Status](https://coveralls.io/repos/joukou/joukou-api/badge.png?branch=develop)](https://coveralls.io/r/joukou/joukou-api?branch=develop) [![Proprietary](http://img.shields.io/badge/license-proprietary-red.svg)](#license)
+Joukou API [![Build Status](https://circleci.com/gh/joukou/joukou-api/tree/develop.png?circle-token=2eaaef867852e13944b9667a6234821ec1325d4d)](https://circleci.com/gh/joukou/joukou-api/tree/develop) [![Docker Repository on Quay.io](https://quay.io/repository/joukou/api/status?token=92369985-9a0a-4816-ba57-514f75b77cfa "Docker Repository on Quay.io")](https://quay.io/repository/joukou/api) [![Coverage Status](https://coveralls.io/repos/joukou/joukou-api/badge.png?branch=develop)](https://coveralls.io/r/joukou/joukou-api?branch=develop) [![Proprietary](http://img.shields.io/badge/license-proprietary-red.svg)](#license)
 ===================
 
 ![](http://media.giphy.com/media/tdbOA2fGn3q7e/giphy.gif)

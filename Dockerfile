@@ -1,5 +1,5 @@
 # Copyright (c) 2014 Joukou Ltd. All rights reserved.
-FROM joukou/nodejs-service
+FROM quay.io/joukou/nodejs-service
 MAINTAINER Isaac Johnston <isaac.johnston@joukou.com>
 
 ENV DEBIAN_FRONTEND noninteractive

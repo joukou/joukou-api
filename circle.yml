@@ -7,7 +7,7 @@ machine:
     COVERALLS_SERVICE_JOB_ID: "${CIRCLE_BUILD_NUM}"
     COVERALLS_SERVICE_NAME: CircleCI
     PATH: $HOME/$CIRCLE_PROJECT_REPONAME/.circle:$PATH
-    DOCKER_IMAGE_NAME: joukou/api
+    DOCKER_IMAGE_NAME: quay.io/joukou/api
   timezone:
     Pacific/Auckland
   node:
