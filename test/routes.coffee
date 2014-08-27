@@ -54,7 +54,7 @@ describe 'GET /', ->
         done()
       )
 
-  describe 'POST /agent', ->
+  xdescribe 'POST /agent', ->
 
     agentOneKey = null
     agentOneAuthorization = "Basic #{new Buffer( "test+one@joukou.com:password" ).toString( 'base64' )}"
