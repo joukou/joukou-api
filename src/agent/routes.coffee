@@ -21,6 +21,9 @@ authz         = require( '../authz' )
 config        = require( '../config' )
 AgentModel    = require( './Model' )
 { UnauthorizedError, NotFoundError } = require( 'restify' )
+env           = require( '../env' )
+passport      = require('passport')
+githubEnv     = env.getGithubAuth()
 
 module.exports = self =
   ###*
@@ -30,8 +33,27 @@ module.exports = self =
   registerRoutes: ( server ) ->
     server.get(  '/agent', authn.authenticate, self.index )
     server.post( '/agent', self.create )
-    server.post( '/agent/authenticate', authn.authenticate, self.authenticate )
+    # Post should be handled a different way
+    # It should really only be a get
+    server.get( '/agent/authenticate', authn.authenticateOAuth, self.authenticate )
+    # server.post(  '/agent/authenticate', authn.authenticateOAuth, self.authenticate )
+    server.get(  '/agent/authenticate/callback', authn.authenticateOAuth, self.callback )
+    server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
+
+  failed: ( req, res ) ->
+    res.header("Location", githubEnv.failedUrl )
+    res.send(302)
+  callback: (req, res, val ) ->
+    token = null
+    if req and req.user
+      token = authn.generateTokenFromAgent(req.user)
+    if token
+      res.header("Location", githubEnv.successUrl + "/" + token)
+    else
+      res.header("Location", githubEnv.failedUrl )
+
+    res.send(302)
 
   index: ( req, res, next ) ->
     res.send( 503 )
@@ -63,7 +85,7 @@ module.exports = self =
   ###
   authenticate: ( req, res, next ) ->
     # TODO config.jwt.secret
-    token = jwt.sign( req.user, 'abc', expiresInMinutes: 60 * 5 )
+    token = authn.generateTokenFromAgent(req.user)
     res.link( "/agent/#{req.user.getKey()}", 'joukou:agent' )
     res.link( '/persona', 'joukou:personas', title: 'List of Personas' )
     res.send( 200, token: token )

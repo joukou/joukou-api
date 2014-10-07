@@ -13,7 +13,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, jwt, self, _, _ref;
+var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, env, githubEnv, jwt, passport, self, _, _ref;
 
 _ = require('lodash');
 
@@ -29,6 +29,12 @@ AgentModel = require('./Model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
 
+env = require('../env');
+
+passport = require('passport');
+
+githubEnv = env.getGithubAuth();
+
 module.exports = self = {
 
   /**
@@ -38,8 +44,27 @@ module.exports = self = {
   registerRoutes: function(server) {
     server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
-    server.post('/agent/authenticate', authn.authenticate, self.authenticate);
+    server.get('/agent/authenticate', authn.authenticateOAuth, self.authenticate);
+    server.get('/agent/authenticate/callback', authn.authenticateOAuth, self.callback);
+    server.get('/agent/authenticate/failed', self.failed);
     return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
+  },
+  failed: function(req, res) {
+    res.header("Location", githubEnv.failedUrl);
+    return res.send(302);
+  },
+  callback: function(req, res, val) {
+    var token;
+    token = null;
+    if (req && req.user) {
+      token = authn.generateTokenFromAgent(req.user);
+    }
+    if (token) {
+      res.header("Location", githubEnv.successUrl + "/" + token);
+    } else {
+      res.header("Location", githubEnv.failedUrl);
+    }
+    return res.send(302);
   },
   index: function(req, res, next) {
     return res.send(503);
@@ -73,9 +98,7 @@ module.exports = self = {
    */
   authenticate: function(req, res, next) {
     var token;
-    token = jwt.sign(req.user, 'abc', {
-      expiresInMinutes: 60 * 5
-    });
+    token = authn.generateTokenFromAgent(req.user);
     res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
     res.link('/persona', 'joukou:personas', {
       title: 'List of Personas'

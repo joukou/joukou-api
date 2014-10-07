@@ -2,6 +2,7 @@ doctype xml
 schema(name='agent' version='1.5')
   fields
     field(name='email' type='string' indexed='true' stored='false')
+    field(name='githubId' type='integer' indexed='true' stored='false')
     field(name='name' type='string' indexed='true' stored='false')
 
     // All of these fields are required by Riak Search
