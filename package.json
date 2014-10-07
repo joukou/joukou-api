@@ -19,6 +19,7 @@
   },
   "homepage": "https://api.joukou.com",
   "dependencies": {
+    "passport-github": "0.1.5",
     "riakpbc": "2.0.x",
     "restify": "2.8.x",
     "restify-cors-middleware": "git://github.com/joukou/restify-cors-middleware.git#master",

@@ -2,6 +2,7 @@
 <schema name="agent" version="1.5">
   <fields>
     <field name="email" type="string" indexed="true" stored="false"></field>
+    <field name="githubId" type="integer" indexed="true" stored="false"></field>
     <field name="name" type="string" indexed="true" stored="false"></field>
     <!-- All of these fields are required by Riak Search-->
     <field name="_yz_id" type="_yz_str" indexed="true" stored="true" required="true" multiValued="false"></field>

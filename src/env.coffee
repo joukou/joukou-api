@@ -11,6 +11,15 @@ module.exports = self =
       else
         'development'
 
+  getHost: ->
+    switch self.getEnvironment()
+      when 'production'
+        'https://api.joukou.com'
+      when 'staging'
+        'https://staging-api.joukou.com'
+      else
+        'http://127.0.0.1:2101'
+
   getFQDN: ->
     switch self.getEnvironment()
       when 'production'
@@ -47,3 +56,34 @@ module.exports = self =
           'http://localhost:2100'
           'http://127.0.0.1:2100'
         ]
+
+  getOrigin: ->
+    return self.getOrigins()[0]
+
+  getGithubAuth: ->
+    origin = self.getOrigin()
+    host = self.getHost()
+    clientId = null
+    clientSecret = null
+
+    if self.getEnvironment() is 'development'
+      origin += '/build/testing'
+
+    switch self.getEnvironment()
+      when 'production'
+        clientId = "REPLACEME"
+        clientSecret = "REPLACEME"
+      when 'staging'
+        clientId = "REPLACEME"
+        clientSecret = "REPLACEME"
+      else
+        clientId = "3b349282176a33f7f42e"
+        clientSecret = "6befeffabcecf885ebeb8e9b95695c5a4c021461"
+
+    {
+      clientId: clientId
+      clientSecret: clientSecret
+      callbackUrl: host + "/agent/authenticate/callback"
+      failedUrl: origin + "/index.html#/auth/callback/failed"
+      successUrl: origin + "/index.html#/auth/callback/success"
+    }

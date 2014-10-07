@@ -21,6 +21,9 @@ authz         = require( '../authz' )
 config        = require( '../config' )
 AgentModel    = require( './Model' )
 { UnauthorizedError, NotFoundError } = require( 'restify' )
+env           = require( '../env' )
+passport      = require('passport')
+githubEnv     = env.getGithubAuth()
 
 module.exports = self =
   ###*
@@ -31,7 +34,16 @@ module.exports = self =
     server.get(  '/agent', authn.authenticate, self.index )
     server.post( '/agent', self.create )
     server.post( '/agent/authenticate', authn.authenticate, self.authenticate )
+    server.get(  '/agent/authenticate/callback', authn.authenticate, self.callback )
+    server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
+
+  failed: ( req, res ) ->
+    res.header("Location", githubEnv.failedUrl )
+    res.send(302)
+  callback: (req, res ) ->
+    res.header("Location", githubEnv.successUrl + "/awesometoken")
+    res.send(302)
 
   index: ( req, res, next ) ->
     res.send( 503 )

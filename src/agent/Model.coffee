@@ -39,7 +39,10 @@ AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
   agent.addSecondaryIndex( 'email' )
+  agent.addSecondaryIndex( 'github_id' )
 
+  # Hash password
+  ###
   bcrypt.genSalt( 10, ( err, salt ) ->
     if err
       deferred.reject( new BcryptError( err ) )
@@ -52,6 +55,9 @@ AgentModel.afterCreate = ( agent ) ->
           deferred.resolve( agent )
       )
   )
+  ###
+
+  deferred.resolve(agent)
 
   deferred.promise
 
@@ -71,6 +77,9 @@ AgentModel::verifyPassword = ( password ) ->
   )
 
   deferred.promise
+
+AgentModel.retriveByGithubId = ( id ) ->
+  AgentModel.retrieveBySecondaryIndex( 'github_id_int', id, true )
 
 AgentModel.retrieveByEmail = ( email ) ->
   AgentModel.retrieveBySecondaryIndex( 'email_bin', email, true )

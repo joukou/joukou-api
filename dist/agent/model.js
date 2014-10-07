@@ -47,22 +47,23 @@ AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
   agent.addSecondaryIndex('email');
-  bcrypt.genSalt(10, function(err, salt) {
-    if (err) {
-      return deferred.reject(new BcryptError(err));
-    } else {
-      return bcrypt.hash(agent.getValue().password, salt, function(err, hash) {
-        if (err) {
-          return deferred.reject(new BcryptError(err));
-        } else {
-          agent.setValue(_.assign(agent.getValue(), {
-            password: hash
-          }));
-          return deferred.resolve(agent);
-        }
-      });
-    }
-  });
+  agent.addSecondaryIndex('github_id');
+
+  /*
+  bcrypt.genSalt( 10, ( err, salt ) ->
+    if err
+      deferred.reject( new BcryptError( err ) )
+    else
+      bcrypt.hash( agent.getValue().password, salt, ( err, hash ) ->
+        if err
+          deferred.reject( new BcryptError( err ) )
+        else
+          agent.setValue( _.assign( agent.getValue(), password: hash ) )
+          deferred.resolve( agent )
+      )
+  )
+   */
+  deferred.resolve(agent);
   return deferred.promise;
 };
 
@@ -84,6 +85,10 @@ AgentModel.prototype.verifyPassword = function(password) {
     }
   });
   return deferred.promise;
+};
+
+AgentModel.retriveByGithubId = function(id) {
+  return AgentModel.retrieveBySecondaryIndex('github_id_int', id, true);
 };
 
 AgentModel.retrieveByEmail = function(email) {

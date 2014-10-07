@@ -10,6 +10,19 @@ var schema;
 
 schema = require('schemajs');
 
+
+/*
+agent.email = profile.email
+agent.githubLogin = profile.login
+agent.githubId = profile.id
+agent.imageUrl = profile.avatar_url
+agent.website = profile.blog
+agent.githubUrl = profile.url
+agent.name = profile.name
+agent.company = profile.company
+agent.location = profile.location
+ */
+
 module.exports = schema.create({
   email: {
     type: 'email',
@@ -17,15 +30,45 @@ module.exports = schema.create({
     allownull: false,
     filters: ['trim']
   },
-  password: {
-    type: 'string+',
-    required: true,
-    allownull: false,
-    filters: ['trim'],
-    properties: {
-      min: 6,
-      max: 42
-    }
+  githubLogin: {
+    type: 'string',
+    required: false,
+    allownull: true
+  },
+  githubId: {
+    type: 'integer',
+    required: false,
+    allownull: true
+  },
+  imageUrl: {
+    type: 'string',
+    required: false,
+    allownull: false
+  },
+  website: {
+    type: 'url',
+    required: false,
+    allownull: false
+  },
+  githubUrl: {
+    type: 'url',
+    required: false,
+    allownull: false
+  },
+  name: {
+    type: 'string',
+    required: false,
+    allownull: false
+  },
+  company: {
+    type: 'string',
+    required: false,
+    allownull: false
+  },
+  location: {
+    type: 'string',
+    required: false,
+    allownull: false
   }
 });
 
