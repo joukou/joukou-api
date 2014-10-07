@@ -10,9 +10,11 @@ Authentication based on Passport.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, GithubStrategy, NotFoundError, Q, UnauthorizedError, env, githubEnv, githubProfileToAgent, passport, self, verify, _ref;
+var AgentModel, BearerStrategy, GithubStrategy, NotFoundError, Q, UnauthorizedError, authenticate, authenticateToken, env, generateTokenFromAgent, githubEnv, githubProfileToAgent, jwt, passport, passportBearer, self, verify, verifyToken, _ref;
 
 passport = require('passport');
+
+passportBearer = require('passport');
 
 GithubStrategy = require('passport-github').Strategy;
 
@@ -23,6 +25,10 @@ _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundE
 env = require('./env');
 
 Q = require('q');
+
+BearerStrategy = require('passport-http-bearer').Strategy;
+
+jwt = require('jsonwebtoken');
 
 githubProfileToAgent = function(profile, agent) {
   var created, deferred;
@@ -79,7 +85,7 @@ verify = function(accessToken, refreshToken, profile, next) {
   var saveOrCreate;
   saveOrCreate = function(agent) {
     return githubProfileToAgent(profile, agent).then(function(agent) {
-      return next(null, agent);
+      return next(null, agent.getValue());
     }).fail(function(err) {
       return next(err);
     });
@@ -95,6 +101,36 @@ verify = function(accessToken, refreshToken, profile, next) {
   });
 };
 
+verifyToken = function(token, next) {
+  var email, notAuth, obj;
+  obj = jwt.decode(token);
+  notAuth = function() {
+    return next(new UnauthorizedError());
+  };
+  if (!obj || !(obj instanceof Object)) {
+    notAuth();
+    return;
+  }
+  email = null;
+  if (typeof obj["email"] === "string") {
+    email = obj["email"];
+  } else if (obj["value"] instanceof Object && typeof obj["value"]["email"] === "string") {
+    email = obj["value"]["email"];
+  } else {
+    notAuth();
+    return;
+  }
+  return AgentModel.retrieveByEmail(obj["email"]).then(function(agent) {
+    return next(null, agent);
+  }).fail(function(err) {
+    if (err instanceof NotFoundError) {
+      notAuth();
+      return;
+    }
+    return next(err);
+  });
+};
+
 githubEnv = env.getGithubAuth();
 
 passport.use(new GithubStrategy({
@@ -102,6 +138,34 @@ passport.use(new GithubStrategy({
   clientSecret: githubEnv.clientSecret,
   callbackURL: githubEnv.callbackUrl
 }, verify));
+
+passportBearer.use(new BearerStrategy(verifyToken));
+
+authenticate = passport.authenticate('github', {
+  session: false,
+  failureRedirect: '/agent/authenticate/failed'
+});
+
+authenticateToken = passportBearer.authenticate('bearer', {
+  session: false
+});
+
+generateTokenFromAgent = function(agent) {
+  var value;
+  if (!agent || !(agent instanceof Object)) {
+    return "";
+  }
+  value = null;
+  if (agent["getValue"] instanceof Function) {
+    value = agent["getValue"]();
+  } else if (typeof agent["email"] === "string") {
+    value = agent;
+  }
+  if (!value) {
+    return "";
+  }
+  return jwt.sign(agent, env.getJWTKey());
+};
 
 module.exports = self = {
 
@@ -115,10 +179,10 @@ module.exports = self = {
   /**
   @func authenticate
    */
-  authenticate: passport.authenticate('github', {
-    session: false,
-    failureRedirect: '/agent/authenticate/failed'
-  })
+  authenticate: authenticateToken,
+  authenticateOAuth: authenticate,
+  authenticateToken: authenticateToken,
+  generateTokenFromAgent: generateTokenFromAgent
 };
 
 /*

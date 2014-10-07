@@ -44,8 +44,8 @@ module.exports = self = {
   registerRoutes: function(server) {
     server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
-    server.post('/agent/authenticate', authn.authenticate, self.authenticate);
-    server.get('/agent/authenticate/callback', authn.authenticate, self.callback);
+    server.get('/agent/authenticate', authn.authenticateOAuth, self.authenticate);
+    server.get('/agent/authenticate/callback', authn.authenticateOAuth, self.callback);
     server.get('/agent/authenticate/failed', self.failed);
     return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
   },
@@ -53,8 +53,17 @@ module.exports = self = {
     res.header("Location", githubEnv.failedUrl);
     return res.send(302);
   },
-  callback: function(req, res) {
-    res.header("Location", githubEnv.successUrl + "/awesometoken");
+  callback: function(req, res, val) {
+    var token;
+    token = null;
+    if (req && req.user) {
+      token = authn.generateTokenFromAgent(req.user);
+    }
+    if (token) {
+      res.header("Location", githubEnv.successUrl + "/" + token);
+    } else {
+      res.header("Location", githubEnv.failedUrl);
+    }
     return res.send(302);
   },
   index: function(req, res, next) {
@@ -89,9 +98,7 @@ module.exports = self = {
    */
   authenticate: function(req, res, next) {
     var token;
-    token = jwt.sign(req.user, 'abc', {
-      expiresInMinutes: 60 * 5
-    });
+    token = authn.generateTokenFromAgent(req.user);
     res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
     res.link('/persona', 'joukou:personas', {
       title: 'List of Personas'

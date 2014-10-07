@@ -56,6 +56,9 @@ module.exports = self = {
   getOrigin: function() {
     return self.getOrigins()[0];
   },
+  getJWTKey: function() {
+    return 'abc';
+  },
   getGithubAuth: function() {
     var clientId, clientSecret, host, origin;
     origin = self.getOrigin();

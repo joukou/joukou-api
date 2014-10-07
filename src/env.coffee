@@ -60,6 +60,9 @@ module.exports = self =
   getOrigin: ->
     return self.getOrigins()[0]
 
+  getJWTKey: ->
+    return 'abc'
+
   getGithubAuth: ->
     origin = self.getOrigin()
     host = self.getHost()
