@@ -12,7 +12,7 @@ Authentication based on Passport.
 ###
 
 # Don't know why but I can't get two passport types to work
-# oh well, go with it for now TODO fix it 
+# oh well, go with it for now TODO fix it
 passport          = require( 'passport' )
 passportBearer    = require( 'passport' )
 GithubStrategy    = require( 'passport-github' ).Strategy
@@ -99,31 +99,34 @@ verify = ( accessToken, refreshToken, profile, next ) ->
       )
 
 verifyToken = (token, next) ->
-  obj = jwt.decode(token)
-  notAuth = ->
-    next(new UnauthorizedError())
-  if not obj or obj not instanceof Object
-    notAuth()
-    return
-  email = null
-  if typeof obj["email"] is "string"
-    email = obj["email"]
-  else if obj["value"] instanceof Object and typeof obj["value"]["email"] is "string"
-    email = obj["value"]["email"]
-  else
-    notAuth()
-    return
-  AgentModel
+  jwt.verify(token, env.getJWTKey(), (err, obj) ->
+    notAuth = ->
+      next(new UnauthorizedError())
+    if err
+      notAuth()
+      return
+    obj = jwt.decode(token)
+    if not obj or obj not instanceof Object
+      notAuth()
+      return
+    email = null
+    if typeof obj["email"] is "string"
+      email = obj["email"]
+    else
+      notAuth()
+      return
+    AgentModel
     .retrieveByEmail(obj["email"])
-      .then( (agent) ->
-        next(null, agent)
-      )
-      .fail( (err) ->
-        if err instanceof NotFoundError
-          notAuth()
-          return
-        next(err)
-      )
+    .then( (agent) ->
+      next(null, agent)
+    )
+    .fail( (err) ->
+      if err instanceof NotFoundError
+        notAuth()
+        return
+      next(err)
+    )
+  )
 
 githubEnv = env.getGithubAuth()
 

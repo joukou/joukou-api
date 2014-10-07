@@ -102,32 +102,36 @@ verify = function(accessToken, refreshToken, profile, next) {
 };
 
 verifyToken = function(token, next) {
-  var email, notAuth, obj;
-  obj = jwt.decode(token);
-  notAuth = function() {
-    return next(new UnauthorizedError());
-  };
-  if (!obj || !(obj instanceof Object)) {
-    notAuth();
-    return;
-  }
-  email = null;
-  if (typeof obj["email"] === "string") {
-    email = obj["email"];
-  } else if (obj["value"] instanceof Object && typeof obj["value"]["email"] === "string") {
-    email = obj["value"]["email"];
-  } else {
-    notAuth();
-    return;
-  }
-  return AgentModel.retrieveByEmail(obj["email"]).then(function(agent) {
-    return next(null, agent);
-  }).fail(function(err) {
-    if (err instanceof NotFoundError) {
+  return jwt.verify(token, env.getJWTKey(), function(err, obj) {
+    var email, notAuth;
+    notAuth = function() {
+      return next(new UnauthorizedError());
+    };
+    if (err) {
       notAuth();
       return;
     }
-    return next(err);
+    obj = jwt.decode(token);
+    if (!obj || !(obj instanceof Object)) {
+      notAuth();
+      return;
+    }
+    email = null;
+    if (typeof obj["email"] === "string") {
+      email = obj["email"];
+    } else {
+      notAuth();
+      return;
+    }
+    return AgentModel.retrieveByEmail(obj["email"]).then(function(agent) {
+      return next(null, agent);
+    }).fail(function(err) {
+      if (err instanceof NotFoundError) {
+        notAuth();
+        return;
+      }
+      return next(err);
+    });
   });
 };
 
