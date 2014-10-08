@@ -95,11 +95,11 @@ githubProfileToAgent = ( profile, agent ) ->
     actualAgent.save()
       .then( ( agent ) ->
         if not creating
-          deferred.resolve(actualAgent.getValue())
+          deferred.resolve(actualAgent)
           return
         afterCreation(actualAgent)
           .then( ->
-            deferred.resolve(actualAgent.getValue())
+            deferred.resolve(actualAgent)
           )
           .fail(deferred.reject)
       )
@@ -132,7 +132,7 @@ verify = ( accessToken, refreshToken, profile, next ) ->
   saveOrCreate = (agent) ->
     githubProfileToAgent(profile, agent)
       .then(( agent ) ->
-        next( null, agent.getValue() )
+        next( null, agent )
       )
       .fail(( err ) ->
         next( err )
@@ -167,6 +167,7 @@ verifyToken = (token, next) ->
     if typeof obj["email"] is "string"
       email = obj["email"]
     else
+      console.log(obj)
       notAuth()
       return
     AgentModel
@@ -209,7 +210,7 @@ generateTokenFromAgent = (agent) ->
     value = agent
   if not value
     return ""
-  jwt.sign(agent, env.getJWTKey())
+  jwt.sign(value, env.getJWTKey())
 
 
 module.exports = self =

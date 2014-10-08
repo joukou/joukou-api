@@ -156,6 +156,8 @@ module.exports = self = {
       }).fail(function(err) {
         return next(err);
       });
+    }).fail(function(err) {
+      return next(err);
     });
   },
 

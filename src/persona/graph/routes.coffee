@@ -133,6 +133,7 @@ module.exports = self =
       )
       .fail( ( err ) -> next( err ) )
     )
+    .fail( ( err ) -> next( err ) )
 
   ###
   @api {get} /graph/:graphKey Retrieve the definition of a Joukou graph

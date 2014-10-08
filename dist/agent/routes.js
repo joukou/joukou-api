@@ -42,12 +42,22 @@ module.exports = self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
+    server.del('/agent', authn.authenticate, self["delete"]);
     server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
     server.get('/agent/authenticate', authn.authenticateOAuth, self.authenticate);
     server.get('/agent/authenticate/callback', authn.authenticateOAuth, self.callback);
     server.get('/agent/authenticate/failed', self.failed);
     return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
+  },
+  "delete": function(req, res, next) {
+    if (!req.user) {
+      res.send(503);
+      return;
+    }
+    return req.user["delete"]().then(function() {
+      return res.send(204);
+    }).fail(next);
   },
   failed: function(req, res) {
     res.header("Location", githubEnv.failedUrl);
@@ -67,7 +77,7 @@ module.exports = self = {
     return res.send(302);
   },
   index: function(req, res, next) {
-    return res.send(503);
+    return res.send(200, req.user.getValue());
   },
 
   /**

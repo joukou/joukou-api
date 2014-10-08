@@ -31,6 +31,7 @@ module.exports = self =
   @param {joukou-api/server} server
   ###
   registerRoutes: ( server ) ->
+    server.del(  '/agent', authn.authenticate, self.delete )
     server.get(  '/agent', authn.authenticate, self.index )
     server.post( '/agent', self.create )
     # Post should be handled a different way
@@ -40,7 +41,13 @@ module.exports = self =
     server.get(  '/agent/authenticate/callback', authn.authenticateOAuth, self.callback )
     server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
-
+  delete: ( req, res, next ) ->
+    if not req.user
+      res.send(503)
+      return
+    req.user.delete().then(->
+      res.send(204)
+    ).fail( next )
   failed: ( req, res ) ->
     res.header("Location", githubEnv.failedUrl )
     res.send(302)
@@ -56,7 +63,7 @@ module.exports = self =
     res.send(302)
 
   index: ( req, res, next ) ->
-    res.send( 503 )
+    res.send( 200, req.user.getValue() )
 
   ###*
   Handles a request to create an agent.
