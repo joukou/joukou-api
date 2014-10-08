@@ -39,7 +39,7 @@ AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
   agent.addSecondaryIndex( 'email' )
-  agent.addSecondaryIndex( 'github_id' )
+  agent.addSecondaryIndex( 'githubId' )
 
   # Hash password
   ###
@@ -79,7 +79,7 @@ AgentModel::verifyPassword = ( password ) ->
   deferred.promise
 
 AgentModel.retriveByGithubId = ( id ) ->
-  AgentModel.retrieveBySecondaryIndex( 'github_id_int', id, true )
+  AgentModel.retrieveBySecondaryIndex( 'githubId_int', id, true )
 
 AgentModel.retrieveByEmail = ( email ) ->
   AgentModel.retrieveBySecondaryIndex( 'email_bin', email, true )

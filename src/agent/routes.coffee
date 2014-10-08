@@ -41,6 +41,7 @@ module.exports = self =
     server.get(  '/agent/authenticate/callback', authn.authenticateOAuth, self.callback )
     server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
+  
   delete: ( req, res, next ) ->
     if not req.user
       res.send(503)
@@ -48,9 +49,11 @@ module.exports = self =
     req.user.delete().then(->
       res.send(204)
     ).fail( next )
+  
   failed: ( req, res ) ->
     res.header("Location", githubEnv.failedUrl )
     res.send(302)
+  
   callback: (req, res, val ) ->
     token = null
     if req and req.user
