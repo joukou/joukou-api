@@ -47,9 +47,6 @@ module.exports = self = {
   index: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        if (!persona.hasReadPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
         return graph.getProcesses(function(processes) {
           var graphHref, personaHref, representation;
           personaHref = "/persona/" + (persona.getKey());
@@ -103,9 +100,6 @@ module.exports = self = {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
         var data, document, _ref1, _ref2;
-        if (!persona.hasEditPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
         data = {};
         data.metadata = req.body.metadata;
         document = hal.parse(req.body, {
@@ -152,9 +146,6 @@ module.exports = self = {
   retrieve: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        if (!persona.hasReadPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
         return graph.getProcesses().then(function(processes) {
           var process, representation;
           process = processes[req.params.processKey];

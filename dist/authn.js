@@ -10,7 +10,7 @@ Authentication based on Passport.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, BearerStrategy, GithubStrategy, NotFoundError, Q, UnauthorizedError, authenticate, authenticateToken, env, generateTokenFromAgent, githubEnv, githubProfileToAgent, jwt, passport, passportBearer, self, verify, verifyToken, _ref;
+var AgentModel, BearerStrategy, GithubStrategy, GraphModel, NotFoundError, PersonaModel, Q, UnauthorizedError, authenticate, authenticateToken, env, generateTokenFromAgent, githubEnv, githubProfileToAgent, jwt, passport, passportBearer, self, verify, verifyToken, _, _ref;
 
 passport = require('passport');
 
@@ -30,8 +30,14 @@ BearerStrategy = require('passport-http-bearer').Strategy;
 
 jwt = require('jsonwebtoken');
 
+_ = require('lodash');
+
+PersonaModel = require('./Persona/Model');
+
+GraphModel = require('./Persona/Graph/Model');
+
 githubProfileToAgent = function(profile, agent) {
-  var created, deferred;
+  var afterCreation, created, creating, deferred;
   deferred = Q.defer();
   profile = profile._json || profile;
   if (!profile) {
@@ -42,8 +48,43 @@ githubProfileToAgent = function(profile, agent) {
     deferred.reject(new Error("Required details not provided"));
     return;
   }
+  creating = false;
+  afterCreation = function(actualAgent) {
+    var afterDeferred, createdPersona;
+    afterDeferred = Q.defer();
+    createdPersona = function(persona) {
+      return GraphModel.create({
+        name: "Default graph",
+        personas: [
+          {
+            key: persona.getKey()
+          }
+        ]
+      }).then(function(graph) {
+        return graph.save().then(function() {
+          return afterDeferred.resolve();
+        }).fail(afterDeferred.reject);
+      }).fail(afterDeferred.reject);
+    };
+    PersonaModel.create({
+      name: "Default persona",
+      agents: [
+        {
+          key: actualAgent.getKey(),
+          role: 'creator'
+        }
+      ]
+    }).then(function(persona) {
+      return persona.save().then(function() {
+        return createdPersona(persona);
+      }).fail(afterDeferred.reject);
+    }).fail(afterDeferred.reject);
+    return afterDeferred.promise;
+  };
   created = function(actualAgent) {
-    actualAgent.setValue({
+    var value;
+    value = actualAgent.getValue() || {};
+    _.assign(value, {
       email: profile.email,
       githubLogin: profile.login,
       githubId: profile.id,
@@ -54,8 +95,15 @@ githubProfileToAgent = function(profile, agent) {
       company: profile.company,
       location: profile.location
     });
+    actualAgent.setValue(value);
     actualAgent.save().then(function(agent) {
-      return deferred.resolve(agent);
+      if (!creating) {
+        deferred.resolve(actualAgent);
+        return;
+      }
+      return afterCreation(actualAgent).then(function() {
+        return deferred.resolve(actualAgent);
+      }).fail(deferred.reject);
     }).fail(function(err) {
       return deferred.reject(err);
     });
@@ -64,6 +112,7 @@ githubProfileToAgent = function(profile, agent) {
   if (agent) {
     created(agent);
   } else {
+    creating = true;
     AgentModel.create({
       email: profile.email
     }).then(created).fail(deferred.reject);
@@ -85,7 +134,7 @@ verify = function(accessToken, refreshToken, profile, next) {
   var saveOrCreate;
   saveOrCreate = function(agent) {
     return githubProfileToAgent(profile, agent).then(function(agent) {
-      return next(null, agent.getValue());
+      return next(null, agent);
     }).fail(function(err) {
       return next(err);
     });
@@ -120,6 +169,7 @@ verifyToken = function(token, next) {
     if (typeof obj["email"] === "string") {
       email = obj["email"];
     } else {
+      console.log(obj);
       notAuth();
       return;
     }
@@ -168,7 +218,7 @@ generateTokenFromAgent = function(agent) {
   if (!value) {
     return "";
   }
-  return jwt.sign(agent, env.getJWTKey());
+  return jwt.sign(value, env.getJWTKey());
 };
 
 module.exports = self = {

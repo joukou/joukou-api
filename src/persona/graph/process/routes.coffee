@@ -52,9 +52,6 @@ module.exports = self =
   index: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasReadPermission( req.user )
-          throw new UnauthorizedError()
-
         graph.getProcesses( ( processes ) ->
           personaHref = "/persona/#{persona.getKey()}"
           res.link( personaHref, 'joukou:persona' )
@@ -97,9 +94,6 @@ module.exports = self =
   create: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasEditPermission( req.user )
-          throw new UnauthorizedError()
-        
         data = {}
         data.metadata = req.body.metadata
 
@@ -146,9 +140,6 @@ module.exports = self =
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasReadPermission( req.user )
-          throw new UnauthorizedError()
-
         graph.getProcesses().then( ( processes ) ->
           process = processes[ req.params.processKey ]
           unless process

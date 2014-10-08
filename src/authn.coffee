@@ -22,6 +22,11 @@ env               = require( './env' )
 Q                 = require( 'q' )
 BearerStrategy    = require( 'passport-http-bearer' ).Strategy
 jwt               = require( 'jsonwebtoken' )
+_                 = require( 'lodash' )
+PersonaModel      = require( './Persona/Model' )
+GraphModel        = require( './Persona/Graph/Model' )
+
+
 
 githubProfileToAgent = ( profile, agent ) ->
   deferred = Q.defer()
@@ -34,8 +39,49 @@ githubProfileToAgent = ( profile, agent ) ->
     deferred.reject(new Error("Required details not provided"))
     return
 
+  creating = no
+
+  afterCreation = ( actualAgent ) ->
+    # Setup default persona and default graph
+    afterDeferred = Q.defer()
+    createdPersona = ( persona ) ->
+      GraphModel.create(
+        name: "Default graph"
+        personas: [
+          {
+            key: persona.getKey()
+          }
+        ]
+      )
+        .then( (graph) ->
+          graph.save()
+            .then( ->
+              afterDeferred.resolve()
+            )
+            .fail(afterDeferred.reject)
+        )
+        .fail(afterDeferred.reject)
+    PersonaModel.create(
+      name: "Default persona"
+      agents: [
+        {
+          key: actualAgent.getKey()
+          role: 'creator'
+        }
+      ])
+        .then( (persona) ->
+          persona.save()
+            .then( ->
+              createdPersona(persona)
+            )
+            .fail(afterDeferred.reject)
+        )
+        .fail(afterDeferred.reject)
+    return afterDeferred.promise
+
   created = ( actualAgent ) ->
-    actualAgent.setValue(
+    value = actualAgent.getValue() or {}
+    _.assign(value,
       email: profile.email
       githubLogin: profile.login
       githubId: profile.id
@@ -44,11 +90,18 @@ githubProfileToAgent = ( profile, agent ) ->
       githubUrl: profile.url
       name: profile.name
       company: profile.company
-      location: profile.location
-    )
+      location: profile.location)
+    actualAgent.setValue(value)
     actualAgent.save()
       .then( ( agent ) ->
-        deferred.resolve(agent)
+        if not creating
+          deferred.resolve(actualAgent)
+          return
+        afterCreation(actualAgent)
+          .then( ->
+            deferred.resolve(actualAgent)
+          )
+          .fail(deferred.reject)
       )
       .fail( (err) ->
         deferred.reject(err)
@@ -58,6 +111,7 @@ githubProfileToAgent = ( profile, agent ) ->
   if agent
     created(agent)
   else
+    creating = yes
     AgentModel.create(
       email: profile.email
     )
@@ -78,7 +132,7 @@ verify = ( accessToken, refreshToken, profile, next ) ->
   saveOrCreate = (agent) ->
     githubProfileToAgent(profile, agent)
       .then(( agent ) ->
-        next( null, agent.getValue() )
+        next( null, agent )
       )
       .fail(( err ) ->
         next( err )
@@ -113,6 +167,7 @@ verifyToken = (token, next) ->
     if typeof obj["email"] is "string"
       email = obj["email"]
     else
+      console.log(obj)
       notAuth()
       return
     AgentModel
@@ -155,7 +210,7 @@ generateTokenFromAgent = (agent) ->
     value = agent
   if not value
     return ""
-  jwt.sign(agent, env.getJWTKey())
+  jwt.sign(value, env.getJWTKey())
 
 
 module.exports = self =

@@ -47,9 +47,6 @@ module.exports = self = {
   index: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        if (!persona.hasReadPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
         return graph.getConnections(function(connections) {
           return res.send(200, connections.getRepresentation());
         });
@@ -62,9 +59,6 @@ module.exports = self = {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
         var data, document, process, _i, _len, _ref1;
-        if (!persona.hasEditPermission(req.user)) {
-          throw new UnauthorizedError();
-        }
         data = {};
         data.data = req.body.data;
         data.metadata = req.body.metadata;
