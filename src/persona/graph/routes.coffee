@@ -116,10 +116,6 @@ module.exports = self =
 
   create: ( req, res, next ) ->
     PersonaModel.retrieve( req.params.personaKey ).then( ( persona ) ->
-      unless persona.hasEditPermission( req.user )
-        next( new UnauthorizedError() )
-        return
-
       data = {}
       data.name = req.body.name
       data.personas = [
@@ -156,10 +152,6 @@ module.exports = self =
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasReadPermission( req.user )
-          next( new UnauthorizedError() )
-          return
-
         for item in graph.getValue().personas
           res.link( "/persona/#{item.key}", 'joukou:persona' )
 

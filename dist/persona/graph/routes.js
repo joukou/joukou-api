@@ -139,10 +139,6 @@ module.exports = self = {
   create: function(req, res, next) {
     return PersonaModel.retrieve(req.params.personaKey).then(function(persona) {
       var data;
-      if (!persona.hasEditPermission(req.user)) {
-        next(new UnauthorizedError());
-        return;
-      }
       data = {};
       data.name = req.body.name;
       data.personas = [
@@ -182,10 +178,6 @@ module.exports = self = {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
         var item, representation, _i, _len, _ref1;
-        if (!persona.hasReadPermission(req.user)) {
-          next(new UnauthorizedError());
-          return;
-        }
         _ref1 = graph.getValue().personas;
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           item = _ref1[_i];

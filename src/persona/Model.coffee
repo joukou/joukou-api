@@ -24,15 +24,4 @@ PersonaModel = Model.define(
 PersonaModel::getName = ->
   @getValue().name
 
-PersonaModel::hasEditPermission = ( user ) ->
-  _.some( @getValue().agents, ( agent ) ->
-    agent.key is user.getKey() and
-    (agent.role is 'admin' or agent.role is 'creator')
-  )
-
-PersonaModel::hasReadPermission = ( user ) ->
-  _.some( @getValue().agents, ( agent ) ->
-    agent.key is user.getKey()
-  )
-
 module.exports = PersonaModel

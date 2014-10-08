@@ -53,9 +53,6 @@ module.exports = self =
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       # TODO associations and security model should be handled by the model layer
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasReadPermission( req.user )
-          throw new UnauthorizedError()
-
         graph.getConnections( ( connections ) ->
           res.send( 200, connections.getRepresentation() )
         )
@@ -66,9 +63,6 @@ module.exports = self =
   create: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        unless persona.hasEditPermission( req.user )
-          throw new UnauthorizedError()
-
         data = {}
         data.data = req.body.data
         data.metadata = req.body.metadata
