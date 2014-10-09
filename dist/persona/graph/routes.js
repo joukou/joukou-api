@@ -89,6 +89,8 @@ module.exports = self = {
       representation = {};
       representation._embedded = _.reduce(reply.body, function(memo, graph) {
         memo['joukou:graph'].push({
+          name: graph.name,
+          key: graph.key,
           _links: {
             self: {
               href: "/persona/" + req.params.personaKey + "/graph/" + graph.key
@@ -157,6 +159,9 @@ module.exports = self = {
         return next(err);
       });
     }).fail(function(err) {
+      if (err instanceof NotFoundError) {
+        err = new NotFoundError("Persona '" + req.params.personaKey + "' not found");
+      }
       return next(err);
     });
   },

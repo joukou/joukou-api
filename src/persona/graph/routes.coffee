@@ -72,6 +72,8 @@ module.exports = self =
       representation = {}
       representation._embedded = _.reduce( reply.body, ( memo, graph ) ->
         memo[ 'joukou:graph' ].push(
+          name: graph.name
+          key: graph.key
           _links:
             self:
               href: "/persona/#{req.params.personaKey}/graph/#{graph.key}"
@@ -133,7 +135,10 @@ module.exports = self =
       )
       .fail( ( err ) -> next( err ) )
     )
-    .fail( ( err ) -> next( err ) )
+    .fail( ( err ) ->
+      if err instanceof NotFoundError
+        err = new NotFoundError("Persona '#{req.params.personaKey}' not found")
+      next( err ) )
 
   ###
   @api {get} /graph/:graphKey Retrieve the definition of a Joukou graph

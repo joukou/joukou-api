@@ -53,17 +53,18 @@ githubProfileToAgent = function(profile, agent) {
     var afterDeferred, createdPersona;
     afterDeferred = Q.defer();
     createdPersona = function(persona) {
-      return GraphModel.create({
-        name: "Default graph",
-        personas: [
-          {
-            key: persona.getKey()
-          }
-        ]
-      }).then(function(graph) {
-        return graph.save().then(function() {
-          return afterDeferred.resolve();
-        }).fail(afterDeferred.reject);
+      var data;
+      data = {};
+      data.name = "Default graph";
+      data.personas = [
+        {
+          key: persona.getKey()
+        }
+      ];
+      return GraphModel.create(data).then(function(graph) {
+        return graph.save();
+      }).then(function() {
+        return afterDeferred.resolve();
       }).fail(afterDeferred.reject);
     };
     PersonaModel.create({
@@ -131,7 +132,7 @@ githubProfileToAgent = function(profile, agent) {
  */
 
 verify = function(accessToken, refreshToken, profile, next) {
-  var saveOrCreate;
+  var promise, saveOrCreate;
   saveOrCreate = function(agent) {
     return githubProfileToAgent(profile, agent).then(function(agent) {
       return next(null, agent);
@@ -139,7 +140,19 @@ verify = function(accessToken, refreshToken, profile, next) {
       return next(err);
     });
   };
-  return AgentModel.retriveByGithubId(profile.id).then(function(agent) {
+  promise = null;
+  profile = profile || {};
+  profile = profile._json || profile;
+  if (!profile) {
+    next(new UnauthorizedError());
+    return;
+  }
+  if (profile.email) {
+    promise = AgentModel.retrieveByEmail(profile.email);
+  } else {
+    promise = AgentModel.retriveByGithubId(profile.id);
+  }
+  return promise.then(function(agent) {
     return saveOrCreate(agent);
   }).fail(function(err) {
     if (!(err instanceof NotFoundError)) {
@@ -151,11 +164,11 @@ verify = function(accessToken, refreshToken, profile, next) {
 };
 
 verifyToken = function(token, next) {
+  var notAuth;
+  notAuth = function() {
+    return next(new UnauthorizedError());
+  };
   return jwt.verify(token, env.getJWTKey(), function(err, obj) {
-    var email, notAuth;
-    notAuth = function() {
-      return next(new UnauthorizedError());
-    };
     if (err) {
       notAuth();
       return;
@@ -165,11 +178,7 @@ verifyToken = function(token, next) {
       notAuth();
       return;
     }
-    email = null;
-    if (typeof obj["email"] === "string") {
-      email = obj["email"];
-    } else {
-      console.log(obj);
+    if (!obj["email"]) {
       notAuth();
       return;
     }
@@ -212,7 +221,7 @@ generateTokenFromAgent = function(agent) {
   value = null;
   if (agent["getValue"] instanceof Function) {
     value = agent["getValue"]();
-  } else if (typeof agent["email"] === "string") {
+  } else {
     value = agent;
   }
   if (!value) {
