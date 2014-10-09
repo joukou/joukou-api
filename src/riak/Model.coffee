@@ -118,7 +118,7 @@ module.exports =
 
         content = reply.content[ 0 ]
 
-        new self(
+        ret = new self(
           type: self.getType()
           bucket: self.getBucket()
           key: key
@@ -130,6 +130,22 @@ module.exports =
           vtag: content.vtag
         )
 
+        if content and content.indexes
+          for index in content.indexes
+            key = null
+            if index.key.indexOf("_bin") isnt -1
+              key = index.key.substr(0, index.key.length - 4)
+              if key + "_bin" isnt index.key
+                key = index.key
+            else if index.key.indexOf("_int") isnt -1
+              key = index.key.substr(0, index.key.length - 4)
+              if key + "_int" isnt index.key
+                key = index.key
+            if not key
+              continue
+            ret.addSecondaryIndex(key)
+
+        ret
       ###*
       Retrieve an instance of this *Model* class from Basho Riak.
       @param {string} key

@@ -80,11 +80,11 @@ githubProfileToAgent = ( profile, agent ) ->
     value = actualAgent.getValue() or {}
     _.assign(value,
       email: profile.email
-      githubLogin: profile.login
-      githubId: profile.id
-      imageUrl: profile.avatar_url
+      github_login: profile.login
+      github_id: profile.id
+      image_url: profile.avatar_url
       website: profile.blog
-      githubUrl: profile.url
+      github_url: profile.url
       name: profile.name
       company: profile.company
       location: profile.location)
@@ -186,6 +186,7 @@ verifyToken = (token, next) ->
     )
     .fail( (err) ->
       if err instanceof NotFoundError
+        console.log(obj["email"])
         notAuth()
         return
       next(err)

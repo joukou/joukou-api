@@ -39,7 +39,7 @@ AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
   agent.addSecondaryIndex( 'email' )
-  agent.addSecondaryIndex( 'githubId' )
+  agent.addSecondaryIndex( 'github_id' )
 
   # Hash password
   ###

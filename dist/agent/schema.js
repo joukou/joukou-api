@@ -30,17 +30,17 @@ module.exports = schema.create({
     allownull: false,
     filters: ['trim']
   },
-  githubLogin: {
+  github_login: {
     type: 'string',
     required: false,
     allownull: true
   },
-  githubId: {
+  github_id: {
     type: 'integer',
     required: false,
     allownull: true
   },
-  imageUrl: {
+  image_url: {
     type: 'string',
     required: false,
     allownull: false
@@ -50,7 +50,7 @@ module.exports = schema.create({
     required: false,
     allownull: false
   },
-  githubUrl: {
+  github_url: {
     type: 'url',
     required: false,
     allownull: false
