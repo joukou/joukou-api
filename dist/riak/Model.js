@@ -161,22 +161,7 @@ module.exports = {
           _ref = content.indexes;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             index = _ref[_i];
-            key = null;
-            if (index.key.indexOf("_bin") !== -1) {
-              key = index.key.substr(0, index.key.length - 4);
-              if (key + "_bin" !== index.key) {
-                key = index.key;
-              }
-            } else if (index.key.indexOf("_int") !== -1) {
-              key = index.key.substr(0, index.key.length - 4);
-              if (key + "_int" !== index.key) {
-                key = index.key;
-              }
-            }
-            if (!key) {
-              continue;
-            }
-            ret.addSecondaryIndex(key);
+            ret.addSecondaryIndex(index.key);
           }
         }
         return ret;
@@ -430,6 +415,9 @@ module.exports = {
        */
 
       _Class.prototype._getSecondaryIndexKey = function(key) {
+        if (key.indexOf("_bin") !== -1 || key.indexOf("_int") !== -1) {
+          return key;
+        }
         if (_.isNumber(this.value[key])) {
           return "" + key + "_int";
         } else if (_.isString(this.value[key])) {
