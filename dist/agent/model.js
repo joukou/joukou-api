@@ -47,7 +47,7 @@ AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
   agent.addSecondaryIndex('email');
-  agent.addSecondaryIndex('githubId');
+  agent.addSecondaryIndex('github_id');
 
   /*
   bcrypt.genSalt( 10, ( err, salt ) ->

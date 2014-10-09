@@ -140,13 +140,13 @@ module.exports = {
       };
 
       _Class.createFromReply = function(_arg1) {
-        var content, key, reply;
+        var content, index, key, reply, ret, _i, _len, _ref;
         key = _arg1.key, reply = _arg1.reply;
         if (reply.content.length !== 1) {
           throw new Error('Unhandled reply.content length');
         }
         content = reply.content[0];
-        return new self({
+        ret = new self({
           type: self.getType(),
           bucket: self.getBucket(),
           key: key,
@@ -157,6 +157,29 @@ module.exports = {
           vclock: reply.vclock,
           vtag: content.vtag
         });
+        if (content && content.indexes) {
+          _ref = content.indexes;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            index = _ref[_i];
+            key = null;
+            if (index.key.indexOf("_bin") !== -1) {
+              key = index.key.substr(0, index.key.length - 4);
+              if (key + "_bin" !== index.key) {
+                key = index.key;
+              }
+            } else if (index.key.indexOf("_int") !== -1) {
+              key = index.key.substr(0, index.key.length - 4);
+              if (key + "_int" !== index.key) {
+                key = index.key;
+              }
+            }
+            if (!key) {
+              continue;
+            }
+            ret.addSecondaryIndex(key);
+          }
+        }
+        return ret;
       };
 
 
