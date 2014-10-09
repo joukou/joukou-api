@@ -45,20 +45,17 @@ githubProfileToAgent = ( profile, agent ) ->
     # Setup default persona and default graph
     afterDeferred = Q.defer()
     createdPersona = ( persona ) ->
-      GraphModel.create(
-        name: "Default graph"
-        personas: [
-          {
-            key: persona.getKey()
-          }
-        ]
-      )
+      data = {}
+      data.name = "Default graph"
+      data.personas = [
+        key: persona.getKey()
+      ]
+      GraphModel.create(data)
         .then( (graph) ->
           graph.save()
-            .then( ->
-              afterDeferred.resolve()
-            )
-            .fail(afterDeferred.reject)
+        )
+        .then( ->
+          afterDeferred.resolve()
         )
         .fail(afterDeferred.reject)
     PersonaModel.create(
@@ -138,8 +135,23 @@ verify = ( accessToken, refreshToken, profile, next ) ->
         next( err )
       )
 
-  AgentModel
-    .retriveByGithubId( profile.id )
+  promise = null
+
+  profile = profile or {}
+  profile = profile._json or profile
+
+  if not profile
+    next( new UnauthorizedError() )
+    return
+
+  if profile.email
+    promise = AgentModel
+      .retrieveByEmail( profile.email )
+  else
+    promise = AgentModel
+      .retriveByGithubId( profile.id )
+
+  promise
       .then( ( agent ) ->
         # Update Agent
         saveOrCreate(agent)
@@ -153,9 +165,10 @@ verify = ( accessToken, refreshToken, profile, next ) ->
       )
 
 verifyToken = (token, next) ->
+  notAuth = ->
+    next(new UnauthorizedError())
+
   jwt.verify(token, env.getJWTKey(), (err, obj) ->
-    notAuth = ->
-      next(new UnauthorizedError())
     if err
       notAuth()
       return
@@ -163,11 +176,7 @@ verifyToken = (token, next) ->
     if not obj or obj not instanceof Object
       notAuth()
       return
-    email = null
-    if typeof obj["email"] is "string"
-      email = obj["email"]
-    else
-      console.log(obj)
+    if not obj["email"]
       notAuth()
       return
     AgentModel
@@ -206,7 +215,7 @@ generateTokenFromAgent = (agent) ->
   if agent["getValue"] instanceof Function
     # It is an instanceof model
     value = agent["getValue"]()
-  else if typeof agent["email"] is "string"
+  else
     value = agent
   if not value
     return ""

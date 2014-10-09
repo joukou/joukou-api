@@ -85,6 +85,7 @@ module.exports = self = {
       representation._embedded = _.reduce(reply.body, function(memo, persona) {
         memo['joukou:persona'].push({
           name: persona.name,
+          key: persona.key,
           _links: {
             self: {
               href: "/persona/" + persona.key
