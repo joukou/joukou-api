@@ -25,7 +25,7 @@ authz = require('../authz');
 
 config = require('../config');
 
-AgentModel = require('./Model');
+AgentModel = require('./model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
 

@@ -6,5 +6,5 @@
 
 
 /*
-//# sourceMappingURL=Model.js.map
+//# sourceMappingURL=model.js.map
 */

@@ -32,5 +32,5 @@ PersonaModel.prototype.getName = function() {
 module.exports = PersonaModel;
 
 /*
-//# sourceMappingURL=Model.js.map
+//# sourceMappingURL=model.js.map
 */

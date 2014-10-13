@@ -16,15 +16,15 @@ Authentication based on Passport.
 passport          = require( 'passport' )
 passportBearer    = require( 'passport' )
 GithubStrategy    = require( 'passport-github' ).Strategy
-AgentModel        = require( './agent/Model' )
+AgentModel        = require( './agent/model' )
 { UnauthorizedError, NotFoundError } = require( 'restify' )
 env               = require( './env' )
 Q                 = require( 'q' )
 BearerStrategy    = require( 'passport-http-bearer' ).Strategy
 jwt               = require( 'jsonwebtoken' )
 _                 = require( 'lodash' )
-PersonaModel      = require( './Persona/Model' )
-GraphModel        = require( './Persona/Graph/Model' )
+PersonaModel      = require( './persona/model' )
+GraphModel        = require( './persona/graph/model' )
 
 
 

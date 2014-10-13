@@ -29,7 +29,7 @@ circle_routes = require('./circle/routes');
 
 graph_routes = require('./graph/routes');
 
-PersonaModel = require('./Model');
+PersonaModel = require('./model');
 
 module.exports = self = {
 

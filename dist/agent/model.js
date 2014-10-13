@@ -141,5 +141,5 @@ AgentModel.prototype.hasSomeRoles = function(roles) {
 module.exports = AgentModel;
 
 /*
-//# sourceMappingURL=Model.js.map
+//# sourceMappingURL=model.js.map
 */

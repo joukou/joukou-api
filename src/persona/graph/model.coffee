@@ -21,7 +21,7 @@ Q                 = require( 'q' )
 uuid              = require( 'node-uuid' )
 Model             = require( '../../riak/Model' )
 schema            = require( './schema' )
-PersonaModel      = require( '../Model' )
+PersonaModel      = require( '../model' )
 { ConflictError } = require( 'restify' )
 
 GraphModel = Model.define(
