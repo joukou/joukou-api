@@ -18,8 +18,8 @@ request       = require( 'request' )
 connection_routes = require( './connection/routes' )
 process_routes = require( './process/routes' )
 network_routes = require( './network/routes' )
-GraphModel    = require( './Model' )
-PersonaModel  = require( '../Model')
+GraphModel    = require( './model' )
+PersonaModel  = require( '../model')
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =

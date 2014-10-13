@@ -18,7 +18,7 @@ passportBearer = require('passport');
 
 GithubStrategy = require('passport-github').Strategy;
 
-AgentModel = require('./agent/Model');
+AgentModel = require('./agent/model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, NotFoundError = _ref.NotFoundError;
 
@@ -32,9 +32,9 @@ jwt = require('jsonwebtoken');
 
 _ = require('lodash');
 
-PersonaModel = require('./Persona/Model');
+PersonaModel = require('./persona/model');
 
-GraphModel = require('./Persona/Graph/Model');
+GraphModel = require('./persona/graph/model');
 
 githubProfileToAgent = function(profile, agent) {
   var afterCreation, created, creating, deferred;

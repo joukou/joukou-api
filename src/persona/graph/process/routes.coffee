@@ -11,7 +11,7 @@ ability to inspect and create *Processes* for a *Graph*.
 
 authn = require( '../../../authn' )
 hal = require( '../../../hal' )
-GraphModel = require( '../Model' )
+GraphModel = require( '../model' )
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =

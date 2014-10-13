@@ -14,7 +14,7 @@ authn = require('../../../authn');
 
 hal = require('../../../hal');
 
-GraphModel = require('../Model');
+GraphModel = require('../model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 

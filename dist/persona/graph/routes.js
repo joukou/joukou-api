@@ -28,9 +28,9 @@ process_routes = require('./process/routes');
 
 network_routes = require('./network/routes');
 
-GraphModel = require('./Model');
+GraphModel = require('./model');
 
-PersonaModel = require('../Model');
+PersonaModel = require('../model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 

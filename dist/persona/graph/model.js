@@ -27,7 +27,7 @@ Model = require('../../riak/Model');
 
 schema = require('./schema');
 
-PersonaModel = require('../Model');
+PersonaModel = require('../model');
 
 ConflictError = require('restify').ConflictError;
 
@@ -126,5 +126,5 @@ GraphModel.prototype.getConnections = function() {
 module.exports = GraphModel;
 
 /*
-//# sourceMappingURL=Model.js.map
+//# sourceMappingURL=model.js.map
 */
