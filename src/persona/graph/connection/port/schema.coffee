@@ -1,23 +1,16 @@
 ###*
-@module joukou-api/persona/graph/connection/schema
+@module joukou-api/persona/graph/connection/port/schema
 @author Fabian Cook <fabian.cook@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
 schema = require( 'schemajs' )
-port   = require( './port/schema' )
 
 module.exports = schema.create(
-  metadata:
-    type: "object"
-  data:
+  process:
     type: "string+"
-  src:
-    type: "object"
     required: true
-    schema: port
-  tgt:
-    type: "object"
+  port:
+    type: "string+"
     required: true
-    schema: port
 )

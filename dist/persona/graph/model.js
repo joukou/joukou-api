@@ -80,7 +80,7 @@ GraphModel.prototype.addConnection = function(_arg) {
   })) {
     process.nextTick((function(_this) {
       return function() {
-        return deferred.reject(new ConflictError("Graph " + (_this.getKey()) + " already has an identical connection between the source and the target."));
+        return deferred.reject(new ConflictError(("Graph " + (_this.getKey()) + " already ") + "has an identical connection between the source and the target."));
       };
     })(this));
   } else {

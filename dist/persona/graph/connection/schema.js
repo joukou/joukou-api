@@ -1,37 +1,31 @@
-"use strict";
 
 /**
 @module joukou-api/persona/graph/connection/schema
-@requires joukou-api/hyper/Schema
-@author Isaac Johnston <isaac.johnston@joukou.com>
+@author Fabian Cook <fabian.cook@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var HyperSchema;
+var port, schema;
 
-HyperSchema = require('../../hyper/Schema');
+schema = require('schemajs');
 
-module.exports = HyperSchema.define({
-  properties: {
-    metadata: {
-      type: 'object'
-    },
-    data: {
-      type: 'string+'
-    }
+port = require('./port/schema');
+
+module.exports = schema.create({
+  metadata: {
+    type: "object"
   },
-  links: {
-    'joukou:process': {
-      min: 2,
-      max: 2,
-      href: '/persona/:personaKey/graph/:graphKey/process/:key',
-      properties: {
-        name: {
-          required: true,
-          type: 'enum',
-          values: ['src', 'tgt']
-        }
-      }
-    }
+  data: {
+    type: "string+"
+  },
+  src: {
+    type: "object",
+    required: true,
+    schema: port
+  },
+  tgt: {
+    type: "object",
+    required: true,
+    schema: port
   }
 });
 

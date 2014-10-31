@@ -20,7 +20,9 @@ process_routes = require( './process/routes' )
 network_routes = require( './network/routes' )
 GraphModel    = require( './model' )
 PersonaModel  = require( '../model')
+CircleModel  = require( '../circle/model')
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
+Q             = require('q')
 
 module.exports = self =
 
@@ -158,47 +160,127 @@ module.exports = self =
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        for item in graph.getValue().personas
-          res.link( "/persona/#{item.key}", 'joukou:persona' )
+        graph.getConnections( ( connections ) ->
+          graph.getProcesses( ( processes ) ->
+            representation = {}
+            if req.contentType is 'application/hal+json'
+              for item in graph.getValue().personas
+                res.link( "/persona/#{item.key}", 'joukou:persona' )
 
-        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create', title: 'Add a Process to this Graph' )
-        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes', title: 'List of Processes for this Graph' )
-        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
-        res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
+              res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create', title: 'Add a Process to this Graph' )
+              res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes', title: 'List of Processes for this Graph' )
+              res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
+              res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
 
-        representation = _.pick( graph.getValue(), [ 'name' ] )
-        representation._embedded =
-          'joukou:process': _.reduce( graph.getValue().processes or {}, ( memo, process, processKey ) ->
-            memo.push(
-              _links:
-                self:
-                  href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
-                #'joukou:circle': TODO
-                #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
-              metadata: process.metadata
-            )
-            memo
-          , [] )
-          'joukou:connection': _.reduce( graph.getValue().connections or [], ( memo, connection, i ) ->
-            memo.push(
-              _links:
-                self:
-                  href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
-                'joukou:process': [
+              # representation = _.pick( graph.getValue(), [ 'name' ] )
+              representation._embedded =
+                'joukou:process': _.reduce( graph.getValue().processes or {}, ( memo, process, processKey ) ->
+                  memo.push(
+                    _links:
+                      self:
+                        href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+                  #'joukou:circle': TODO
+                  #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
+                    metadata: process.metadata
+                  )
+                  memo
+                , [] )
+                'joukou:connection': _.reduce( graph.getValue().connections or [], ( memo, connection, i ) ->
+                  memo.push(
+                    _links:
+                      self:
+                        href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
+                      'joukou:process': [
+                        {
+                          name: 'src' # TODO href
+                        }
+                        {
+                          name: 'tgt' # TODO href
+                        }
+                      ]
+                  )
+                  memo
+                , [] )
+
+            ###
+              {
+                "properties": {
+                  "name": "Count lines in a file"
+                },
+                "processes": {
+                  "Read File": {
+                    "component": "ReadFile",
+                    "metadata": {
+                        ...
+                    }
+                  },
+                  "Split by Lines": {
+                    "component": "SplitStr"
+                  },
+                  ...
+                },
+                "connections": [
                   {
-                    name: 'src' # TODO href
-                  }
+                    "data": "package.json",
+                    "tgt": {
+                      "process": "Read File",
+                      "port": "source"
+                    }
+                  },
                   {
-                    name: 'tgt' # TODO href
-                  }
+                    "src": {
+                      "process": "Read File",
+                      "port": "out"
+                    },
+                    "tgt": {
+                      "process": "Split by Lines",
+                      "port": "in"
+                    }
+                  },
+                  ...
                 ]
+              }
+            ###
+
+            representation.properties =
+              name: graph.getValue().name
+              metadata: {
+                key: req.params.graphKey
+              }
+            representation.processes = {}
+            representation.connections = _.map(connections, (connection) ->
+              return {
+                tgt: connection.tgt
+                src: connection.src
+                metadata: {
+                  key: connection.key
+                }
+              }
             )
-            memo
-          , [] )
-
-
-        res.send( 200, representation )
-        return
+            promises = _.map(processes, (process) ->
+              deferred = Q.defer()
+              CircleModel.retreive(process.circle.key).then((circle) ->
+                circleValue = circle.getValue()
+                representation.processes[process.circle.key] = {
+                  component: circleValue.image
+                  metadata: {
+                    key: process.circle.key
+                    icon: circleValue.icon
+                    subgraph: !!circleValue.subgraph
+                    description: circleValue.description
+                  }
+                }
+              ).fail(deferred.reject)
+              return deferred.promise
+            )
+            Q.all(promises).then(->
+              res.send( 200, representation )
+            ).fail(->
+              res.send( 503 )
+            )
+            return
+          )
+        )
       )
     )
     .fail( ( err ) -> next( err ) )

@@ -53,9 +53,11 @@ GraphModel::getProcesses = ->
 GraphModel::addConnection = ( { data, src, tgt, metadata } ) ->
   deferred = Q.defer()
 
+  # TODO add src/tgt validation against connection/port/schema
   if @_hasConnection( { src: src, tgt: tgt } )
     process.nextTick( =>
-      deferred.reject( new ConflictError( "Graph #{@getKey()} already has an identical connection between the source and the target." ) )
+      deferred.reject( new ConflictError( "Graph #{@getKey()} already " +
+        "has an identical connection between the source and the target." ) )
     )
   else
     connection =

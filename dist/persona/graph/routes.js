@@ -8,7 +8,7 @@ graphs that an agent has authorization to access.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, NotFoundError, PersonaModel, UnauthorizedError, async, authn, connection_routes, hal, network_routes, process_routes, request, self, uuid, _, _ref;
+var CircleModel, ForbiddenError, GraphModel, NotFoundError, PersonaModel, Q, UnauthorizedError, async, authn, connection_routes, hal, network_routes, process_routes, request, self, uuid, _, _ref;
 
 _ = require('lodash');
 
@@ -32,7 +32,11 @@ GraphModel = require('./model');
 
 PersonaModel = require('../model');
 
+CircleModel = require('../circle/model');
+
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
+
+Q = require('q');
 
 module.exports = self = {
 
@@ -184,56 +188,137 @@ module.exports = self = {
   retrieve: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var item, representation, _i, _len, _ref1;
-        _ref1 = graph.getValue().personas;
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
-          res.link("/persona/" + item.key, 'joukou:persona');
-        }
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create', {
-          title: 'Add a Process to this Graph'
-        });
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes', {
-          title: 'List of Processes for this Graph'
-        });
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connection-create', {
-          title: 'Add a Connection to this Graph'
-        });
-        res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections', {
-          title: 'List of Connections for this Graph'
-        });
-        representation = _.pick(graph.getValue(), ['name']);
-        representation._embedded = {
-          'joukou:process': _.reduce(graph.getValue().processes || {}, function(memo, process, processKey) {
-            memo.push({
-              _links: {
-                self: {
-                  href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey
-                }
-              },
-              metadata: process.metadata
-            });
-            return memo;
-          }, []),
-          'joukou:connection': _.reduce(graph.getValue().connections || [], function(memo, connection, i) {
-            memo.push({
-              _links: {
-                self: {
-                  href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key
+        return graph.getConnections(function(connections) {
+          return graph.getProcesses(function(processes) {
+            var item, promises, representation, _i, _len, _ref1;
+            representation = {};
+            if (req.contentType === 'application/hal+json') {
+              _ref1 = graph.getValue().personas;
+              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                item = _ref1[_i];
+                res.link("/persona/" + item.key, 'joukou:persona');
+              }
+              res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create', {
+                title: 'Add a Process to this Graph'
+              });
+              res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes', {
+                title: 'List of Processes for this Graph'
+              });
+              res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connection-create', {
+                title: 'Add a Connection to this Graph'
+              });
+              res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection", 'joukou:connections', {
+                title: 'List of Connections for this Graph'
+              });
+              representation._embedded = {
+                'joukou:process': _.reduce(graph.getValue().processes || {}, function(memo, process, processKey) {
+                  memo.push({
+                    _links: {
+                      self: {
+                        href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + processKey
+                      }
+                    },
+                    metadata: process.metadata
+                  });
+                  return memo;
+                }, []),
+                'joukou:connection': _.reduce(graph.getValue().connections || [], function(memo, connection, i) {
+                  memo.push({
+                    _links: {
+                      self: {
+                        href: "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key
+                      },
+                      'joukou:process': [
+                        {
+                          name: 'src'
+                        }, {
+                          name: 'tgt'
+                        }
+                      ]
+                    }
+                  });
+                  return memo;
+                }, [])
+              };
+            }
+
+            /*
+              {
+                "properties": {
+                  "name": "Count lines in a file"
                 },
-                'joukou:process': [
+                "processes": {
+                  "Read File": {
+                    "component": "ReadFile",
+                    "metadata": {
+                        ...
+                    }
+                  },
+                  "Split by Lines": {
+                    "component": "SplitStr"
+                  },
+                  ...
+                },
+                "connections": [
                   {
-                    name: 'src'
-                  }, {
-                    name: 'tgt'
-                  }
+                    "data": "package.json",
+                    "tgt": {
+                      "process": "Read File",
+                      "port": "source"
+                    }
+                  },
+                  {
+                    "src": {
+                      "process": "Read File",
+                      "port": "out"
+                    },
+                    "tgt": {
+                      "process": "Split by Lines",
+                      "port": "in"
+                    }
+                  },
+                  ...
                 ]
               }
+             */
+            representation.properties = {
+              name: graph.getValue().name,
+              metadata: {
+                key: req.params.graphKey
+              }
+            };
+            representation.processes = {};
+            representation.connections = _.map(connections, function(connection) {
+              return {
+                tgt: connection.tgt,
+                src: connection.src,
+                metadata: {
+                  key: connection.key
+                }
+              };
             });
-            return memo;
-          }, [])
-        };
-        res.send(200, representation);
+            promises = _.map(processes, function(process) {
+              var deferred;
+              deferred = Q.defer();
+              CircleModel.retreive(process.circle.key).then(function(circle) {
+                var circleValue;
+                circleValue = circle.getValue();
+                return representation.processes[process.circle.key] = {
+                  component: circleValue.image,
+                  metadata: {
+                    key: process.circle.key
+                  }
+                };
+              }).fail(deferred.reject);
+              return deferred.promise;
+            });
+            Q.all(promises).then(function() {
+              return res.send(200, representation);
+            }).fail(function() {
+              return res.send(503);
+            });
+          });
+        });
       });
     }).fail(function(err) {
       return next(err);

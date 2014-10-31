@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "schema.js",
+  "sourceRoot": "../../../../../src/persona/graph/connection/port",
+  "sources": [
+    "schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA;AAAA;;;;GAAA;AAAA,IAAA,MAAA;;AAAA,MAMA,GAAS,OAAA,CAAS,UAAT,CANT,CAAA;;AAAA,MAQM,CAAC,OAAP,GAAiB,MAAM,CAAC,MAAP,CACf;AAAA,EAAA,OAAA,EACE;AAAA,IAAA,IAAA,EAAM,SAAN;AAAA,IACA,QAAA,EAAU,IADV;GADF;AAAA,EAGA,IAAA,EACE;AAAA,IAAA,IAAA,EAAM,SAAN;AAAA,IACA,QAAA,EAAU,IADV;GAJF;CADe,CARjB,CAAA"
+}

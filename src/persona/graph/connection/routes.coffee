@@ -9,9 +9,11 @@ the ability to inspect and create *Connections* for a *Graph*.
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-authn         = require( '../../../authn' )
-hal           = require( '../../../hal' )
-GraphModel    = require( '../model' )
+authn             = require( '../../../authn' )
+hal               = require( '../../../hal' )
+GraphModel        = require( '../model' )
+ConnectionSchema  = require( './schema')
+
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
 module.exports = self =
