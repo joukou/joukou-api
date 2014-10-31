@@ -199,7 +199,8 @@ passport.use( new GithubStrategy(
   {
     clientID: githubEnv.clientId,
     clientSecret: githubEnv.clientSecret,
-    callbackURL: githubEnv.callbackUrl
+    callbackURL: githubEnv.callbackUrl,
+    scope: githubEnv.scope
   },
   verify ))
 
