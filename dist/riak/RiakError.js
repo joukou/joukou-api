@@ -20,9 +20,9 @@ module.exports = self = (function(_super) {
       restCode: 'InternalError',
       statusCode: 503,
       message: 'The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.',
-      constructorOpt: self
+      constructorOpt: this
     });
-    self.InnerError = originalError;
+    this.InnerError = originalError;
     return;
   }
 
