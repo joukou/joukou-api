@@ -130,11 +130,11 @@ module.exports =
           vtag: content.vtag
         )
 
-        if content and content.indexes
-          for index in content.indexes
-            ret.addSecondaryIndex(index.key)
+        if ret.afterRetrieve instanceof Function
+          ret.afterRetrieve()
 
-        ret
+        return ret
+
       ###*
       Retrieve an instance of this *Model* class from Basho Riak.
       @param {string} key
@@ -237,16 +237,27 @@ module.exports =
 
       setValue: ( @value ) ->
 
+      beforeSave: ->
+
+      afterRetrieve = ->
+
       ###*
       Persists `this` *Model* instance in Basho Riak.
       @return {q.promise}
       ###
       save: ->
+
+        if this.beforeSave instanceof Function
+          this.beforeSave()
+
         deferred = Q.defer()
 
-        pbc.put( @_getPbParams(), ( err, reply ) =>
+        model = this
+        params = @_getPbParams()
+
+        pbc.put( params, ( err, reply ) =>
           if err
-            deferred.reject( new RiakError( err ) )
+            deferred.reject( new RiakError( err, model, params ) )
           else
             deferred.resolve( self.createFromReply( key: @key, reply: reply ) )
         )
@@ -322,11 +333,14 @@ module.exports =
       _getSecondaryIndexes: ->
         indexes = []
         for key in @indexes
-          if @value.hasOwnProperty( key )
-            indexes.push(
-              key: @_getSecondaryIndexKey( key )
-              value: @value[ key ]
-            )
+          if not @value.hasOwnProperty( key )
+            continue
+          keyResult =
+            key: @_getSecondaryIndexKey( key )
+            value: @value[ key ]
+          if _.some(indexes, key: keyResult.key)
+            continue
+          indexes.push(keyResult)
         indexes
 
       ###*

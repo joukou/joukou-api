@@ -89,4 +89,16 @@ module.exports = self =
       callbackUrl: host + "/agent/authenticate/callback"
       failedUrl: origin + "/index.html#/auth/callback/failed"
       successUrl: origin + "/index.html#/auth/callback/success"
+      scope: [
+        # Associate user with email
+        'user:email'
+        # See public and private repositories
+        'repo'
+        # Get deployment statuses
+        'repo_deployment'
+        # Grants read and ping access to hooks
+        'read:repo_hook'
+        # Associate user with other users
+        'read:org'
+      ]
     }

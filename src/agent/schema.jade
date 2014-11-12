@@ -2,7 +2,7 @@ doctype xml
 schema(name='agent' version='1.5')
   fields
     field(name='email' type='string' indexed='true' stored='false')
-    field(name='github_id' type='integer' indexed='true' stored='false')
+    field(name='github_id' type='int' indexed='true' stored='false')
     field(name='name' type='string' indexed='true' stored='false')
 
     // All of these fields are required by Riak Search
@@ -22,6 +22,7 @@ schema(name='agent' version='1.5')
     // YZ String: Used for non-analyzed fields
     fieldType(name='_yz_str' class='solr.StrField' sortMissingLast='true')
     fieldType(name='string' class='solr.StrField' sortMissingLast='true')
+    fieldType(name='int' class='solr.TrieIntField' sortMissingLast='true' precisionStep="0" positionIncrementGap="0")
     // since fields of this type are by default not stored or indexed, any data
     // added to them will be ignored outright.
     fieldtype(name='ignored' stored='false' indexed='false' multiValued='true' class='solr.StrField')

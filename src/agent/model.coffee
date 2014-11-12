@@ -38,8 +38,7 @@ After creating an agent model instance, encrypt the password with bcrypt.
 AgentModel.afterCreate = ( agent ) ->
   deferred = Q.defer()
 
-  agent.addSecondaryIndex( 'email' )
-  agent.addSecondaryIndex( 'github_id' )
+  agent.afterRetrieve();
 
   # Hash password
   ###
@@ -115,5 +114,12 @@ AgentModel::hasSomeRoles = ( roles ) ->
   _.some( roles, ( role ) =>
     @getRoles().indexOf( role ) isnt -1
   )
+
+AgentModel::beforeSave = ->
+
+AgentModel::afterRetrieve = ->
+  this.addSecondaryIndex( 'email' )
+  this.addSecondaryIndex( 'github_id' )
+
 
 module.exports = AgentModel

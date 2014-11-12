@@ -168,25 +168,21 @@ verifyToken = (token, next) ->
   notAuth = ->
     next(new UnauthorizedError())
 
-  jwt.verify(token, env.getJWTKey(), (err, obj) ->
+  jwt.verify(token, env.getJWTKey(), (err) ->
     if err
       notAuth()
       return
-    obj = jwt.decode(token)
-    if not obj or obj not instanceof Object
-      notAuth()
-      return
-    if not obj["email"]
+    keyObject = jwt.decode(token)
+    if not keyObject or keyObject not instanceof Object
       notAuth()
       return
     AgentModel
-    .retrieveByEmail(obj["email"])
+    .retrieve(keyObject.key)
     .then( (agent) ->
       next(null, agent)
     )
     .fail( (err) ->
       if err instanceof NotFoundError
-        console.log(obj["email"])
         notAuth()
         return
       next(err)
@@ -199,7 +195,8 @@ passport.use( new GithubStrategy(
   {
     clientID: githubEnv.clientId,
     clientSecret: githubEnv.clientSecret,
-    callbackURL: githubEnv.callbackUrl
+    callbackURL: githubEnv.callbackUrl,
+    scope: githubEnv.scope
   },
   verify ))
 
@@ -212,15 +209,21 @@ authenticateToken = passportBearer.authenticate('bearer', session: false )
 generateTokenFromAgent = (agent) ->
   if not agent or agent not instanceof Object
     return ""
+  key = null
+  getValue = ->
+    if agent["getValue"] instanceof Function
+      return agent["getValue"]()
+    if agent["value"]
+      return agent["value"]
   value = null
-  if agent["getValue"] instanceof Function
+  if agent["getKey"] instanceof Function
     # It is an instanceof model
-    value = agent["getValue"]()
+    key = agent["getKey"]()
   else
-    value = agent
-  if not value
+    key = agent.key
+  if not key
     return ""
-  jwt.sign(value, env.getJWTKey())
+  return jwt.sign({key: key, value: getValue()}, env.getJWTKey())
 
 
 module.exports = self =

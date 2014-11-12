@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "model.js",
+  "sourceRoot": "../../../src/persona/circle",
+  "sources": [
+    "model.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA,IAAA,0BAAA;;AAAA,KAAA,GAAU,OAAA,CAAS,kBAAT,CAAV,CAAA;;AAAA,MACA,GAAU,OAAA,CAAS,UAAT,CADV,CAAA;;AAAA,WAGA,GAAc,KAAK,CAAC,MAAN,CACZ;AAAA,EAAA,IAAA,EAAM,SAAN;AAAA,EACA,MAAA,EAAQ,SADR;AAAA,EAEA,MAAA,EAAQ,MAFR;CADY,CAHd,CAAA;;AAAA,MASM,CAAC,OAAP,GAAiB,WATjB,CAAA"
+}
