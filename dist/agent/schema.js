@@ -36,7 +36,7 @@ module.exports = schema.create({
     allownull: true
   },
   github_id: {
-    type: 'integer',
+    type: 'int',
     required: false,
     allownull: true
   },

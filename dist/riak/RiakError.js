@@ -14,15 +14,17 @@ RestError = require('restify').RestError;
 module.exports = self = (function(_super) {
   __extends(_Class, _super);
 
-  function _Class(originalError) {
+  function _Class(originalError, model, params) {
     this.originalError = originalError;
     _Class.__super__.constructor.call(this, {
       restCode: 'InternalError',
       statusCode: 503,
       message: 'The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.',
-      constructorOpt: this
+      constructorOpt: self
     });
     this.InnerError = originalError;
+    this.model = model;
+    this.params = params;
     return;
   }
 

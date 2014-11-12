@@ -36,9 +36,9 @@ module.exports = self =
     server.post( '/agent', self.create )
     # Post should be handled a different way
     # It should really only be a get
-    server.get( '/agent/authenticate', authn.authenticateOAuth, self.authenticate )
+    server.get( '/agent/authenticate', authn.Github.authenticate, self.authenticate )
     # server.post(  '/agent/authenticate', authn.authenticateOAuth, self.authenticate )
-    server.get(  '/agent/authenticate/callback', authn.authenticateOAuth, self.callback )
+    server.get(  '/agent/authenticate/callback', authn.Github.authenticate, self.callback )
     server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
   
@@ -51,13 +51,13 @@ module.exports = self =
     ).fail( next )
   
   failed: ( req, res ) ->
-    res.header("Location", githubEnv.failedUrl )
-    res.send(302)
+    # res.header("Location", githubEnv.failedUrl )
+    res.send(503)
   
   callback: (req, res, val ) ->
     token = null
     if req and req.user
-      token = authn.generateTokenFromAgent(req.user)
+      token = authn.Bearer.generate(req.user)
     if token
       res.header("Location", githubEnv.successUrl + "/" + token)
     else
@@ -95,7 +95,7 @@ module.exports = self =
   ###
   authenticate: ( req, res, next ) ->
     # TODO config.jwt.secret
-    token = authn.generateTokenFromAgent(req.user)
+    token = authn.Bearer.generate(req.user)
     res.link( "/agent/#{req.user.getKey()}", 'joukou:agent' )
     res.link( '/persona', 'joukou:personas', title: 'List of Personas' )
     res.send( 200, token: token )

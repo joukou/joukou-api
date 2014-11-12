@@ -160,10 +160,10 @@ module.exports = self =
   retrieve: ( req, res, next ) ->
     GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
       graph.getPersona().then( ( persona ) ->
-        graph.getConnections( ( connections ) ->
-          graph.getProcesses( ( processes ) ->
+        graph.getConnections().then( ( connections ) ->
+          graph.getProcesses().then( ( processes ) ->
             representation = {}
-            if req.contentType is 'application/hal+json'
+            if req.accepts('application/hal+json')
               for item in graph.getValue().personas
                 res.link( "/persona/#{item.key}", 'joukou:persona' )
 
@@ -257,9 +257,10 @@ module.exports = self =
                 }
               }
             )
+
             promises = _.map(processes, (process) ->
               deferred = Q.defer()
-              CircleModel.retreive(process.circle.key).then((circle) ->
+              CircleModel.retrieve(process.circle.key).then((circle) ->
                 circleValue = circle.getValue()
                 representation.processes[process.circle.key] = {
                   component: circleValue.image
@@ -270,18 +271,19 @@ module.exports = self =
                     description: circleValue.description
                   }
                 }
+                deferred.resolve()
               ).fail(deferred.reject)
               return deferred.promise
             )
             Q.all(promises).then(->
               res.send( 200, representation )
-            ).fail(->
-              res.send( 503 )
+            ).fail( (err) ->
+              next( err )
             )
             return
-          )
-        )
-      )
+          ).fail( ( err ) -> next( err ) )
+        ).fail( ( err ) -> next( err ) )
+      ).fail( ( err ) -> next( err ) )
     )
     .fail( ( err ) -> next( err ) )
     return

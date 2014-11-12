@@ -2,6 +2,10 @@
 
 { RestError } = require( 'restify' )
 
+NotFoundError = require( '../riak/RiakNotFoundError')
+RiakError = require( '../riak/RiakError')
+ValidationError = require( '../riak/ValidationError')
+
 ###*
 @class joukou-api/log/LoggerFactory
 @requires bunyan
@@ -60,11 +64,12 @@ module.exports = new class
     bunyan.prototype.info = (obj, message, statusCode) ->
       if not obj or not obj.err
         return oldInfo.apply(this, [obj, message, statusCode])
-      if obj.err.model or obj.err.params
-        obj.RiakError = {
-          model: obj.err.model
-          params: obj.err.params
-        }
+      if obj.err instanceof NotFoundError
+        obj.NotFoundError = obj.err
+      if obj.err instanceof RiakError
+        obj.RiakError = obj.err
+      if obj.err instanceof ValidationError
+        obj.ValidationError = obj.err
       obj.err = obj.err.InnerError or obj.err
       return oldInfo.apply(this, [obj, message, statusCode])
 

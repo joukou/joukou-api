@@ -30,6 +30,18 @@ module.exports = schema.create({
     type: 'array',
     required: true,
     schema: port
+  },
+  personas: {
+    type: 'array',
+    required: true,
+    schema: {
+      schema: {
+        key: {
+          type: "string+",
+          required: true
+        }
+      }
+    }
   }
 });
 

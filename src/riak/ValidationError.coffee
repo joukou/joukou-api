@@ -8,11 +8,13 @@
 { RestError } = require( 'restify' )
 
 module.exports = self = class extends RestError
-  constructor: ( errors ) ->
+  rawValues: {}
+  constructor: ( errors, rawValues ) ->
     super(
       restCode: 'ForbiddenError'
       statusCode: 403
       message: JSON.stringify( errors )
       constructorOpt: self
     )
+    this.rawValues = rawValues
     return
