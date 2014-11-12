@@ -86,7 +86,8 @@ module.exports = self = {
       clientSecret: clientSecret,
       callbackUrl: host + "/agent/authenticate/callback",
       failedUrl: origin + "/index.html#/auth/callback/failed",
-      successUrl: origin + "/index.html#/auth/callback/success"
+      successUrl: origin + "/index.html#/auth/callback/success",
+      scope: ['user:email', 'repo', 'repo_deployment', 'read:repo_hook', 'read:org']
     };
   }
 };

@@ -188,11 +188,11 @@ module.exports = self = {
   retrieve: function(req, res, next) {
     GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        return graph.getConnections(function(connections) {
-          return graph.getProcesses(function(processes) {
+        return graph.getConnections().then(function(connections) {
+          return graph.getProcesses().then(function(processes) {
             var item, promises, representation, _i, _len, _ref1;
             representation = {};
-            if (req.contentType === 'application/hal+json') {
+            if (req.accepts('application/hal+json')) {
               _ref1 = graph.getValue().personas;
               for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
                 item = _ref1[_i];
@@ -300,25 +300,35 @@ module.exports = self = {
             promises = _.map(processes, function(process) {
               var deferred;
               deferred = Q.defer();
-              CircleModel.retreive(process.circle.key).then(function(circle) {
+              CircleModel.retrieve(process.circle.key).then(function(circle) {
                 var circleValue;
                 circleValue = circle.getValue();
-                return representation.processes[process.circle.key] = {
+                representation.processes[process.circle.key] = {
                   component: circleValue.image,
                   metadata: {
-                    key: process.circle.key
+                    key: process.circle.key,
+                    icon: circleValue.icon,
+                    subgraph: !!circleValue.subgraph,
+                    description: circleValue.description
                   }
                 };
+                return deferred.resolve();
               }).fail(deferred.reject);
               return deferred.promise;
             });
             Q.all(promises).then(function() {
               return res.send(200, representation);
-            }).fail(function() {
-              return res.send(503);
+            }).fail(function(err) {
+              return next(err);
             });
+          }).fail(function(err) {
+            return next(err);
           });
+        }).fail(function(err) {
+          return next(err);
         });
+      }).fail(function(err) {
+        return next(err);
       });
     }).fail(function(err) {
       return next(err);

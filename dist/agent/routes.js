@@ -45,8 +45,8 @@ module.exports = self = {
     server.del('/agent', authn.authenticate, self["delete"]);
     server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
-    server.get('/agent/authenticate', authn.authenticateOAuth, self.authenticate);
-    server.get('/agent/authenticate/callback', authn.authenticateOAuth, self.callback);
+    server.get('/agent/authenticate', authn.Github.authenticate, self.authenticate);
+    server.get('/agent/authenticate/callback', authn.Github.authenticate, self.callback);
     server.get('/agent/authenticate/failed', self.failed);
     return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
   },
@@ -60,14 +60,13 @@ module.exports = self = {
     }).fail(next);
   },
   failed: function(req, res) {
-    res.header("Location", githubEnv.failedUrl);
-    return res.send(302);
+    return res.send(503);
   },
   callback: function(req, res, val) {
     var token;
     token = null;
     if (req && req.user) {
-      token = authn.generateTokenFromAgent(req.user);
+      token = authn.Bearer.generate(req.user);
     }
     if (token) {
       res.header("Location", githubEnv.successUrl + "/" + token);
@@ -108,7 +107,7 @@ module.exports = self = {
    */
   authenticate: function(req, res, next) {
     var token;
-    token = authn.generateTokenFromAgent(req.user);
+    token = authn.Bearer.generate(req.user);
     res.link("/agent/" + (req.user.getKey()), 'joukou:agent');
     res.link('/persona', 'joukou:personas', {
       title: 'List of Personas'

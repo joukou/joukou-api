@@ -30,7 +30,7 @@ Q = require('q');
 
 uuid = require('node-uuid');
 
-NotFoundError = require('restify').NotFoundError;
+NotFoundError = require('./RiakNotFoundError');
 
 ValidationError = require('./ValidationError');
 
@@ -52,7 +52,7 @@ module.exports = {
       throw new TypeError('schema is not a schema object');
     }
     return (function(_super) {
-      var self;
+      var afterRetrieve, self;
 
       __extends(_Class, _super);
 
@@ -115,7 +115,7 @@ module.exports = {
         _ref = self.getSchema().validate(rawValue), data = _ref.data, errors = _ref.errors, valid = _ref.valid;
         if (!valid) {
           process.nextTick(function() {
-            return deferred.reject(new ValidationError(errors));
+            return deferred.reject(new ValidationError(errors, rawValue));
           });
           return deferred.promise;
         }
@@ -140,7 +140,7 @@ module.exports = {
       };
 
       _Class.createFromReply = function(_arg1) {
-        var content, index, key, reply, ret, _i, _len, _ref;
+        var content, key, reply, ret;
         key = _arg1.key, reply = _arg1.reply;
         if (reply.content.length !== 1) {
           throw new Error('Unhandled reply.content length');
@@ -157,12 +157,8 @@ module.exports = {
           vclock: reply.vclock,
           vtag: content.vtag
         });
-        if (content && content.indexes) {
-          _ref = content.indexes;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            index = _ref[_i];
-            ret.addSecondaryIndex(index.key);
-          }
+        if (ret.afterRetrieve instanceof Function) {
+          ret.afterRetrieve();
         }
         return ret;
       };
@@ -196,6 +192,57 @@ module.exports = {
               reply: reply
             }));
           }
+        });
+        return deferred.promise;
+      };
+
+      _Class.search = function(q, opts) {
+        var deferred;
+        deferred = Q.defer();
+        opts = opts || {};
+        pbc.search({
+          q: q,
+          index: self.getBucket(),
+          rows: opts.rows,
+          start: opts.start,
+          sort: opts.sort,
+          filter: opts.filter,
+          df: opts.df,
+          op: opts.op,
+          fl: opts.fl,
+          presort: opts.presort
+        }, function(err, reply) {
+          var promises;
+          if (err) {
+            deferred.reject(new RiakError(err));
+            return;
+          }
+          if (_.isEmpty(reply)) {
+            deferred.reject(new NotFoundError({
+              index: q,
+              bucket: q,
+              key: q
+            }));
+            return;
+          }
+          promises = _.map(reply.docs, function(doc) {
+            var fields, keys, pair;
+            fields = doc.fields;
+            keys = _.where(fields, {
+              key: '_yz_rk'
+            });
+            if (!keys || !keys.length) {
+              return;
+            }
+            pair = keys[0];
+            if (!pair || !pair.value) {
+              return;
+            }
+            return self.retrieve(pair.value);
+          });
+          return Q.all(promises).then(function(values) {
+            return deferred.resolve(values);
+          }).fail(deferred.reject);
         });
         return deferred.promise;
       };
@@ -285,6 +332,10 @@ module.exports = {
         this.value = value;
       };
 
+      _Class.prototype.beforeSave = function() {};
+
+      afterRetrieve = function() {};
+
 
       /**
       Persists `this` *Model* instance in Basho Riak.
@@ -292,12 +343,17 @@ module.exports = {
        */
 
       _Class.prototype.save = function() {
-        var deferred;
+        var deferred, model, params;
+        if (this.beforeSave instanceof Function) {
+          this.beforeSave();
+        }
         deferred = Q.defer();
-        pbc.put(this._getPbParams(), (function(_this) {
+        model = this;
+        params = this._getPbParams();
+        pbc.put(params, (function(_this) {
           return function(err, reply) {
             if (err) {
-              return deferred.reject(new RiakError(err));
+              return deferred.reject(new RiakError(err, model, params));
             } else {
               return deferred.resolve(self.createFromReply({
                 key: _this.key,
@@ -393,17 +449,24 @@ module.exports = {
       };
 
       _Class.prototype._getSecondaryIndexes = function() {
-        var indexes, key, _i, _len, _ref;
+        var indexes, key, keyResult, _i, _len, _ref;
         indexes = [];
         _ref = this.indexes;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           key = _ref[_i];
-          if (this.value.hasOwnProperty(key)) {
-            indexes.push({
-              key: this._getSecondaryIndexKey(key),
-              value: this.value[key]
-            });
+          if (!this.value.hasOwnProperty(key)) {
+            continue;
           }
+          keyResult = {
+            key: this._getSecondaryIndexKey(key),
+            value: this.value[key]
+          };
+          if (_.some(indexes, {
+            key: keyResult.key
+          })) {
+            continue;
+          }
+          indexes.push(keyResult);
         }
         return indexes;
       };

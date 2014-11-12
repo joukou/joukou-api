@@ -45,7 +45,8 @@ module.exports = {
         logref: body.restCode,
         message: body.message
       };
-    } else {
+    } else if (req.accepts('application/hal+json')) {
+      res.setHeader('Content-Type', 'application/hal+json');
       res.link(req.path(), 'self');
       res.link('https://rels.joukou.com/{rel}', 'curies', {
         name: 'joukou',

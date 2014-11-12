@@ -21,6 +21,7 @@
     <!-- YZ String: Used for non-analyzed fields-->
     <fieldType name="_yz_str" sortMissingLast="true" class="solr.StrField"></fieldType>
     <fieldType name="string" sortMissingLast="true" class="solr.StrField"></fieldType>
+    <fieldType name="int" sortMissingLast="true" precisionStep="0" positionIncrementGap="0" class="solr.TrieIntField"></fieldType>
     <!-- since fields of this type are by default not stored or indexed, any data-->
     <!-- added to them will be ignored outright.-->
     <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField"></fieldtype>

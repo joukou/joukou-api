@@ -14,13 +14,16 @@ RestError = require('restify').RestError;
 module.exports = self = (function(_super) {
   __extends(_Class, _super);
 
-  function _Class(errors) {
+  _Class.prototype.rawValues = {};
+
+  function _Class(errors, rawValues) {
     _Class.__super__.constructor.call(this, {
       restCode: 'ForbiddenError',
       statusCode: 403,
       message: JSON.stringify(errors),
       constructorOpt: self
     });
+    this.rawValues = rawValues;
     return;
   }
 

@@ -22,4 +22,12 @@ module.exports = schema.create(
     type: 'array'
     required: yes
     schema: port
+  personas:
+    type: 'array'
+    required: yes
+    schema:
+      schema:
+        key:
+          type: "string+"
+          required: yes
 )

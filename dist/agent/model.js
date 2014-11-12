@@ -46,8 +46,7 @@ After creating an agent model instance, encrypt the password with bcrypt.
 AgentModel.afterCreate = function(agent) {
   var deferred;
   deferred = Q.defer();
-  agent.addSecondaryIndex('email');
-  agent.addSecondaryIndex('github_id');
+  agent.afterRetrieve();
 
   /*
   bcrypt.genSalt( 10, ( err, salt ) ->
@@ -136,6 +135,13 @@ AgentModel.prototype.hasSomeRoles = function(roles) {
       return _this.getRoles().indexOf(role) !== -1;
     };
   })(this));
+};
+
+AgentModel.prototype.beforeSave = function() {};
+
+AgentModel.prototype.afterRetrieve = function() {
+  this.addSecondaryIndex('email');
+  return this.addSecondaryIndex('github_id');
 };
 
 module.exports = AgentModel;

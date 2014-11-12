@@ -30,7 +30,7 @@ module.exports = schema.create(
     required: false
     allownull: true
   github_id:
-    type: 'integer'
+    type: 'int'
     required: false
     allownull: true
   image_url:

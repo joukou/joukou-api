@@ -41,7 +41,9 @@ module.exports =
       #  _links: res._links DANGER!
 
     # HAL+JSON
-    else
+    # TODO, make this optional
+    else if req.accepts('application/hal+json')
+      res.setHeader('Content-Type', 'application/hal+json')
       res.link(req.path(), 'self')
       res.link( 'https://rels.joukou.com/{rel}', 'curies', { name: 'joukou', templated: true } )
       body._links = res._links

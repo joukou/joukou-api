@@ -23,7 +23,7 @@ Search is supported via solr-client.
 _                = require( 'lodash' )
 Q                = require( 'q' )
 uuid             = require( 'node-uuid' )
-{ NotFoundError } = require( 'restify' )
+NotFoundError     = require( './RiakNotFoundError' )
 ValidationError  = require( './ValidationError' )
 RiakError        = require( './RiakError' )
 pbc              = require( './pbc' )
@@ -88,7 +88,7 @@ module.exports =
         # If the raw data is invalid then reject the promise
         unless valid
           process.nextTick( ->
-            deferred.reject( new ValidationError( errors ) )
+            deferred.reject( new ValidationError(errors ,rawValue))
           )
           return deferred.promise
 
@@ -161,6 +161,53 @@ module.exports =
         )
 
         deferred.promise
+
+      @search = ( q, opts ) ->
+        deferred = Q.defer()
+        opts = opts or {}
+
+        pbc.search({
+          q: q
+          index: self.getBucket()
+          rows: opts.rows
+          start: opts.start
+          sort: opts.sort
+          filter: opts.filter
+          df: opts.df
+          op: opts.op
+          fl: opts.fl
+          presort: opts.presort
+        },
+        ( err, reply ) ->
+          if err
+            deferred.reject( new RiakError( err ) )
+            return
+          if _.isEmpty( reply )
+            deferred.reject( new NotFoundError(
+              index: q,
+              bucket: q,
+              key: q
+            ))
+            return
+          promises = _.map(reply.docs, (doc) ->
+            fields = doc.fields
+            keys = _.where(fields, {key: '_yz_rk'})
+            if not keys or not keys.length
+              return
+            pair = keys[0]
+            if not pair or not pair.value
+              return
+            return self.retrieve( pair.value )
+          )
+          Q.all(promises)
+            .then((values) ->
+              deferred.resolve(values)
+            )
+            .fail(deferred.reject)
+        )
+
+        return deferred.promise
+
 
       ###*
       Retrieve a collection of instances of this *Model* class from Basho Riak
