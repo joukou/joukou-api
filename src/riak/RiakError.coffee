@@ -8,12 +8,14 @@
 { RestError } = require( 'restify' )
 
 module.exports = self = class extends RestError
-  constructor: ( @originalError ) ->
+  constructor: ( @originalError, model, params ) ->
     super(
       restCode: 'InternalError'
       statusCode: 503
       message: 'The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.'
-      constructorOpt: this
+      constructorOpt: self
     )
     this.InnerError = originalError
+    this.model = model
+    this.params = params
     return

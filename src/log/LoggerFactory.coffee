@@ -56,14 +56,18 @@ module.exports = new class
   @param {Object} config
   ###
   createLogger: ( config ) ->
-    ###
     oldInfo = bunyan.prototype.info
     bunyan.prototype.info = (obj, message, statusCode) ->
       if not obj or not obj.err
         return oldInfo.apply(this, [obj, message, statusCode])
+      if obj.err.model or obj.err.params
+        obj.RiakError = {
+          model: obj.err.model
+          params: obj.err.params
+        }
       obj.err = obj.err.InnerError or obj.err
       return oldInfo.apply(this, [obj, message, statusCode])
-    ###
+
     logger = bunyan.createLogger(
       name: config.name
       streams: [
