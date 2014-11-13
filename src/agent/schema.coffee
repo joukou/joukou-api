@@ -57,4 +57,8 @@ module.exports = schema.create(
     type: 'string'
     required: false
     allownull: false
+  jwt_token:
+    type: 'string'
+    required: false
+    allownull: false
 )

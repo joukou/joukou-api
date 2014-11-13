@@ -66,10 +66,10 @@ verify = ( accessToken, refreshToken, profile, next ) ->
 
   if profile.email
     promise = AgentModel
-      .retrieveByEmail( profile.email )
+      .search( "email:#{profile.email}", yes)
   else if profile.id
     promise = AgentModel
-      .retriveByGithubId( profile.id )
+      .search( "github_id:#{profile.id}", yes)
   else
     next( new UnauthorizedError() )
     return
@@ -87,8 +87,9 @@ verify = ( accessToken, refreshToken, profile, next ) ->
 
 module.exports =
   authenticate: null
+  Strategy: null
   setup: (passport) ->
-    passport.use( new GithubStrategy(
+    passport.use(this.Strategy = new GithubStrategy(
       {
         clientID: githubEnv.clientId,
         clientSecret: githubEnv.clientSecret,

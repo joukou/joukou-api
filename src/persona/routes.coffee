@@ -20,6 +20,7 @@ hal           = require( '../hal' )
 request       = require( 'request' )
 circle_routes = require( './circle/routes' )
 graph_routes  = require( './graph/routes' )
+robot_routes  = require( './robot/routes' )
 PersonaModel  = require( './model' )
 
 module.exports = self =
@@ -34,6 +35,7 @@ module.exports = self =
     server.get(  '/persona/:key', authn.authenticate, self.retrieve )
     circle_routes.registerRoutes( server )
     graph_routes.registerRoutes( server )
+    robot_routes.registerRoutes( server )
     return
 
   ###

@@ -132,7 +132,7 @@ AgentModel.prototype.hasRole = function(role) {
 AgentModel.prototype.hasSomeRoles = function(roles) {
   return _.some(roles, (function(_this) {
     return function(role) {
-      return _this.getRoles().indexOf(role) !== -1;
+      return (_this.getRoles() || []).indexOf(role) !== -1;
     };
   })(this));
 };

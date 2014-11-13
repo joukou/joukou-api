@@ -164,6 +164,12 @@ module.exports =
 
       @search = ( q, opts ) ->
         deferred = Q.defer()
+
+        if typeof opts is 'boolean'
+          opts = {
+            firstOnly: opts
+          }
+
         opts = opts or {}
 
         pbc.search({
@@ -182,28 +188,45 @@ module.exports =
           if err
             deferred.reject( new RiakError( err ) )
             return
-          if _.isEmpty( reply )
+          if _.isEmpty( reply ) or reply.num_found is 0 or _.isEmpty(reply.docs)
             deferred.reject( new NotFoundError(
               index: q,
               bucket: q,
               key: q
             ))
             return
-          promises = _.map(reply.docs, (doc) ->
+          getPromise = (doc) ->
             fields = doc.fields
             keys = _.where(fields, {key: '_yz_rk'})
             if not keys or not keys.length
+              if opts.firstOnly
+                return Q.reject(new NotFoundError())
               return
             pair = keys[0]
             if not pair or not pair.value
+              if opts.firstOnly
+                return Q.reject(new NotFoundError())
               return
             return self.retrieve( pair.value )
-          )
-          Q.all(promises)
-            .then((values) ->
-              deferred.resolve(values)
-            )
-            .fail(deferred.reject)
+
+          if opts.firstOnly
+            first = _.first(reply.docs)
+            if not first
+              return Q.reject(new NotFoundError(
+                index: q,
+                bucket: q,
+                key: q
+              ))
+            return getPromise(first)
+              .then(deferred.resolve)
+              .fail(deferred.reject)
+          else
+            promises = _.map(reply.docs, getPromise)
+            Q.all(promises)
+              .then((values) ->
+                deferred.resolve(values)
+              )
+              .fail(deferred.reject)
         )
 
         return deferred.promise

@@ -61,7 +61,28 @@ module.exports =
   ###
   link: ->
     (req, res, next) ->
-      ###*
+      if not (
+        req.accepts("application/hal+json") or
+        req.accepts("application/json")
+      )
+        # Not Acceptable
+        res.send(406)
+        return
+      ###
+      if req.method in [
+        "POST"
+        "PUT"
+      ] and not (
+        req.is("application/hal+json") or
+        req.is("application/json") or
+        req.is("hal+json") or
+        req.is("json")
+      )
+        # Unsupported Media Type
+        res.send(415)
+        return
+      ###
+      ###
       @class http.ServerResponse
       @method link
       @param {http.ClientRequest} req
