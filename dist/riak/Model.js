@@ -199,6 +199,11 @@ module.exports = {
       _Class.search = function(q, opts) {
         var deferred;
         deferred = Q.defer();
+        if (typeof opts === 'boolean') {
+          opts = {
+            firstOnly: opts
+          };
+        }
         opts = opts || {};
         pbc.search({
           q: q,
@@ -212,12 +217,12 @@ module.exports = {
           fl: opts.fl,
           presort: opts.presort
         }, function(err, reply) {
-          var promises;
+          var first, getPromise, promises;
           if (err) {
             deferred.reject(new RiakError(err));
             return;
           }
-          if (_.isEmpty(reply)) {
+          if (_.isEmpty(reply) || reply.num_found === 0 || _.isEmpty(reply.docs)) {
             deferred.reject(new NotFoundError({
               index: q,
               bucket: q,
@@ -225,24 +230,43 @@ module.exports = {
             }));
             return;
           }
-          promises = _.map(reply.docs, function(doc) {
+          getPromise = function(doc) {
             var fields, keys, pair;
             fields = doc.fields;
             keys = _.where(fields, {
               key: '_yz_rk'
             });
             if (!keys || !keys.length) {
+              if (opts.firstOnly) {
+                return Q.reject(new NotFoundError());
+              }
               return;
             }
             pair = keys[0];
             if (!pair || !pair.value) {
+              if (opts.firstOnly) {
+                return Q.reject(new NotFoundError());
+              }
               return;
             }
             return self.retrieve(pair.value);
-          });
-          return Q.all(promises).then(function(values) {
-            return deferred.resolve(values);
-          }).fail(deferred.reject);
+          };
+          if (opts.firstOnly) {
+            first = _.first(reply.docs);
+            if (!first) {
+              return Q.reject(new NotFoundError({
+                index: q,
+                bucket: q,
+                key: q
+              }));
+            }
+            return getPromise(first).then(deferred.resolve).fail(deferred.reject);
+          } else {
+            promises = _.map(reply.docs, getPromise);
+            return Q.all(promises).then(function(values) {
+              return deferred.resolve(values);
+            }).fail(deferred.reject);
+          }
         });
         return deferred.promise;
       };

@@ -67,8 +67,27 @@ module.exports = {
    */
   link: function() {
     return function(req, res, next) {
+      if (!(req.accepts("application/hal+json") || req.accepts("application/json"))) {
+        res.send(406);
+        return;
+      }
 
-      /**
+      /*
+      if req.method in [
+        "POST"
+        "PUT"
+      ] and not (
+        req.is("application/hal+json") or
+        req.is("application/json") or
+        req.is("hal+json") or
+        req.is("json")
+      )
+         * Unsupported Media Type
+        res.send(415)
+        return
+       */
+
+      /*
       @class http.ServerResponse
       @method link
       @param {http.ClientRequest} req

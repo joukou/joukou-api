@@ -41,7 +41,12 @@
     "request": "2.44.x",
     "yargs": "1.3.x",
     "riak-admin": "0.0.x",
-    "passport-http-bearer": "1.0.1"
+    "passport-http-bearer": "1.0.1",
+    "roboname": "~1.0.0",
+    "passport-localapikey": "0.0.3",
+    "passport-strategy": "~1.0.0",
+    "util": "~0.10.3",
+    "uuid": "~2.0.1"
   },
   "devDependencies": {
     "coffee-script": "1.8.x",

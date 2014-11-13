@@ -112,7 +112,7 @@ AgentModel::hasRole = ( role ) ->
 
 AgentModel::hasSomeRoles = ( roles ) ->
   _.some( roles, ( role ) =>
-    @getRoles().indexOf( role ) isnt -1
+    (@getRoles() or []).indexOf( role ) isnt -1
   )
 
 AgentModel::beforeSave = ->

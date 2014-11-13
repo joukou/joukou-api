@@ -67,9 +67,9 @@ verify = function(accessToken, refreshToken, profile, next) {
   }
   promise = null;
   if (profile.email) {
-    promise = AgentModel.retrieveByEmail(profile.email);
+    promise = AgentModel.search("email:" + profile.email, true);
   } else if (profile.id) {
-    promise = AgentModel.retriveByGithubId(profile.id);
+    promise = AgentModel.search("github_id:" + profile.id, true);
   } else {
     next(new UnauthorizedError());
     return;
@@ -87,8 +87,9 @@ verify = function(accessToken, refreshToken, profile, next) {
 
 module.exports = {
   authenticate: null,
+  Strategy: null,
   setup: function(passport) {
-    passport.use(new GithubStrategy({
+    passport.use(this.Strategy = new GithubStrategy({
       clientID: githubEnv.clientId,
       clientSecret: githubEnv.clientSecret,
       callbackURL: githubEnv.callbackUrl,
