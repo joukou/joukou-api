@@ -25,6 +25,10 @@ PersonaModel = Model.define({
   schema: schema
 });
 
+PersonaModel.getForAgent = function(key) {
+  return PersonaModel.search("agents.key:" + key);
+};
+
 PersonaModel.prototype.getName = function() {
   return this.getValue().name;
 };

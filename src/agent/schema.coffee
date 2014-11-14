@@ -61,4 +61,12 @@ module.exports = schema.create(
     type: 'string'
     required: false
     allownull: false
+  github_token:
+    type: 'string'
+    required: false
+    allownull: false
+  github_refresh_token:
+    type: 'string'
+    required: false
+    allownull: false
 )

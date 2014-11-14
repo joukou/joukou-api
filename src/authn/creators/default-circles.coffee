@@ -5,6 +5,7 @@ module.exports =
     description: 'Obtain data from a MySQL database.'
     icon: 'database'
     subgraph: false
+    image: "quay.io/joukou/joukou-circles-mysql"
     inports: [
       {
         id: 'query'
@@ -55,6 +56,7 @@ module.exports =
     description: 'Anonymize data'
     icon: 'user'
     subgraph: false
+    image: "quay.io/joukou/joukou-circles-anonymizer"
     inports: [
       {
         id: 'data'
@@ -89,6 +91,7 @@ module.exports =
     description: 'Publish a search API.'
     icon: 'search'
     subgraph: false
+    image: "quay.io/joukou/joukou-circles-search"
     inports: [
       {
         id: 'data'

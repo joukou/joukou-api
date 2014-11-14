@@ -11,6 +11,7 @@ agent   = require( './agent/routes' )
 contact = require( './contact/routes' )
 persona = require( './persona/routes' )
 runtime = require( './runtime/routes' )
+github  = require( './github/routes' )
 
 module.exports = self =
 
@@ -23,6 +24,7 @@ module.exports = self =
     contact.registerRoutes( server )
     persona.registerRoutes( server )
     runtime.registerRoutes( server )
+    github.registerRoutes( server )
 
     server.get( '/', self.index )
 

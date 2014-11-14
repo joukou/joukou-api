@@ -22,7 +22,7 @@ config        = require( '../config' )
 AgentModel    = require( './model' )
 { UnauthorizedError, NotFoundError } = require( 'restify' )
 env           = require( '../env' )
-passport      = require('passport')
+passport      = require( 'passport' )
 githubEnv     = env.getGithubAuth()
 
 module.exports = self =
@@ -36,6 +36,7 @@ module.exports = self =
     server.post( '/agent', self.create )
     # Post should be handled a different way
     # It should really only be a get
+    server.get( '/agent/authenticate/github', authn.Github.authenticate, self.authenticate )
     server.get( '/agent/authenticate', authn.Github.authenticate, self.authenticate )
     # server.post(  '/agent/authenticate', authn.authenticateOAuth, self.authenticate )
     server.get(  '/agent/authenticate/callback', authn.Github.authenticate, self.callback )

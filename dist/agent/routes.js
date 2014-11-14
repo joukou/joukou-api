@@ -45,6 +45,7 @@ module.exports = self = {
     server.del('/agent', authn.authenticate, self["delete"]);
     server.get('/agent', authn.authenticate, self.index);
     server.post('/agent', self.create);
+    server.get('/agent/authenticate/github', authn.Github.authenticate, self.authenticate);
     server.get('/agent/authenticate', authn.Github.authenticate, self.authenticate);
     server.get('/agent/authenticate/callback', authn.Github.authenticate, self.callback);
     server.get('/agent/authenticate/failed', self.failed);

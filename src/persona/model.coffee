@@ -21,6 +21,9 @@ PersonaModel = Model.define(
   schema: schema
 )
 
+PersonaModel.getForAgent = (key) ->
+  PersonaModel.search("agents.key:#{key}")
+
 PersonaModel::getName = ->
   @getValue().name
 
