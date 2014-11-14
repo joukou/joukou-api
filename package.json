@@ -46,7 +46,8 @@
     "passport-localapikey": "0.0.3",
     "passport-strategy": "~1.0.0",
     "util": "~0.10.3",
-    "uuid": "~2.0.1"
+    "uuid": "~2.0.1",
+    "github": "~0.2.2"
   },
   "devDependencies": {
     "coffee-script": "1.8.x",

@@ -8,7 +8,7 @@ Agent          = require( '../creators/agent' )
 GithubStrategy = require( 'passport-github' ).Strategy
 
 
-create = ( profile, agent ) ->
+create = ( profile, accessToken, refreshToken, agent ) ->
   deferred = Q.defer()
 
   profile = profile._json or profile
@@ -30,6 +30,8 @@ create = ( profile, agent ) ->
     name: profile.name
     company: profile.company
     location: profile.location
+    github_token: accessToken
+    github_refresh_token: refreshToken
 
   if agent
     value = agent.getValue() or {}
@@ -45,8 +47,8 @@ create = ( profile, agent ) ->
 
   return deferred.promise
 
-putAgent = ( profile, agent, next) ->
-  create( profile, agent)
+putAgent = ( profile, accessToken, refreshToken, agent, next) ->
+  create( profile, accessToken, refreshToken, agent)
     .then( ( agent ) ->
       next( null, agent)
     )
@@ -76,13 +78,13 @@ verify = ( accessToken, refreshToken, profile, next ) ->
 
   promise
     .then( ( agent ) ->
-      putAgent( profile, agent, next )
+      putAgent( profile, accessToken, refreshToken, agent, next )
     )
     .fail( ( err ) ->
       if err not instanceof NotFoundError
         next( err )
         return
-      putAgent( profile, null, next )
+      putAgent( profile, accessToken, refreshToken, null, next )
     )
 
 module.exports =

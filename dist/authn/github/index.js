@@ -16,7 +16,7 @@ Agent = require('../creators/agent');
 
 GithubStrategy = require('passport-github').Strategy;
 
-create = function(profile, agent) {
+create = function(profile, accessToken, refreshToken, agent) {
   var deferred, value, values;
   deferred = Q.defer();
   profile = profile._json || profile;
@@ -37,7 +37,9 @@ create = function(profile, agent) {
     github_url: profile.url,
     name: profile.name,
     company: profile.company,
-    location: profile.location
+    location: profile.location,
+    github_token: accessToken,
+    github_refresh_token: refreshToken
   };
   if (agent) {
     value = agent.getValue() || {};
@@ -50,8 +52,8 @@ create = function(profile, agent) {
   return deferred.promise;
 };
 
-putAgent = function(profile, agent, next) {
-  return create(profile, agent).then(function(agent) {
+putAgent = function(profile, accessToken, refreshToken, agent, next) {
+  return create(profile, accessToken, refreshToken, agent).then(function(agent) {
     return next(null, agent);
   }).fail(function(err) {
     return next(err);
@@ -75,13 +77,13 @@ verify = function(accessToken, refreshToken, profile, next) {
     return;
   }
   return promise.then(function(agent) {
-    return putAgent(profile, agent, next);
+    return putAgent(profile, accessToken, refreshToken, agent, next);
   }).fail(function(err) {
     if (!(err instanceof NotFoundError)) {
       next(err);
       return;
     }
-    return putAgent(profile, null, next);
+    return putAgent(profile, accessToken, refreshToken, null, next);
   });
 };
 
