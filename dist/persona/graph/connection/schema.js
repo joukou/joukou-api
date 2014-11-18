@@ -11,6 +11,10 @@ schema = require('schemajs');
 port = require('./port/schema');
 
 module.exports = schema.create({
+  key: {
+    type: "string+",
+    required: true
+  },
   metadata: {
     type: "object"
   },

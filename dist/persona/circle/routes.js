@@ -9,19 +9,21 @@ Circles will be added.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var CircleModel, self, _;
+var CircleModel, CircleRoutes, self, _;
 
-CircleModel = require('./model');
+CircleModel = require('../../circle/model');
 
 _ = require('lodash');
+
+CircleRoutes = require('../../circle/routes');
 
 module.exports = self = {
   registerRoutes: function(server) {
     server.get('/persona/:personaKey/circle', self.index);
-    server.get('/persona/:personaKey/circle/:circleKey', self.retrieve);
+    server.get('/persona/:personaKey/circle', self.retrieve);
   },
   retrieve: function(req, res, next) {
-    return res.send(503);
+    return CircleRoutes.retrieve(req, res, next);
   },
   index: function(req, res, next) {
     return CircleModel.retrieveByPersona(req.params.personaKey).then(function(circles) {
@@ -33,16 +35,14 @@ module.exports = self = {
             var value;
             value = circle.getValue();
             value.key = circle.getKey();
-            if (req.accepts('application/hal+json')) {
-              value._links = {
-                self: {
-                  href: "/persona/" + req.params.personaKey + "/circle/" + (circle.getKey())
-                },
-                'joukou:persona': {
-                  href: "/persona/" + req.params.personaKey
-                }
-              };
-            }
+            value._links = {
+              self: {
+                href: "/persona/" + req.params.personaKey + "/circle/" + (circle.getKey())
+              },
+              'joukou:persona': {
+                href: "/persona/" + req.params.personaKey
+              }
+            };
             return value;
           })
         };

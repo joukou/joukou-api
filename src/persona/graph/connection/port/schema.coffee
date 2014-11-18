@@ -9,8 +9,11 @@ schema = require( 'schemajs' )
 module.exports = schema.create(
   process:
     type: "string+"
-    required: true
+    required: yes
   port:
     type: "string+"
-    required: true
+    required: yes
+  metadata:
+    type: "object"
+    required: no
 )

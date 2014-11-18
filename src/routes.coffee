@@ -12,6 +12,7 @@ contact = require( './contact/routes' )
 persona = require( './persona/routes' )
 runtime = require( './runtime/routes' )
 github  = require( './github/routes' )
+circle  = require( './circle/routes' )
 
 module.exports = self =
 
@@ -25,6 +26,7 @@ module.exports = self =
     persona.registerRoutes( server )
     runtime.registerRoutes( server )
     github.registerRoutes( server )
+    circle.registerRoutes( server )
 
     server.get( '/', self.index )
 

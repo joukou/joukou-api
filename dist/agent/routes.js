@@ -13,7 +13,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, env, githubEnv, jwt, passport, self, _, _ref;
+var AgentModel, NotFoundError, UnauthorizedError, authn, authz, config, env, githubEnv, graph_routes, jwt, passport, self, _, _ref;
 
 _ = require('lodash');
 
@@ -35,6 +35,8 @@ passport = require('passport');
 
 githubEnv = env.getGithubAuth();
 
+graph_routes = require('./graph/routes');
+
 module.exports = self = {
 
   /**
@@ -49,7 +51,8 @@ module.exports = self = {
     server.get('/agent/authenticate', authn.Github.authenticate, self.authenticate);
     server.get('/agent/authenticate/callback', authn.Github.authenticate, self.callback);
     server.get('/agent/authenticate/failed', self.failed);
-    return server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
+    server.get('/agent/:agentKey', authn.authenticate, self.retrieve);
+    return graph_routes.registerRoutes(server);
   },
   "delete": function(req, res, next) {
     if (!req.user) {

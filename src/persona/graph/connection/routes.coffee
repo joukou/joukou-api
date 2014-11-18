@@ -13,6 +13,7 @@ authn             = require( '../../../authn' )
 hal               = require( '../../../hal' )
 GraphModel        = require( '../model' )
 ConnectionSchema  = require( './schema')
+_                 = require( 'lodash' )
 
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
 
@@ -34,6 +35,10 @@ module.exports = self =
     server.get(
       '/persona/:personaKey/graph/:graphKey/connection/:connectionKey',
       authn.authenticate, self.retrieve
+    )
+    server.del(
+      '/persona/:personaKey/graph/:graphKey/connection/:connectionKey',
+      authn.authenticate, self.remove
     )
     return
 
@@ -77,14 +82,24 @@ module.exports = self =
               max: 2
               match: '/persona/:personaKey/graph/:graphKey/process/:key'
               name:
-                required: true
+                required: yes
                 type: 'enum'
                 values: [ 'src', 'tgt' ]
+              properties: {
+                port:
+                  required: yes
+                  type: 'string'
+                matadata:
+                  required: no
+                  type: 'object'
+              }
         )
 
         for process in document.links[ 'joukou:process' ]
           data[ process.name ] =
-            key: process.key # TODO process.port
+            process: process.key
+            port: process.port
+            metadata: process.metadata or {}
 
         graph.addConnection( data ).then( ( connection ) ->
           graph.save().then( ->
@@ -100,3 +115,32 @@ module.exports = self =
 
   retrieve: ( req, res, next ) ->
     res.send( 503 )
+
+  ###
+  @api {delete} /persona/:personaKey/graph/:graphKey/connection/:connectionKey Remove connection from a grapg
+  @apiName ConnectionRemove
+  @apiGroup Graph
+  @apiParam {String} personaKey Persona's unique key
+  @apiParam {String} graphKey Graph's unique key
+  @apiParam {String} connectionKey Connection's unique key
+  ###
+
+  ###*
+  Handles a request for removing a *Connections* from a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  remove: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      value = graph.getValue()
+      connections = value.connections or (value.connections = [])
+      _.remove(connections, (connection) ->
+        return connection.key is req.params.connectionKey
+      )
+      graph.setValue(value)
+      graph.save()
+      .then(->
+        res.send(204)
+      )
+    ).fail( ( err ) -> next( err ) )

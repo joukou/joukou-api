@@ -26,6 +26,11 @@ PersonaModel = Model.define({
 });
 
 PersonaModel.getForAgent = function(key) {
+  if (key instanceof Object) {
+    if (key["getKey"] instanceof Function) {
+      key = key["getKey"]();
+    }
+  }
   return PersonaModel.search("agents.key:" + key);
 };
 

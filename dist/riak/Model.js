@@ -196,6 +196,20 @@ module.exports = {
         return deferred.promise;
       };
 
+      _Class.likeQuery = function(key, value) {
+        var split, val, values, _i, _len;
+        values = [];
+        split = value.split(" ");
+        for (_i = 0, _len = split.length; _i < _len; _i++) {
+          val = split[_i];
+          values.push("" + key + ":*" + val + "*");
+        }
+        if (values.length === 0) {
+          return "";
+        }
+        return " (" + (values.join(" AND ")) + ") ";
+      };
+
       _Class.search = function(q, opts) {
         var deferred;
         deferred = Q.defer();

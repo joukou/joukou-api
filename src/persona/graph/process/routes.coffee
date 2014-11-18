@@ -29,6 +29,14 @@ module.exports = self =
       '/persona/:personaKey/graph/:graphKey/process',
       authn.authenticate, self.create
     )
+    server.put(
+      '/persona/:personaKey/graph/:graphKey/process/:processKey',
+      authn.authenticate, self.update
+    )
+    server.put(
+      '/persona/:personaKey/graph/:graphKey/process/:processKey/position',
+      authn.authenticate, self.updatePosition
+    )
     server.get(
       '/persona/:personaKey/graph/:graphKey/process/:processKey',
       authn.authenticate, self.retrieve
@@ -116,6 +124,7 @@ module.exports = self =
           graph.save().then( ->
             self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
             res.link( self, 'joukou:process' )
+            res.link( "#{self}/position", 'joukou:process-update:position' )
             res.header( 'Location', self )
             res.send( 201, {} )
           )
@@ -153,3 +162,86 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
     return
+
+  ###
+  @api {put} /persona/:personaKey/graph/:graphKey/process/:processKey
+  @apiName UpdateProcess
+  @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to update a *Process* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  update: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+        data = {}
+        data.metadata = req.body.metadata
+
+        document = hal.parse( req.body,
+          links:
+            'joukou:circle':
+              min: 1
+              max: 1
+              match: '/persona/:personaKey/circle/:key'
+        )
+
+        unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
+          throw new ForbiddenError( 'attempt to use a circle from a different persona' )
+
+        data.circle =
+          key: document.links[ 'joukou:circle' ]?[ 0 ].key
+        #console.log(require('util').inspect(data, depth: 10))
+
+        value = graph.getValue()
+        value.processes[req.params.processKey] = data
+        graph.setValue(value)
+
+        graph.save().then( ->
+          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
+          res.link( self, 'joukou:process' )
+          res.link( "#{self}/position", 'joukou:process-update:position' )
+          res.header( 'Location', self )
+          res.send( 200, {} )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
+
+  ###
+  @api {put} /persona/:personaKey/graph/:graphKey/process/:processKey/position
+  @apiName UpdateProcessPosition
+  @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to update a *Process* position for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  updatePosition: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+
+        value = graph.getValue()
+        process = value.processes[req.params.processKey]
+        process.metadata.x = req.body.x
+        process.metadata.y = req.body.y
+        graph.setValue(value)
+
+        graph.save().then( ->
+          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
+          res.link( self, 'joukou:process' )
+          res.link( "#{self}/position", 'joukou:process-update:position' )
+          res.header( 'Location', self )
+          res.send( 200, {} )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
