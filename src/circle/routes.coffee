@@ -18,7 +18,6 @@ module.exports = self =
 
   retrieve: ( req, res, next ) ->
 
-
   remove: ( req, res, next ) ->
 
   create: ( req, res, next ) ->
@@ -27,41 +26,55 @@ module.exports = self =
     PersonaModel.getForAgent(req.user)
     .then((personas) ->
       promises = _.map(personas, (persona) ->
-        like = CircleModel.likeQuery("name", req.params.name)
+        like = CircleModel.likeQuery("name", req.params.name, "AND")
         CircleModel.search(
           """
           personas.key:#{persona.getKey()} AND
           #{like}
           """
+        ).then((result) ->
+          return {
+            persona: persona,
+            result: result
+          }
         )
       )
       Q.all(
         promises
       )
-      .then((circles) ->
+      .then((results) ->
         representation = {}
-        representation.result = _.map(_.flatten(circles, true), (circle) ->
-          value = circle.getValue()
+        representation.result = _.map(_.flatten(results, true), (result) ->
           return {
-            key: circle.getKey()
-            name: value.name
-            description: value.description
-            icon: value.icon
-            subgraph: value.subgraph
-            image: value.image
-          }
-        )
-        if req.accepts("application/hal+json")
-          representation["_embedded"] = {
-            "joukou:circle": _.map(representation.result, (circle) ->
-              circle = _.cloneDeep(circle)
-              circle._links =
-                self:
-                  href: "/circle/#{circle.key}"
-              return circle
+            persona: result.persona
+            result: _.map(result.result, (circle) ->
+              value = circle.getValue()
+              value.key = circle.getKey()
+              return value
             )
           }
 
+        )
+        if req.accepts("application/hal+json")
+          circles = _.map(representation.result, (result) ->
+            persona = result.persona
+            return _.map(result.result, (circle) ->
+              circle = _.cloneDeep(circle)
+              circle._links =
+                self:
+                  href: "/persona/#{persona.getKey()}/circle/#{circle.key}"
+                'joukou:persona':
+                  href: "/persona/#{persona.getKey()}"
+              return circle
+            )
+          )
+          representation["_embedded"] = {
+            "joukou:circle": _.flatten(circles, true)
+          }
+        representation.result = _.map(representation.result, (result) ->
+          return result.result
+        )
+        representation.result = _.flatten(representation.result, true)
 
         res.send(200, representation)
       )

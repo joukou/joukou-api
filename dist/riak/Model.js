@@ -196,10 +196,16 @@ module.exports = {
         return deferred.promise;
       };
 
-      _Class.likeQuery = function(key, value) {
+      _Class.likeQuery = function(key, value, op) {
         var split, val, values, _i, _len;
+        if (op == null) {
+          op = "";
+        }
+        if (!value || !value.trim()) {
+          return;
+        }
         values = [];
-        split = value.split(" ");
+        split = value.trim().split(" ");
         for (_i = 0, _len = split.length; _i < _len; _i++) {
           val = split[_i];
           values.push("" + key + ":*" + val + "*");
@@ -207,7 +213,7 @@ module.exports = {
         if (values.length === 0) {
           return "";
         }
-        return " (" + (values.join(" AND ")) + ") ";
+        return " (" + (values.join(" " + op + " ")) + ") ";
       };
 
       _Class.search = function(q, opts) {
