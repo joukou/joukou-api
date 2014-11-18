@@ -335,7 +335,7 @@ module.exports = self = {
             metadata.scale = state.scale;
             setupStateLink(state);
             return stateDeferred.resolve(model);
-          }).fail(function() {
+          }).fail(function(err) {
             var state;
             state = {
               x: 0,

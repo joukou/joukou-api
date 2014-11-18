@@ -19,7 +19,7 @@ GraphStateModel.retrieveForGraph = function(agentKey, graphKey) {
 };
 
 GraphStateModel.put = function(agentKey, graphKey, state) {
-  var data, deferred, save;
+  var data, deferred, numberOr, save;
   if (state == null) {
     state = {};
   }
@@ -29,12 +29,21 @@ GraphStateModel.put = function(agentKey, graphKey, state) {
       return deferred.resolve(model);
     }).fail(deferred.reject);
   };
+  numberOr = function(number, other) {
+    if (typeof number !== 'number') {
+      return other;
+    }
+    if (isNaN(number)) {
+      return other;
+    }
+    return number;
+  };
   data = {
     agent_key: agentKey,
     graph_key: graphKey,
-    x: state.x || 0,
-    y: state.y || 0,
-    scale: state.scale === void 0 || state.scale === null ? 1 : state.scale,
+    x: numberOr(state.x),
+    y: numberOr(state.y),
+    scale: numberOr(state.scale),
     metadata: state.metadata || {}
   };
   GraphStateModel.retrieveForGraph(agentKey, graphKey).then(function(model) {

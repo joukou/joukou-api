@@ -294,7 +294,7 @@ module.exports = self =
             metadata.scale = state.scale
             setupStateLink(state)
             stateDeferred.resolve(model)
-          ).fail( ->
+          ).fail( (err) ->
             state = {
               x: 0
               y: 0
