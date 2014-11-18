@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<schema name="agent" version="1.5">
+<schema name="circle" version="1.5">
   <fields>
     <field name="name" type="string" indexed="true" stored="false"></field>
     <field name="personas.key" type="string" indexed="true" stored="true" multiValued="true"></field>

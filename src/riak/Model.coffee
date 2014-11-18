@@ -162,14 +162,16 @@ module.exports =
 
         deferred.promise
 
-      @likeQuery = (key, value) ->
+      @likeQuery = (key, value, op = "") ->
+        if not value or not value.trim()
+          return
         values = []
-        split = value.split(" ")
+        split = value.trim().split(" ")
         for val in split
           values.push("#{key}:*#{val}*")
         if values.length is 0
           return ""
-        return " (#{values.join(" AND ")}) "
+        return " (#{values.join(" #{op} ")}) "
 
       @search = ( q, opts ) ->
         deferred = Q.defer()
