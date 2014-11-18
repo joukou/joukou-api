@@ -25,12 +25,19 @@ GraphStateModel.put = ( agentKey, graphKey, state = {}) ->
     )
     .fail(deferred.reject)
 
+  numberOr = (number, other) ->
+    if typeof number isnt 'number'
+      return other
+    if isNaN(number)
+      return other
+    return number
+
   data = {
     agent_key: agentKey
     graph_key: graphKey
-    x: state.x or 0
-    y: state.y or 0
-    scale: if state.scale is undefined or state.scale is null then 1 else state.scale
+    x: numberOr(state.x, 0)
+    y: numberOr(state.y, 0)
+    scale: numberOr(state.scale, 1)
     metadata: state.metadata or {}
   }
 
