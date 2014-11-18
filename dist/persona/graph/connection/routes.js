@@ -8,7 +8,7 @@ the ability to inspect and create *Connections* for a *Graph*.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ConnectionSchema, ForbiddenError, GraphModel, NotFoundError, UnauthorizedError, authn, hal, self, _ref;
+var ConnectionSchema, ForbiddenError, GraphModel, NotFoundError, UnauthorizedError, authn, hal, self, _, _ref;
 
 authn = require('../../../authn');
 
@@ -17,6 +17,8 @@ hal = require('../../../hal');
 GraphModel = require('../model');
 
 ConnectionSchema = require('./schema');
+
+_ = require('lodash');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 
@@ -30,6 +32,7 @@ module.exports = self = {
     server.get('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.index);
     server.post('/persona/:personaKey/graph/:graphKey/connection', authn.authenticate, self.create);
     server.get('/persona/:personaKey/graph/:graphKey/connection/:connectionKey', authn.authenticate, self.retrieve);
+    server.del('/persona/:personaKey/graph/:graphKey/connection/:connectionKey', authn.authenticate, self.remove);
   },
 
   /*
@@ -74,6 +77,16 @@ module.exports = self = {
                 required: true,
                 type: 'enum',
                 values: ['src', 'tgt']
+              },
+              properties: {
+                port: {
+                  required: true,
+                  type: 'string'
+                },
+                matadata: {
+                  required: false,
+                  type: 'object'
+                }
               }
             }
           }
@@ -82,7 +95,9 @@ module.exports = self = {
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           process = _ref1[_i];
           data[process.name] = {
-            key: process.key
+            process: process.key,
+            port: process.port,
+            metadata: process.metadata || {}
           };
         }
         return graph.addConnection(data).then(function(connection) {
@@ -100,6 +115,38 @@ module.exports = self = {
   },
   retrieve: function(req, res, next) {
     return res.send(503);
+  },
+
+  /*
+  @api {delete} /persona/:personaKey/graph/:graphKey/connection/:connectionKey Remove connection from a grapg
+  @apiName ConnectionRemove
+  @apiGroup Graph
+  @apiParam {String} personaKey Persona's unique key
+  @apiParam {String} graphKey Graph's unique key
+  @apiParam {String} connectionKey Connection's unique key
+   */
+
+  /**
+  Handles a request for removing a *Connections* from a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+   */
+  remove: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      var connections, value;
+      value = graph.getValue();
+      connections = value.connections || (value.connections = []);
+      _.remove(connections, function(connection) {
+        return connection.key === req.params.connectionKey;
+      });
+      graph.setValue(value);
+      return graph.save().then(function() {
+        return res.send(204);
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   }
 };
 

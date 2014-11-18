@@ -13,6 +13,7 @@ _           = require('lodash')
 assert      = require('assert-plus')
 regexp      = require( './regexp' )
 { ForbiddenError } = require( 'restify' )
+schemajs    = require( 'schemajs' )
 
 module.exports =
   ###*
@@ -101,6 +102,8 @@ module.exports =
         else
           @_links[ rel ] = _.extend( props, href: href )
 
+
+
       next()
 
   parse: ( hal, schema ) ->
@@ -159,6 +162,16 @@ module.exports =
                 unless link.name in definition.name.values
                   throw new ForbiddenError( "the link relation type #{rel} requires a name property value that is one of: " + definition.name.values.join(', ') )
               obj.name = link.name
+
+          if _.isPlainObject(definition.properties)
+            for key of definition.properties
+              if not definition.properties.hasOwnProperty(key)
+                continue
+              schema = definition.properties[key]
+              form = schemajs.test(link[key], schema)
+              if not form.valid
+                throw new ForbiddenError(form.errors[0])
+              obj[key] = link[key]
 
           (result.links[ rel ] ?= []).push( obj )
 

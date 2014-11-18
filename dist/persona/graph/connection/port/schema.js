@@ -16,6 +16,10 @@ module.exports = schema.create({
   port: {
     type: "string+",
     required: true
+  },
+  metadata: {
+    type: "object",
+    required: false
   }
 });
 

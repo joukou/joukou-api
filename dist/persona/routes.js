@@ -11,7 +11,7 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var PersonaModel, async, authn, authz, circle_routes, graph_routes, hal, request, robot_routes, self, _;
+var PersonaCreator, PersonaModel, async, authn, authz, circle_routes, graph_routes, hal, request, robot_routes, self, _;
 
 _ = require('lodash');
 
@@ -32,6 +32,8 @@ graph_routes = require('./graph/routes');
 robot_routes = require('./robot/routes');
 
 PersonaModel = require('./model');
+
+PersonaCreator = require('../authn/creators/persona');
 
 module.exports = self = {
 
@@ -198,7 +200,7 @@ module.exports = self = {
       key: req.user.getKey(),
       role: 'creator'
     });
-    PersonaModel.create(data).then(function(persona) {
+    PersonaCreator.create(data.name, data.agents).then(function(persona) {
       return persona.save();
     }).then(function(persona) {
       self = "/persona/" + (persona.getKey());

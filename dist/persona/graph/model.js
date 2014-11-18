@@ -15,7 +15,7 @@ the *Connections* between them.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ConflictError, GraphModel, Model, PersonaModel, Q, schema, uuid, _;
+var ConflictError, ConnectionSchema, GraphModel, Model, PersonaModel, Q, schema, uuid, _;
 
 _ = require('lodash');
 
@@ -30,6 +30,8 @@ schema = require('./schema');
 PersonaModel = require('../model');
 
 ConflictError = require('restify').ConflictError;
+
+ConnectionSchema = require('./connection/schema');
 
 GraphModel = Model.define({
   type: 'graph',
@@ -71,7 +73,7 @@ GraphModel.prototype.getProcesses = function() {
 };
 
 GraphModel.prototype.addConnection = function(_arg) {
-  var connection, data, deferred, metadata, src, tgt;
+  var connection, connections, data, deferred, form, metadata, src, tgt, value;
   data = _arg.data, src = _arg.src, tgt = _arg.tgt, metadata = _arg.metadata;
   deferred = Q.defer();
   if (this._hasConnection({
@@ -91,12 +93,21 @@ GraphModel.prototype.addConnection = function(_arg) {
       tgt: tgt,
       metadata: metadata
     };
-    this.getValue().connections.push(connection);
+    form = ConnectionSchema.validate(connection);
+    if (!form.valid) {
+      process.nextTick(function() {
+        return deferred.reject(form.errors);
+      });
+      return deferred.promise;
+    }
+    value = this.getValue();
+    connections = value.connections || (value.connections = []);
+    connections.push(connection);
     process.nextTick(function() {
       return deferred.resolve(connection);
     });
   }
-  return deferred;
+  return deferred.promise;
 };
 
 GraphModel.prototype._hasConnection = function(_arg) {

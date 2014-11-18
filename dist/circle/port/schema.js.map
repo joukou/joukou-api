@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "schema.js",
-  "sourceRoot": "../../../../src/persona/circle/port",
+  "sourceRoot": "../../../src/circle/port",
   "sources": [
     "schema.coffee"
   ],

@@ -22,6 +22,10 @@ PersonaModel = Model.define(
 )
 
 PersonaModel.getForAgent = (key) ->
+  if key instanceof Object
+    if key["getKey"] instanceof Function
+      key = key["getKey"]()
+
   PersonaModel.search("agents.key:#{key}")
 
 PersonaModel::getName = ->

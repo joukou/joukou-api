@@ -9,7 +9,7 @@
 
 application/hal+json middleware for restify.
  */
-var ForbiddenError, assert, regexp, _,
+var ForbiddenError, assert, regexp, schemajs, _,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 _ = require('lodash');
@@ -19,6 +19,8 @@ assert = require('assert-plus');
 regexp = require('./regexp');
 
 ForbiddenError = require('restify').ForbiddenError;
+
+schemajs = require('schemajs');
 
 module.exports = {
 
@@ -118,7 +120,7 @@ module.exports = {
     };
   },
   parse: function(hal, schema) {
-    var definition, keys, link, links, obj, rel, result, values, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4;
+    var definition, form, key, keys, link, links, obj, rel, result, values, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4;
     result = {
       links: {},
       embedded: {}
@@ -173,6 +175,19 @@ module.exports = {
                 }
               }
               obj.name = link.name;
+            }
+          }
+          if (_.isPlainObject(definition.properties)) {
+            for (key in definition.properties) {
+              if (!definition.properties.hasOwnProperty(key)) {
+                continue;
+              }
+              schema = definition.properties[key];
+              form = schemajs.test(link[key], schema);
+              if (!form.valid) {
+                throw new ForbiddenError(form.errors[0]);
+              }
+              obj[key] = link[key];
             }
           }
           ((_base = result.links)[rel] != null ? _base[rel] : _base[rel] = []).push(obj);

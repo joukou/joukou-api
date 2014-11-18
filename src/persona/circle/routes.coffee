@@ -9,18 +9,19 @@ Circles will be added.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
-CircleModel = require( './model' )
-_           = require( 'lodash' )
+CircleModel  = require( '../../circle/model' )
+_            = require( 'lodash' )
+CircleRoutes = require( '../../circle/routes' )
 
 module.exports = self =
 
   registerRoutes: ( server ) ->
     server.get( '/persona/:personaKey/circle', self.index )
-    server.get( '/persona/:personaKey/circle/:circleKey', self.retrieve )
+    server.get( '/persona/:personaKey/circle', self.retrieve )
     return
 
-  retrieve: ( req, res, next ) ->
-    res.send(503)
+  retrieve: (req, res, next) ->
+    CircleRoutes.retrieve(req, res, next)
 
   index: ( req, res, next ) ->
     CircleModel.retrieveByPersona(req.params.personaKey)
@@ -32,12 +33,11 @@ module.exports = self =
               _.map(circles, (circle) ->
                 value = circle.getValue()
                 value.key = circle.getKey()
-                if req.accepts('application/hal+json')
-                  value._links =
-                    self:
-                      href: "/persona/#{req.params.personaKey}/circle/#{circle.getKey()}"
-                    'joukou:persona':
-                      href: "/persona/#{req.params.personaKey}"
+                value._links =
+                  self:
+                    href: "/persona/#{req.params.personaKey}/circle/#{circle.getKey()}"
+                  'joukou:persona':
+                    href: "/persona/#{req.params.personaKey}"
                 return value
               )
         else

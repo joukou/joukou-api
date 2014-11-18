@@ -23,6 +23,7 @@ Model             = require( '../../riak/Model' )
 schema            = require( './schema' )
 PersonaModel      = require( '../model' )
 { ConflictError } = require( 'restify' )
+ConnectionSchema  = require( './connection/schema' )
 
 GraphModel = Model.define(
   type: 'graph'
@@ -67,11 +68,21 @@ GraphModel::addConnection = ( { data, src, tgt, metadata } ) ->
       tgt: tgt
       metadata: metadata
 
-    @getValue().connections.push( connection )
+    form = ConnectionSchema.validate(connection)
+    if not form.valid
+      process.nextTick( ->
+        deferred.reject(form.errors)
+      )
+      return deferred.promise
+
+
+    value = @getValue()
+    connections = value.connections or (value.connections = [])
+    connections.push( connection )
 
     process.nextTick( -> deferred.resolve( connection ) )
 
-  deferred
+  deferred.promise
 
 GraphModel::_hasConnection = ( { src, tgt } ) ->
   _.some( @getValue().connections, ( connection ) ->

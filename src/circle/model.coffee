@@ -1,5 +1,5 @@
 
-Model   = require( '../../riak/Model' )
+Model   = require( '../riak/Model' )
 schema  = require( './schema' )
 Q       = require( 'q' )
 
@@ -14,7 +14,7 @@ CircleModel.afterCreate = (circle) ->
   return Q.resolve(circle)
 
 CircleModel.retrieveByPersona = ( key ) ->
-  CircleModel.search( "personas.key:#{key}", 'personas.key' )
+  CircleModel.search( "personas.key:#{key}" )
 
 CircleModel::beforeSave = ->
 

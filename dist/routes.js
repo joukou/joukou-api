@@ -6,7 +6,7 @@
 @author Juan Morales <juan@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var agent, contact, github, persona, runtime, self;
+var agent, circle, contact, github, persona, runtime, self;
 
 agent = require('./agent/routes');
 
@@ -17,6 +17,8 @@ persona = require('./persona/routes');
 runtime = require('./runtime/routes');
 
 github = require('./github/routes');
+
+circle = require('./circle/routes');
 
 module.exports = self = {
 
@@ -30,6 +32,7 @@ module.exports = self = {
     persona.registerRoutes(server);
     runtime.registerRoutes(server);
     github.registerRoutes(server);
+    circle.registerRoutes(server);
     return server.get('/', self.index);
   },
 

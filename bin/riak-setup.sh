@@ -29,4 +29,11 @@ sleep 10
 riak-admin bucket-type create circle '{"props":{"search_index":"circle","allow_mult":false}}'
 riak-admin bucket-type activate circle
 
+
+curl -XPUT http://localhost:8098/search/schema/graph_state -H'content-type:application/xml' --data-binary @dist/agent/graph/state/schema.xml
+curl -XPUT http://localhost:8098/search/index/graph_state -H'content-type:application/json' -d'{"schema":"graph_state"}'
+sleep 10
+riak-admin bucket-type create graph_state '{"props":{"search_index":"graph_state","allow_mult":false}}'
+riak-admin bucket-type activate graph_state
+
 sleep 2

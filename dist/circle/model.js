@@ -1,6 +1,6 @@
 var CircleModel, Model, Q, schema;
 
-Model = require('../../riak/Model');
+Model = require('../riak/Model');
 
 schema = require('./schema');
 
@@ -18,7 +18,7 @@ CircleModel.afterCreate = function(circle) {
 };
 
 CircleModel.retrieveByPersona = function(key) {
-  return CircleModel.search("personas.key:" + key, 'personas.key');
+  return CircleModel.search("personas.key:" + key);
 };
 
 CircleModel.prototype.beforeSave = function() {};

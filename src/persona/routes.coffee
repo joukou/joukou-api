@@ -12,16 +12,17 @@
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-_             = require( 'lodash' )
-async         = require( 'async' )
-authn         = require( '../authn' )
-authz         = require( '../authz' )
-hal           = require( '../hal' )
-request       = require( 'request' )
-circle_routes = require( './circle/routes' )
-graph_routes  = require( './graph/routes' )
-robot_routes  = require( './robot/routes' )
-PersonaModel  = require( './model' )
+_              = require( 'lodash' )
+async          = require( 'async' )
+authn          = require( '../authn' )
+authz          = require( '../authz' )
+hal            = require( '../hal' )
+request        = require( 'request' )
+circle_routes  = require( './circle/routes' )
+graph_routes   = require( './graph/routes' )
+robot_routes   = require( './robot/routes' )
+PersonaModel   = require( './model' )
+PersonaCreator = require( '../authn/creators/persona' )
 
 module.exports = self =
 
@@ -171,7 +172,11 @@ module.exports = self =
       role: 'creator'
     )
 
-    PersonaModel.create( data ).then( ( persona ) ->
+    PersonaCreator.create(
+      data.name
+      data.agents
+    )
+    .then( ( persona ) ->
       persona.save()
     )
     .then( ( persona ) ->

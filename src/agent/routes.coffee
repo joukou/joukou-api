@@ -24,6 +24,7 @@ AgentModel    = require( './model' )
 env           = require( '../env' )
 passport      = require( 'passport' )
 githubEnv     = env.getGithubAuth()
+graph_routes  = require( './graph/routes' )
 
 module.exports = self =
   ###*
@@ -42,6 +43,7 @@ module.exports = self =
     server.get(  '/agent/authenticate/callback', authn.Github.authenticate, self.callback )
     server.get(  '/agent/authenticate/failed', self.failed )
     server.get(  '/agent/:agentKey', authn.authenticate, self.retrieve )
+    graph_routes.registerRoutes( server )
   
   delete: ( req, res, next ) ->
     if not req.user

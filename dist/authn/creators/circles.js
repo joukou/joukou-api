@@ -4,7 +4,7 @@ Q = require('q');
 
 circles = require('./default-circles');
 
-CircleModel = require('../../persona/circle/model');
+CircleModel = require('../../circle/model');
 
 _ = require('lodash');
 
