@@ -20,13 +20,15 @@ module.exports = self = {
       return res.send(200, {
         scale: state.scale,
         x: state.x,
-        y: state.y
+        y: state.y,
+        metadata: state.metadata || {}
       });
     }).fail(function() {
       return res.send(200, {
         scale: 1,
         x: 0,
-        y: 0
+        y: 0,
+        metadata: {}
       });
     });
   },

@@ -209,9 +209,12 @@ module.exports = self =
             name: graph.getValue().name
             metadata: {
               key: req.params.graphKey
-              x: 0
-              y: 0
-              scale: 1
+              state: {
+                x: 0
+                y: 0
+                scale: 1
+                metadata: {}
+              }
             }
 
           processPort = (port) ->
@@ -289,9 +292,12 @@ module.exports = self =
           ).then( (model) ->
             state = model.getValue()
             metadata = representation.properties.metadata
-            metadata.x = state.x
-            metadata.y = state.y
-            metadata.scale = state.scale
+            metadata.state = {
+              x: state.x
+              y: state.y
+              scale: state.scale
+              metadata: state.metadata or {}
+            }
             setupStateLink(state)
             stateDeferred.resolve(model)
           ).fail( (err) ->
@@ -299,6 +305,7 @@ module.exports = self =
               x: 0
               y: 0
               scale: 1
+              metadata: {}
             }
             setupStateLink(state)
             stateDeferred.resolve(state)

@@ -41,9 +41,9 @@ GraphStateModel.put = function(agentKey, graphKey, state) {
   data = {
     agent_key: agentKey,
     graph_key: graphKey,
-    x: numberOr(state.x),
-    y: numberOr(state.y),
-    scale: numberOr(state.scale),
+    x: numberOr(state.x, 0),
+    y: numberOr(state.y, 0),
+    scale: numberOr(state.scale, 1),
     metadata: state.metadata || {}
   };
   GraphStateModel.retrieveForGraph(agentKey, graphKey).then(function(model) {
