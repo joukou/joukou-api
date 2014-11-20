@@ -249,9 +249,12 @@ module.exports = self = {
             name: graph.getValue().name,
             metadata: {
               key: req.params.graphKey,
-              x: 0,
-              y: 0,
-              scale: 1
+              state: {
+                x: 0,
+                y: 0,
+                scale: 1,
+                metadata: {}
+              }
             }
           };
           processPort = function(port) {
@@ -330,9 +333,12 @@ module.exports = self = {
             var metadata, state;
             state = model.getValue();
             metadata = representation.properties.metadata;
-            metadata.x = state.x;
-            metadata.y = state.y;
-            metadata.scale = state.scale;
+            metadata.state = {
+              x: state.x,
+              y: state.y,
+              scale: state.scale,
+              metadata: state.metadata || {}
+            };
             setupStateLink(state);
             return stateDeferred.resolve(model);
           }).fail(function(err) {
@@ -340,7 +346,8 @@ module.exports = self = {
             state = {
               x: 0,
               y: 0,
-              scale: 1
+              scale: 1,
+              metadata: {}
             };
             setupStateLink(state);
             return stateDeferred.resolve(state);

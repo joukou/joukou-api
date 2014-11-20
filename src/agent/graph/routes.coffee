@@ -21,6 +21,7 @@ module.exports = self =
         scale: state.scale
         x: state.x
         y: state.y
+        metadata: state.metadata or {}
       })
     )
     .fail(->
@@ -28,6 +29,7 @@ module.exports = self =
         scale: 1
         x: 0
         y: 0
+        metadata: {}
       })
     )
 
