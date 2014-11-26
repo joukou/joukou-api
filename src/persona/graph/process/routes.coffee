@@ -41,6 +41,10 @@ module.exports = self =
       '/persona/:personaKey/graph/:graphKey/process/:processKey',
       authn.authenticate, self.retrieve
     )
+    server.del(
+      '/persona/:personaKey/graph/:graphKey/process/:processKey',
+      authn.authenticate, self.remove
+    )
     return
 
   ###
@@ -244,4 +248,32 @@ module.exports = self =
       )
     )
     .fail( ( err ) -> next( err ) )
+
+  ###
+  @api {delete} /persona/:personaKey/graph/:graphKey/process/:processKey
+  @apiName DeleteProcess
+  @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to delete a *Process* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  remove: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+
+        value = graph.getValue()
+        value.processes[req.params.processKey] = undefined
+        graph.setValue(value)
+
+        graph.save().then( ->
+          res.send( 204, {} )
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
 
