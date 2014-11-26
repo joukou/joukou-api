@@ -30,6 +30,7 @@ module.exports = self = {
     server.put('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.update);
     server.put('/persona/:personaKey/graph/:graphKey/process/:processKey/position', authn.authenticate, self.updatePosition);
     server.get('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieve);
+    server.del('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.remove);
   },
 
   /*
@@ -242,6 +243,34 @@ module.exports = self = {
           res.link("" + self + "/position", 'joukou:process-update:position');
           res.header('Location', self);
           return res.send(200, {});
+        });
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
+  },
+
+  /*
+  @api {delete} /persona/:personaKey/graph/:graphKey/process/:processKey
+  @apiName DeleteProcess
+  @apiGroup Graph
+   */
+
+  /**
+  Handles a request to delete a *Process* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+   */
+  remove: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return graph.getPersona().then(function(persona) {
+        var value;
+        value = graph.getValue();
+        value.processes[req.params.processKey] = void 0;
+        graph.setValue(value);
+        return graph.save().then(function() {
+          return res.send(204, {});
         });
       });
     }).fail(function(err) {
