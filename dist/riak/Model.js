@@ -294,7 +294,7 @@ module.exports = {
 
       /**
       Retrieve a collection of instances of this *Model* class from Basho Riak
-      via a secondary index query.
+      via a secondary index query.r t
       @param {string} index
       @param {string} key
        */

@@ -9,12 +9,13 @@ ability to inspect and create *Processes* for a *Graph*.
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-authn = require( '../../../authn' )
-hal = require( '../../../hal' )
+authn      = require( '../../../authn' )
+hal        = require( '../../../hal' )
 GraphModel = require( '../model' )
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
+Q          = require( 'q' )
 
-module.exports = self =
+self =
 
   ###*
   Registers process-related routes with the `server`.
@@ -44,6 +45,10 @@ module.exports = self =
     server.del(
       '/persona/:personaKey/graph/:graphKey/process/:processKey',
       authn.authenticate, self.remove
+    )
+    server.post(
+      '/persona/:personaKey/graph/:graphKey/process/clone',
+      authn.authenticate, self.clone
     )
     return
 
@@ -276,4 +281,121 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
 
+  ###
+  @api {post} /persona/:personaKey/graph/:graphKey/process/clone
+  @apiName DeleteProcess
+  @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to clone *Processes* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  clone: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+
+        edges = res.body.edges or []
+        nodes = res.body.nodes or []
+
+        if nodes.length is 0
+          return res.send(400)
+
+        _.each(edges, (edge) ->
+          if (
+            not edge or
+            not edge.from or
+            not edge.from.node or
+            not edge.from.port or
+            not edge.to or
+            not edge.to.node or
+            not edge.to.port
+          )
+            res.send(400)
+            return false
+        )
+
+        _.each(nodes, (node) ->
+          if (
+            not node or
+            not node.component or
+            not node.id or
+            not node.metadata or
+            not node.metadata.key or
+            not node.metadata.circle or
+            not node.metadata.circle.key or
+            not node.metadata.circle.value
+          )
+            res.send(400)
+            return false
+        )
+
+        processes = {
+
+        }
+
+        promises = _.map(nodes, (node) ->
+          deferred = Q.defer()
+          circle = {
+            key: node.metadata.circle.key
+          }
+          metadata = {
+            x: node.metadata.x
+            y: node.metadata.y
+          }
+          graph.addProcess(circle, metadata)
+          .then((key) ->
+            processes[node.id] = key
+            deferred.resolve(key)
+          )
+          .fail(deferred.reject)
+          return deferred.promise
+        )
+
+        addConnections = ->
+          promises = _.map(edges, (edge) ->
+            data = {}
+            data.data = {}
+            data.metadata = {}
+            data.src = {
+              process: processes[edge.to.node]
+              port: edge.from.port
+              metadata: {}
+            }
+            data.tgt = {
+              process: processes[edge.to.node]
+              port: edge.to.port
+              metadata: {}
+            }
+            if not (
+              data.src.process and
+              data.tgt.process
+            )
+              return Q.reject()
+            return graph.addConnection(data)
+          )
+
+          Q.all(
+            promises
+          )
+          .then( ->
+            graph.save().then( ->
+              res.send( 204, {} )
+            )
+          )
+
+        Q.all(
+          promises
+        )
+        .then(addConnections)
+        .fail(->
+          res.send(400)
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
+module.exports = self
 

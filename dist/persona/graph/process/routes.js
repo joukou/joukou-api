@@ -18,7 +18,7 @@ GraphModel = require('../model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
 
-module.exports = self = {
+self = {
 
   /**
   Registers process-related routes with the `server`.
@@ -31,6 +31,7 @@ module.exports = self = {
     server.put('/persona/:personaKey/graph/:graphKey/process/:processKey/position', authn.authenticate, self.updatePosition);
     server.get('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.retrieve);
     server.del('/persona/:personaKey/graph/:graphKey/process/:processKey', authn.authenticate, self.remove);
+    server.post('/persona/:personaKey/graph/:graphKey/process/clone', authn.authenticate, self.clone);
   },
 
   /*
@@ -276,8 +277,49 @@ module.exports = self = {
     }).fail(function(err) {
       return next(err);
     });
+  },
+
+  /*
+  @api {post} /persona/:personaKey/graph/:graphKey/process/clone
+  @apiName DeleteProcess
+  @apiGroup Graph
+   */
+
+  /**
+  Handles a request to clone *Processes* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+   */
+  clone: function(req, res, next) {
+    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
+      return graph.getPersona().then(function(persona) {
+        var edges, nodes, value;
+        edges = res.body.edges || [];
+        nodes = res.body.nodes || [];
+        if (nodes.length === 0) {
+          return res.send(400);
+        }
+        _.each(edges, function(edge) {
+          if (!edge.from || !edge.from.node || !edge.from.port || !edge.to || !edge.to.node || !edge.to.port) {
+            res.send(400);
+            return false;
+          }
+        });
+        value = graph.getValue();
+        value.processes[req.params.processKey] = void 0;
+        graph.setValue(value);
+        return graph.save().then(function() {
+          return res.send(204, {});
+        });
+      });
+    }).fail(function(err) {
+      return next(err);
+    });
   }
 };
+
+module.exports = self;
 
 /*
 //# sourceMappingURL=routes.js.map
