@@ -237,6 +237,9 @@ module.exports = self =
 
           promises = _.map(graph.getValue().processes, (process, key) ->
             deferred = Q.defer()
+            if not process.circle
+              # Skip it
+              return deferred.resolve()
             CircleModel.retrieve(process.circle.key).then((circle) ->
               circleValue = circle.getValue()
               mapPort = (port) ->

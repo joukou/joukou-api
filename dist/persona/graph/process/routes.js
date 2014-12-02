@@ -8,7 +8,7 @@ ability to inspect and create *Processes* for a *Graph*.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ForbiddenError, GraphModel, NotFoundError, UnauthorizedError, authn, hal, self, _ref;
+var ForbiddenError, GraphModel, NotFoundError, Q, UnauthorizedError, authn, hal, self, _, _ref;
 
 authn = require('../../../authn');
 
@@ -17,6 +17,10 @@ hal = require('../../../hal');
 GraphModel = require('../model');
 
 _ref = require('restify'), UnauthorizedError = _ref.UnauthorizedError, ForbiddenError = _ref.ForbiddenError, NotFoundError = _ref.NotFoundError;
+
+Q = require('q');
+
+_ = require('lodash');
 
 self = {
 
@@ -294,23 +298,98 @@ self = {
   clone: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var edges, nodes, value;
-        edges = res.body.edges || [];
-        nodes = res.body.nodes || [];
+        var addConnections, connections, edges, nodes, processId, processMap, processPort, processes, promises;
+        edges = req.body.edges || [];
+        nodes = req.body.nodes || [];
         if (nodes.length === 0) {
           return res.send(400);
         }
         _.each(edges, function(edge) {
-          if (!edge.from || !edge.from.node || !edge.from.port || !edge.to || !edge.to.node || !edge.to.port) {
+          if (!edge || !edge.from || !edge.from.node || !edge.from.port || !edge.to || !edge.to.node || !edge.to.port) {
             res.send(400);
             return false;
           }
         });
-        value = graph.getValue();
-        value.processes[req.params.processKey] = void 0;
-        graph.setValue(value);
-        return graph.save().then(function() {
-          return res.send(204, {});
+        _.each(nodes, function(node) {
+          if (!node || !node.component || !node.id || !node.metadata || !node.metadata.key || !node.metadata.circle || !node.metadata.circle.key || !node.metadata.circle.value) {
+            res.send(400);
+            return false;
+          }
+        });
+        processes = {};
+        connections = [];
+        processMap = {};
+        promises = _.map(nodes, function(node) {
+          var circle, deferred, metadata;
+          deferred = Q.defer();
+          circle = {
+            key: node.metadata.circle.key
+          };
+          metadata = {
+            x: node.metadata.x,
+            y: node.metadata.y
+          };
+          graph.addProcess(circle, metadata).then(function(key) {
+            processMap[node.id] = key;
+            processes[key] = {
+              id: processId(key),
+              component: circle.key,
+              metadata: {
+                nodeId: node.id,
+                x: metadata.x,
+                y: metadata.y,
+                circle: circle.key,
+                key: key
+              }
+            };
+            return deferred.resolve(key);
+          }).fail(deferred.reject);
+          return deferred.promise;
+        });
+        processId = function(key) {
+          return "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/" + key;
+        };
+        processPort = function(port) {
+          port.process = processId(port.process);
+          return port;
+        };
+        addConnections = function() {
+          promises = _.map(edges, function(edge) {
+            var data, deferred;
+            data = {};
+            data.data = {};
+            data.metadata = {};
+            data.src = {
+              process: processMap[edge.to.node] || edge.from.node,
+              port: edge.from.port,
+              metadata: {}
+            };
+            data.tgt = {
+              process: processMap[edge.to.node] || edge.to.node,
+              port: edge.to.port,
+              metadata: {}
+            };
+            deferred = Q.defer();
+            graph.addConnection(data).then(function(connection) {
+              data = _.cloneDeep(data);
+              data.metadata.key = connection.key;
+              data.src = processPort(data.src);
+              data.tgt = processPort(data.tgt);
+              return connections.push(data);
+            }).fail(deferred.reject);
+            return deferred;
+          });
+          return Q.all(promises).then(function() {
+            return graph.save().then(function() {
+              return res.send(200, {
+                processes: processes,
+                connections: connections
+              });
+            });
+          });
+        };
+        return Q.all(promises).then(addConnections).fail(function() {
+          return res.send(400);
         });
       });
     }).fail(function(err) {

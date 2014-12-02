@@ -276,6 +276,9 @@ module.exports = self = {
           promises = _.map(graph.getValue().processes, function(process, key) {
             var deferred;
             deferred = Q.defer();
+            if (!process.circle) {
+              return deferred.resolve();
+            }
             CircleModel.retrieve(process.circle.key).then(function(circle) {
               var circleValue, mapPort, metadata;
               circleValue = circle.getValue();

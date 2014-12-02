@@ -15,7 +15,7 @@ the *Connections* between them.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ConflictError, ConnectionSchema, GraphModel, Model, PersonaModel, Q, schema, uuid, _;
+var ConflictError, ConnectionSchema, GraphModel, Model, PersonaModel, ProcessSchema, Q, schema, uuid, _;
 
 _ = require('lodash');
 
@@ -33,6 +33,8 @@ ConflictError = require('restify').ConflictError;
 
 ConnectionSchema = require('./connection/schema');
 
+ProcessSchema = require('./process/schema');
+
 GraphModel = Model.define({
   type: 'graph',
   schema: schema,
@@ -44,13 +46,22 @@ GraphModel.prototype.getPersona = function() {
 };
 
 GraphModel.prototype.addProcess = function(_arg) {
-  var circle, key, metadata, _base;
+  var circle, deferred, form, key, metadata, processValue, _base;
   circle = _arg.circle, metadata = _arg.metadata;
   key = uuid.v4();
-  ((_base = this.getValue()).processes != null ? _base.processes : _base.processes = {})[key] = {
+  processValue = {
     circle: circle,
     metadata: metadata
   };
+  form = ProcessSchema.validate(processValue);
+  if (!form.valid) {
+    deferred = Q.defer();
+    process.nextTick(function() {
+      return deferred.reject(form.errors);
+    });
+    return deferred.promise;
+  }
+  ((_base = this.getValue()).processes != null ? _base.processes : _base.processes = {})[key] = processValue;
   return Q.fcall(function() {
     return key;
   });

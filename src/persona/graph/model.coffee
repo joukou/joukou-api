@@ -53,7 +53,7 @@ GraphModel::addProcess = ( { circle, metadata } ) ->
     )
     return deferred.promise
 
-  (@getValue().processes ?= {})[ key ] = process
+  (@getValue().processes ?= {})[ key ] = processValue
 
   Q.fcall( -> key )
 
