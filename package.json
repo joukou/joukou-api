@@ -47,7 +47,8 @@
     "passport-strategy": "~1.0.0",
     "util": "~0.10.3",
     "uuid": "~2.0.1",
-    "github": "~0.2.2"
+    "github": "~0.2.2",
+    "joukou-conductor-rabbitmq": "git://github.com/joukou/joukou-conductor-rabbitmq.git#v0.0.5"
   },
   "devDependencies": {
     "coffee-script": "1.8.x",

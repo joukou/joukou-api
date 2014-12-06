@@ -1,5 +1,8 @@
-"use strict"
+schema = require('schemajs')
 
-###*
-@module joukou-api/persona/graph/network/schema
-###
+module.exports = schema.create(
+  metadata:
+    type: 'object'
+  desiredState:
+    type: 'boolean'
+)

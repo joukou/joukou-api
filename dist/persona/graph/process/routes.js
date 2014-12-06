@@ -285,7 +285,7 @@ self = {
 
   /*
   @api {post} /persona/:personaKey/graph/:graphKey/process/clone
-  @apiName DeleteProcess
+  @apiName CloneProcess
   @apiGroup Graph
    */
 
@@ -298,24 +298,33 @@ self = {
   clone: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
       return graph.getPersona().then(function(persona) {
-        var addConnections, connections, edges, nodes, processId, processMap, processPort, processes, promises;
+        var addConnections, connections, edges, nodes, processId, processMap, processPort, processes, promises, shouldReturn;
         edges = req.body.edges || [];
         nodes = req.body.nodes || [];
         if (nodes.length === 0) {
           return res.send(400);
         }
+        shouldReturn = false;
         _.each(edges, function(edge) {
           if (!edge || !edge.from || !edge.from.node || !edge.from.port || !edge.to || !edge.to.node || !edge.to.port) {
-            res.send(400);
+            res.send(400, "edge doesn't have the required values");
+            shouldReturn = true;
             return false;
           }
         });
+        if (shouldReturn) {
+          return;
+        }
         _.each(nodes, function(node) {
           if (!node || !node.component || !node.id || !node.metadata || !node.metadata.key || !node.metadata.circle || !node.metadata.circle.key || !node.metadata.circle.value) {
-            res.send(400);
+            res.send(400, "node doesn't have the required values");
+            shouldReturn = true;
             return false;
           }
         });
+        if (shouldReturn) {
+          return;
+        }
         processes = {};
         connections = [];
         processMap = {};
@@ -329,7 +338,10 @@ self = {
             x: node.metadata.x,
             y: node.metadata.y
           };
-          graph.addProcess(circle, metadata).then(function(key) {
+          graph.addProcess({
+            circle: circle,
+            metadata: metadata
+          }).then(function(key) {
             processMap[node.id] = key;
             processes[key] = {
               id: processId(key),
@@ -354,13 +366,13 @@ self = {
           return port;
         };
         addConnections = function() {
-          promises = _.map(edges, function(edge) {
+          var connectionPromises;
+          connectionPromises = _.map(edges, function(edge) {
             var data, deferred;
             data = {};
-            data.data = {};
             data.metadata = {};
             data.src = {
-              process: processMap[edge.to.node] || edge.from.node,
+              process: processMap[edge.from.node] || edge.from.node,
               port: edge.from.port,
               metadata: {}
             };
@@ -375,11 +387,12 @@ self = {
               data.metadata.key = connection.key;
               data.src = processPort(data.src);
               data.tgt = processPort(data.tgt);
-              return connections.push(data);
+              connections.push(data);
+              return deferred.resolve(connection);
             }).fail(deferred.reject);
-            return deferred;
+            return deferred.promise;
           });
-          return Q.all(promises).then(function() {
+          return Q.all(connectionPromises).then(function() {
             return graph.save().then(function() {
               return res.send(200, {
                 processes: processes,
@@ -388,8 +401,8 @@ self = {
             });
           });
         };
-        return Q.all(promises).then(addConnections).fail(function() {
-          return res.send(400);
+        return Q.all(promises).then(addConnections).fail(function(error) {
+          return res.send(400, error);
         });
       });
     }).fail(function(err) {

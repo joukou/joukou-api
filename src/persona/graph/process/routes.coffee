@@ -284,7 +284,7 @@ self =
 
   ###
   @api {post} /persona/:personaKey/graph/:graphKey/process/clone
-  @apiName DeleteProcess
+  @apiName CloneProcess
   @apiGroup Graph
   ###
 
@@ -304,6 +304,8 @@ self =
         if nodes.length is 0
           return res.send(400)
 
+        shouldReturn = no
+
         _.each(edges, (edge) ->
           if (
             not edge or
@@ -314,9 +316,13 @@ self =
             not edge.to.node or
             not edge.to.port
           )
-            res.send(400)
+            res.send(400, "edge doesn't have the required values")
+            shouldReturn = yes
             return false
         )
+
+        if shouldReturn
+          return
 
         _.each(nodes, (node) ->
           if (
@@ -329,9 +335,13 @@ self =
             not node.metadata.circle.key or
             not node.metadata.circle.value
           )
-            res.send(400)
+            res.send(400, "node doesn't have the required values")
+            shouldReturn = yes
             return false
         )
+
+        if shouldReturn
+          return
 
         processes = {}
         connections = []
@@ -347,7 +357,7 @@ self =
             x: node.metadata.x
             y: node.metadata.y
           }
-          graph.addProcess(circle, metadata)
+          graph.addProcess({circle: circle, metadata: metadata})
           .then((key) ->
             processMap[node.id] = key
             processes[key] = {
@@ -375,12 +385,11 @@ self =
           return port
 
         addConnections = ->
-          promises = _.map(edges, (edge) ->
+          connectionPromises = _.map(edges, (edge) ->
             data = {}
-            data.data = {}
             data.metadata = {}
             data.src = {
-              process: processMap[edge.to.node] || edge.from.node
+              process: processMap[edge.from.node] || edge.from.node
               port: edge.from.port
               metadata: {}
             }
@@ -397,14 +406,14 @@ self =
               data.src = processPort(data.src)
               data.tgt = processPort(data.tgt)
               connections.push(data)
-
+              deferred.resolve(connection)
             )
             .fail(deferred.reject)
-            return deferred
+            return deferred.promise
           )
 
           Q.all(
-            promises
+            connectionPromises
           )
           .then( ->
             graph.save().then( ->
@@ -419,8 +428,8 @@ self =
           promises
         )
         .then(addConnections)
-        .fail(->
-          res.send(400)
+        .fail((error) ->
+          res.send(400, error)
         )
       )
     )

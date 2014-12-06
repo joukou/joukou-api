@@ -202,6 +202,9 @@ module.exports = self = {
             res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:process-create', {
               title: 'Add a Process to this Graph'
             });
+            res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process/clone", 'joukou:process-clone', {
+              title: 'Clone a Process to this Graph'
+            });
             res.link("/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/process", 'joukou:processes', {
               title: 'List of Processes for this Graph'
             });

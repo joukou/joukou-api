@@ -19,7 +19,7 @@ module.exports = schema.create({
     type: "object"
   },
   data: {
-    type: "string+"
+    type: "string"
   },
   src: {
     type: "object",
