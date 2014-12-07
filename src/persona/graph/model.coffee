@@ -24,6 +24,7 @@ schema            = require( './schema' )
 PersonaModel      = require( '../model' )
 { ConflictError } = require( 'restify' )
 ConnectionSchema  = require( './connection/schema' )
+ProcessSchema     = require( './process/schema' )
 
 GraphModel = Model.define(
   type: 'graph'
@@ -38,10 +39,21 @@ GraphModel::getPersona = ->
 
 GraphModel::addProcess = ( { circle, metadata } ) ->
   key = uuid.v4()
-  
-  (@getValue().processes ?= {})[ key ] =
+
+  processValue = {
     circle: circle
     metadata: metadata
+  }
+
+  form = ProcessSchema.validate(processValue)
+  if not form.valid
+    deferred = Q.defer()
+    process.nextTick(->
+      deferred.reject(form.errors)
+    )
+    return deferred.promise
+
+  (@getValue().processes ?= {})[ key ] = processValue
 
   Q.fcall( -> key )
 

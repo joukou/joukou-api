@@ -169,6 +169,7 @@ module.exports = self =
               res.link( "/persona/#{item.key}", 'joukou:persona' )
 
             res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create', title: 'Add a Process to this Graph' )
+            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/clone", 'joukou:process-clone', title: 'Clone a Process to this Graph' )
             res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes', title: 'List of Processes for this Graph' )
             res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
             res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
@@ -237,6 +238,9 @@ module.exports = self =
 
           promises = _.map(graph.getValue().processes, (process, key) ->
             deferred = Q.defer()
+            if not process.circle
+              # Skip it
+              return deferred.resolve()
             CircleModel.retrieve(process.circle.key).then((circle) ->
               circleValue = circle.getValue()
               mapPort = (port) ->

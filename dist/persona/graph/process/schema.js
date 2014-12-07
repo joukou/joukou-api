@@ -4,10 +4,15 @@ schema = require('schemajs');
 
 module.exports = schema.create({
   metadata: {
-    type: 'object'
+    type: "object"
   },
-  desiredState: {
-    type: 'boolean'
+  circle: {
+    type: "object",
+    schema: {
+      key: {
+        type: "string+"
+      }
+    }
   }
 });
 

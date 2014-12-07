@@ -9,12 +9,14 @@ ability to inspect and create *Processes* for a *Graph*.
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-authn = require( '../../../authn' )
-hal = require( '../../../hal' )
+authn      = require( '../../../authn' )
+hal        = require( '../../../hal' )
 GraphModel = require( '../model' )
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
+Q          = require( 'q' )
+_          = require( 'lodash' )
 
-module.exports = self =
+self =
 
   ###*
   Registers process-related routes with the `server`.
@@ -44,6 +46,10 @@ module.exports = self =
     server.del(
       '/persona/:personaKey/graph/:graphKey/process/:processKey',
       authn.authenticate, self.remove
+    )
+    server.post(
+      '/persona/:personaKey/graph/:graphKey/process/clone',
+      authn.authenticate, self.clone
     )
     return
 
@@ -276,4 +282,158 @@ module.exports = self =
     )
     .fail( ( err ) -> next( err ) )
 
+  ###
+  @api {post} /persona/:personaKey/graph/:graphKey/process/clone
+  @apiName CloneProcess
+  @apiGroup Graph
+  ###
+
+  ###*
+  Handles a request to clone *Processes* for a *Graph*.
+  @param {http.IncomingMessage} req
+  @param {http.ServerResponse} res
+  @param {function(Error)} next
+  ###
+  clone: ( req, res, next ) ->
+    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+      graph.getPersona().then( ( persona ) ->
+
+        edges = req.body.edges or []
+        nodes = req.body.nodes or []
+
+        if nodes.length is 0
+          return res.send(400)
+
+        shouldReturn = no
+
+        _.each(edges, (edge) ->
+          if (
+            not edge or
+            not edge.from or
+            not edge.from.node or
+            not edge.from.port or
+            not edge.to or
+            not edge.to.node or
+            not edge.to.port
+          )
+            res.send(400, "edge doesn't have the required values")
+            shouldReturn = yes
+            return false
+        )
+
+        if shouldReturn
+          return
+
+        _.each(nodes, (node) ->
+          if (
+            not node or
+            not node.component or
+            not node.id or
+            not node.metadata or
+            not node.metadata.key or
+            not node.metadata.circle or
+            not node.metadata.circle.key or
+            not node.metadata.circle.value
+          )
+            res.send(400, "node doesn't have the required values")
+            shouldReturn = yes
+            return false
+        )
+
+        if shouldReturn
+          return
+
+        processes = {}
+        connections = []
+
+        processMap = {}
+
+        promises = _.map(nodes, (node) ->
+          deferred = Q.defer()
+          circle = {
+            key: node.metadata.circle.key
+          }
+          metadata = {
+            x: node.metadata.x
+            y: node.metadata.y
+          }
+          graph.addProcess({circle: circle, metadata: metadata})
+          .then((key) ->
+            processMap[node.id] = key
+            processes[key] = {
+              id: processId(key)
+              component: circle.key
+              metadata:
+                nodeId: node.id
+                x: metadata.x
+                y: metadata.y
+                circle:
+                  circle.key
+                key: key
+            }
+            deferred.resolve(key)
+          )
+          .fail(deferred.reject)
+          return deferred.promise
+        )
+
+        processId = (key) ->
+          return "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+
+        processPort = (port) ->
+          port.process = processId(port.process)
+          return port
+
+        addConnections = ->
+          connectionPromises = _.map(edges, (edge) ->
+            data = {}
+            data.metadata = {}
+            data.src = {
+              process: processMap[edge.from.node] || edge.from.node
+              port: edge.from.port
+              metadata: {}
+            }
+            data.tgt = {
+              process: processMap[edge.to.node] || edge.to.node
+              port: edge.to.port
+              metadata: {}
+            }
+            deferred = Q.defer()
+            graph.addConnection(data)
+            .then((connection) ->
+              data = _.cloneDeep(data)
+              data.metadata.key = connection.key
+              data.src = processPort(data.src)
+              data.tgt = processPort(data.tgt)
+              connections.push(data)
+              deferred.resolve(connection)
+            )
+            .fail(deferred.reject)
+            return deferred.promise
+          )
+
+          Q.all(
+            connectionPromises
+          )
+          .then( ->
+            graph.save().then( ->
+              res.send(200, {
+                processes: processes
+                connections: connections
+              })
+            )
+          )
+
+        Q.all(
+          promises
+        )
+        .then(addConnections)
+        .fail((error) ->
+          res.send(400, error)
+        )
+      )
+    )
+    .fail( ( err ) -> next( err ) )
+
+module.exports = self
 

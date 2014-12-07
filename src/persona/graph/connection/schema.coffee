@@ -14,7 +14,7 @@ module.exports = schema.create(
   metadata:
     type: "object"
   data:
-    type: "string+"
+    type: "string"
   src:
     type: "object"
     required: true

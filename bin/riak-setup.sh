@@ -23,7 +23,7 @@ sleep 10
 riak-admin bucket-type create graph '{"props":{"search_index":"graph","allow_mult":false}}'
 riak-admin bucket-type activate graph
 
-curl -XPUT http://localhost:8098/search/schema/circle -H'content-type:application/xml' --data-binary @dist/persona/circle/schema.xml
+curl -XPUT http://localhost:8098/search/schema/circle -H'content-type:application/xml' --data-binary @dist/circle/schema.xml
 curl -XPUT http://localhost:8098/search/index/circle -H'content-type:application/json' -d'{"schema":"circle"}'
 sleep 10
 riak-admin bucket-type create circle '{"props":{"search_index":"circle","allow_mult":false}}'

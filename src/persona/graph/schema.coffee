@@ -7,7 +7,8 @@
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
 ###
 
-schema = require( 'schemajs' )
+schema  = require( 'schemajs' )
+network = require( './network/schema' )
 
 module.exports = schema.create(
   name:
@@ -18,4 +19,7 @@ module.exports = schema.create(
     type: 'array'
   personas:
     type: 'array'
+  network:
+    type: 'object'
+    schema: network.schema
 )

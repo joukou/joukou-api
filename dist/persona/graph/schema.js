@@ -6,9 +6,11 @@
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var schema;
+var network, schema;
 
 schema = require('schemajs');
+
+network = require('./network/schema');
 
 module.exports = schema.create({
   name: {
@@ -22,6 +24,10 @@ module.exports = schema.create({
   },
   personas: {
     type: 'array'
+  },
+  network: {
+    type: 'object',
+    schema: network.schema
   }
 });
 
