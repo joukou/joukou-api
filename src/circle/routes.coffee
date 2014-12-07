@@ -3,6 +3,7 @@ PersonaModel = require( '../persona/model' )
 _            = require( 'lodash' )
 Q            = require( 'q' )
 authn        = require( '../authn' )
+authz        = require( '../authz' )
 
 module.exports = self =
 
@@ -17,9 +18,19 @@ module.exports = self =
   index: ( req, res, next ) ->
 
   retrieve: ( req, res, next ) ->
+    authz.hasCircle( req.user, req.params.key )
+    .then( ( circle ) ->
+      # TODO filter keys
+      res.send( 200, circle.getValue() )
+    )
+    .fail( next )
 
   remove: ( req, res, next ) ->
+    authz.hasCircle( req.user, req.params.key )
+    .then( ( circle ) ->
 
+    )
+    .fail( next )
   create: ( req, res, next ) ->
 
   search: ( req, res, next ) ->
