@@ -268,10 +268,22 @@ self = {
    */
   remove: function(req, res, next) {
     return authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey).then(function(_arg) {
-      var graph, persona, value;
+      var connection, graph, i, persona, value;
       graph = _arg.graph, persona = _arg.persona;
       value = graph.getValue();
-      value.processes[req.params.processKey] = void 0;
+      delete value.processes[req.params.processKey];
+      if (value.connections == null) {
+        value.connections = [];
+      }
+      i = 0;
+      while (i < value.connections.length) {
+        connection = value.connections[i];
+        if (connection.src.process === req.params.processKey || connection.tgt.process === req.params.processKey) {
+          value.connections.splice(i, 1);
+          continue;
+        }
+        i++;
+      }
       graph.setValue(value);
       return graph.save().then(function() {
         return res.send(204, {});

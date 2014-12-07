@@ -8,9 +8,11 @@ the ability to inspect and create *Connections* for a *Graph*.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright &copy; 2009-2014 Joukou Ltd. All rights reserved.
  */
-var ConnectionSchema, ForbiddenError, GraphModel, NotFoundError, UnauthorizedError, authn, hal, self, _, _ref;
+var ConnectionSchema, ForbiddenError, GraphModel, NotFoundError, UnauthorizedError, authn, authz, hal, self, _, _ref;
 
 authn = require('../../../authn');
+
+authz = require('../../../authz');
 
 hal = require('../../../hal');
 

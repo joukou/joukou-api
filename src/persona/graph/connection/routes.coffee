@@ -10,6 +10,7 @@ the ability to inspect and create *Connections* for a *Graph*.
 ###
 
 authn             = require( '../../../authn' )
+authz             = require( '../../../authz' )
 hal               = require( '../../../hal' )
 GraphModel        = require( '../model' )
 ConnectionSchema  = require( './schema')

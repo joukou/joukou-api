@@ -267,7 +267,20 @@ self =
     authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
     .then( ({ graph, persona }) ->
       value = graph.getValue()
-      value.processes[req.params.processKey] = undefined
+      delete value.processes[req.params.processKey]
+
+      value.connections ?= []
+      i = 0
+      while i < value.connections.length
+        connection = value.connections[i]
+        if (
+          connection.src.process is req.params.processKey or
+          connection.tgt.process is req.params.processKey
+        )
+          value.connections.splice(i, 1)
+          continue
+        i++
+
       graph.setValue(value)
 
       graph.save().then( ->
