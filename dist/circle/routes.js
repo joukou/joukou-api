@@ -1,4 +1,4 @@
-var CircleModel, PersonaModel, Q, authn, self, _;
+var CircleModel, PersonaModel, Q, authn, authz, self, _;
 
 CircleModel = require('./model');
 
@@ -10,6 +10,8 @@ Q = require('q');
 
 authn = require('../authn');
 
+authz = require('../authz');
+
 module.exports = self = {
   registerRoutes: function(server) {
     server.get('/circle', authn.authenticate, self.index);
@@ -19,8 +21,14 @@ module.exports = self = {
     server.get('/circle/search/:name', authn.authenticate, self.search);
   },
   index: function(req, res, next) {},
-  retrieve: function(req, res, next) {},
-  remove: function(req, res, next) {},
+  retrieve: function(req, res, next) {
+    return authz.hasCircle(req.user, req.params.key).then(function(circle) {
+      return res.send(200, circle.getValue());
+    }).fail(next);
+  },
+  remove: function(req, res, next) {
+    return authz.hasCircle(req.user, req.params.key).then(function(circle) {}).fail(next);
+  },
   create: function(req, res, next) {},
   search: function(req, res, next) {
     return PersonaModel.getForAgent(req.user).then(function(personas) {

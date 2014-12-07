@@ -84,6 +84,12 @@ module.exports = schema.create({
     type: 'string',
     required: false,
     allownull: false
+  },
+  roles: {
+    type: 'array',
+    items: {
+      type: 'string'
+    }
   }
 });
 

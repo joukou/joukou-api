@@ -50,63 +50,62 @@ module.exports = self = {
   @param {function(Error)} next
    */
   index: function(req, res, next) {
-    GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return graph.getPersona().then(function(persona) {
-        return graph.getConnections(function(connections) {
-          return res.send(200, connections.getRepresentation());
-        });
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey).then(function(_arg) {
+      var graph, persona;
+      graph = _arg.graph, persona = _arg.persona;
+      return graph.getConnections(function(connections) {
+        return res.send(200, connections.getRepresentation());
       });
     }).fail(function(err) {
       return next(err);
     });
   },
   create: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      return graph.getPersona().then(function(persona) {
-        var data, document, process, _i, _len, _ref1;
-        data = {};
-        data.data = req.body.data;
-        data.metadata = req.body.metadata;
-        document = hal.parse(req.body, {
-          links: {
-            'joukou:process': {
-              min: 2,
-              max: 2,
-              match: '/persona/:personaKey/graph/:graphKey/process/:key',
-              name: {
+    return authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey).then(function(_arg) {
+      var data, document, graph, persona, process, _i, _len, _ref1;
+      graph = _arg.graph, persona = _arg.persona;
+      data = {};
+      data.data = req.body.data;
+      data.metadata = req.body.metadata;
+      document = hal.parse(req.body, {
+        links: {
+          'joukou:process': {
+            min: 2,
+            max: 2,
+            match: '/persona/:personaKey/graph/:graphKey/process/:key',
+            name: {
+              required: true,
+              type: 'enum',
+              values: ['src', 'tgt']
+            },
+            properties: {
+              port: {
                 required: true,
-                type: 'enum',
-                values: ['src', 'tgt']
+                type: 'string'
               },
-              properties: {
-                port: {
-                  required: true,
-                  type: 'string'
-                },
-                matadata: {
-                  required: false,
-                  type: 'object'
-                }
+              matadata: {
+                required: false,
+                type: 'object'
               }
             }
           }
-        });
-        _ref1 = document.links['joukou:process'];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          process = _ref1[_i];
-          data[process.name] = {
-            process: process.key,
-            port: process.port,
-            metadata: process.metadata || {}
-          };
         }
-        return graph.addConnection(data).then(function(connection) {
-          return graph.save().then(function() {
-            self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key;
-            res.link(self, 'joukou:connection');
-            res.header('Location', self);
-            return res.send(201, {});
-          });
+      });
+      _ref1 = document.links['joukou:process'];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        process = _ref1[_i];
+        data[process.name] = {
+          process: process.key,
+          port: process.port,
+          metadata: process.metadata || {}
+        };
+      }
+      return graph.addConnection(data).then(function(connection) {
+        return graph.save().then(function() {
+          self = "/persona/" + (persona.getKey()) + "/graph/" + (graph.getKey()) + "/connection/" + connection.key;
+          res.link(self, 'joukou:connection');
+          res.header('Location', self);
+          return res.send(201, {});
         });
       });
     }).fail(function(err) {
@@ -133,8 +132,9 @@ module.exports = self = {
   @param {function(Error)} next
    */
   remove: function(req, res, next) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(graph) {
-      var connections, value;
+    return authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey).then(function(_arg) {
+      var connections, graph, persona, value;
+      graph = _arg.graph, persona = _arg.persona;
       value = graph.getValue();
       connections = value.connections || (value.connections = []);
       _.remove(connections, function(connection) {

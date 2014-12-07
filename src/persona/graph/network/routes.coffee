@@ -7,6 +7,7 @@
 ###
 
 authn              = require( '../../../authn' )
+authz              = require( '../../../authz' )
 env                = require( '../../../env' )
 GraphModel         = require( '../model' )
 _                  = require( 'lodash' )
@@ -31,15 +32,15 @@ self =
   registerRoutes: ( server ) ->
     server.get(
       '/persona/:personaKey/graph/:graphKey/network',
-      authn.authenticate, self.index
+      authn.authenticate, self.retrieve
     )
     server.post(
       '/persona/:personaKey/graph/:graphKey/network',
-      authn.authenticate, self.index
+      authn.authenticate, self.update
     )
     server.put(
       '/persona/:personaKey/graph/:graphKey/network',
-      authn.authenticate, self.index
+      authn.authenticate, self.update
     )
 
   retrieve: (req, res, next) ->
@@ -50,13 +51,13 @@ self =
     .fail(next)
 
   update: (req, res) ->
-    GraphModel.retrieve(req.params.graphKey)
-    .then( (model) ->
-      value = model.getValue()
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
+      value = graph.getValue()
       value.network = _.assign(value.network or {}, req.body)
-      model.setValue(value.network)
-      model.save()
-      .then((model) ->
+      graph.setValue(value.network)
+      graph.save()
+      .then((graph) ->
         client = new RabbitMQClient(
           JoukouConductorExchange,
           JoukouConductorRoutingKey
@@ -74,7 +75,7 @@ self =
           message
         )
         .then( ->
-          res.send(200, model.getValue().network)
+          res.send(200, graph.getValue().network)
         )
       )
     )

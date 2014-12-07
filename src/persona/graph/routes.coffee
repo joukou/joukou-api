@@ -13,6 +13,7 @@ _                 = require( 'lodash' )
 uuid              = require( 'node-uuid' )
 async             = require( 'async' )
 { authenticate }  = require( '../../authn' )
+authz             = require( '../../authz' )
 hal               = require( '../../hal' )
 request           = require( 'request' )
 connection_routes = require( './connection/routes' )
@@ -121,7 +122,8 @@ module.exports = self =
   ###
 
   create: ( req, res, next ) ->
-    PersonaModel.retrieve( req.params.personaKey ).then( ( persona ) ->
+    authz.hasPersona(req.user, req.params.personaKey)
+    .then( ( persona ) ->
       data = {}
       data.name = req.body.name
       data.personas = [
@@ -160,170 +162,169 @@ module.exports = self =
   @apiError (503) ServiceUnavailable There was a temporary failure retrieving the graph definition, the client should try again later.
   ###
   retrieve: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        graph.getConnections().then( ( connections ) ->
-          representation = {}
-          if req.accepts('application/hal+json')
-            for item in graph.getValue().personas
-              res.link( "/persona/#{item.key}", 'joukou:persona' )
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
+      graph.getConnections().then( ( connections ) ->
+        representation = {}
+        if req.accepts('application/hal+json')
+          for item in graph.getValue().personas
+            res.link( "/persona/#{item.key}", 'joukou:persona' )
 
-            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create', title: 'Add a Process to this Graph' )
-            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/clone", 'joukou:process-clone', title: 'Clone a Process to this Graph' )
-            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes', title: 'List of Processes for this Graph' )
-            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
-            res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
+          res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:process-create', title: 'Add a Process to this Graph' )
+          res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/clone", 'joukou:process-clone', title: 'Clone a Process to this Graph' )
+          res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process", 'joukou:processes', title: 'List of Processes for this Graph' )
+          res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connection-create', title: 'Add a Connection to this Graph' )
+          res.link( "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection", 'joukou:connections', title: 'List of Connections for this Graph' )
 
-            # representation = _.pick( graph.getValue(), [ 'name' ] )
-            representation._embedded =
-              'joukou:process': _.reduce( graph.getValue().processes or {}, ( memo, process, processKey ) ->
-                memo.push(
-                  _links:
-                    self:
-                      href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
-                    'joukou:process-update:position':
-                      href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}/position"
-                #'joukou:circle': TODO
-                #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
-                  metadata: process.metadata
-                )
-                memo
-              , [] )
-              'joukou:connection': _.reduce( graph.getValue().connections or [], ( memo, connection, i ) ->
-                memo.push(
-                  _links:
-                    self:
-                      href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
-                    'joukou:process': [
-                      {
-                        name: 'src' # TODO href
-                      }
-                      {
-                        name: 'tgt' # TODO href
-                      }
-                    ]
-                )
-                memo
-              , [] )
+          # representation = _.pick( graph.getValue(), [ 'name' ] )
+          representation._embedded =
+            'joukou:process': _.reduce( graph.getValue().processes or {}, ( memo, process, processKey ) ->
+              memo.push(
+                _links:
+                  self:
+                    href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+                  'joukou:process-update:position':
+                    href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}/position"
+              #'joukou:circle': TODO
+              #  href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
+                metadata: process.metadata
+              )
+              memo
+            , [] )
+            'joukou:connection': _.reduce( graph.getValue().connections or [], ( memo, connection, i ) ->
+              memo.push(
+                _links:
+                  self:
+                    href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
+                  'joukou:process': [
+                    {
+                      name: 'src' # TODO href
+                    }
+                    {
+                      name: 'tgt' # TODO href
+                    }
+                  ]
+              )
+              memo
+            , [] )
 
-          representation.properties =
-            name: graph.getValue().name
-            metadata: {
-              key: req.params.graphKey
-              state: {
-                x: 0
-                y: 0
-                scale: 1
-                metadata: {}
-              }
-            }
-
-          processPort = (port) ->
-            port.process = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{port.process}"
-            return port
-
-          representation.connections = _.map(connections, (connection) ->
-            return {
-              tgt: processPort(connection.tgt)
-              src: processPort(connection.src)
-              metadata: {
-                key: connection.key
-              }
-            }
-          )
-
-          representation.processes = {}
-          representation.outports = {}
-          representation.inports = {}
-
-          promises = _.map(graph.getValue().processes, (process, key) ->
-            deferred = Q.defer()
-            if not process.circle
-              # Skip it
-              return deferred.resolve()
-            CircleModel.retrieve(process.circle.key).then((circle) ->
-              circleValue = circle.getValue()
-              mapPort = (port) ->
-                return port
-
-              metadata = {
-                circle: {
-                  key: circle.getKey()
-                  value: {
-                    description: circleValue.description
-                    icon: circleValue.icon
-                    subgraph: circleValue.subgraph
-                    inports: _.map(circleValue.inports, mapPort)
-                    outports: _.map(circleValue.outports, mapPort)
-                  }
-                }
-                key: key
-                image: circleValue.image
-                label: circleValue.name
-              }
-              metadata = _.merge(metadata, process.metadata)
-
-              representation.processes["/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"] = {
-                id: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
-                component: circle.getKey()
-                metadata: metadata
-              }
-
-              deferred.resolve()
-            ).fail(deferred.reject)
-            return deferred.promise
-          )
-
-          stateDeferred = Q.defer()
-
-          setupStateLink = (state) ->
-            if not req.accepts("application/hal+json")
-              return
-            link = "/agent/graph/#{req.params.graphKey}/state"
-            res.link( link, 'joukou:graph:state', title: 'Update graph state' )
-            representation._embedded['joukou:graph:state'] = {
-              x: state.x
-              y: state.y
-              scale: state.scale
-              metadata: state.metadata or {}
-              _links:
-                self:
-                  href: link
-            }
-          GraphStateModel.retrieveForGraph(
-            req.user.getKey(),
-            req.params.graphKey
-          ).then( (model) ->
-            state = model.getValue()
-            metadata = representation.properties.metadata
-            metadata.state = {
-              x: state.x
-              y: state.y
-              scale: state.scale
-              metadata: state.metadata or {}
-            }
-            setupStateLink(state)
-            stateDeferred.resolve(model)
-          ).fail( (err) ->
-            state = {
+        representation.properties =
+          name: graph.getValue().name
+          metadata: {
+            key: req.params.graphKey
+            state: {
               x: 0
               y: 0
               scale: 1
               metadata: {}
             }
-            setupStateLink(state)
-            stateDeferred.resolve(state)
-          )
+          }
 
-          promises.push(stateDeferred.promise)
+        processPort = (port) ->
+          port.process = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{port.process}"
+          return port
 
-          Q.all(promises).then(->
-            res.send( 200, representation )
-          ).fail( (err) ->
-            next( err )
-          )
-          return
-        ).fail( ( err ) -> next( err ) )
+        representation.connections = _.map(connections, (connection) ->
+          return {
+            tgt: processPort(connection.tgt)
+            src: processPort(connection.src)
+            metadata: {
+              key: connection.key
+            }
+          }
+        )
+
+        representation.processes = {}
+        representation.outports = {}
+        representation.inports = {}
+
+        promises = _.map(graph.getValue().processes, (process, key) ->
+          deferred = Q.defer()
+          if not process.circle
+            # Skip it
+            return deferred.resolve()
+          CircleModel.retrieve(process.circle.key).then((circle) ->
+            circleValue = circle.getValue()
+            mapPort = (port) ->
+              return port
+
+            metadata = {
+              circle: {
+                key: circle.getKey()
+                value: {
+                  description: circleValue.description
+                  icon: circleValue.icon
+                  subgraph: circleValue.subgraph
+                  inports: _.map(circleValue.inports, mapPort)
+                  outports: _.map(circleValue.outports, mapPort)
+                }
+              }
+              key: key
+              image: circleValue.image
+              label: circleValue.name
+            }
+            metadata = _.merge(metadata, process.metadata)
+
+            representation.processes["/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"] = {
+              id: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+              component: circle.getKey()
+              metadata: metadata
+            }
+
+            deferred.resolve()
+          ).fail(deferred.reject)
+          return deferred.promise
+        )
+
+        stateDeferred = Q.defer()
+
+        setupStateLink = (state) ->
+          if not req.accepts("application/hal+json")
+            return
+          link = "/agent/graph/#{req.params.graphKey}/state"
+          res.link( link, 'joukou:graph:state', title: 'Update graph state' )
+          representation._embedded['joukou:graph:state'] = {
+            x: state.x
+            y: state.y
+            scale: state.scale
+            metadata: state.metadata or {}
+            _links:
+              self:
+                href: link
+          }
+        GraphStateModel.retrieveForGraph(
+          req.user.getKey(),
+          req.params.graphKey
+        ).then( (model) ->
+          state = model.getValue()
+          metadata = representation.properties.metadata
+          metadata.state = {
+            x: state.x
+            y: state.y
+            scale: state.scale
+            metadata: state.metadata or {}
+          }
+          setupStateLink(state)
+          stateDeferred.resolve(model)
+        ).fail( (err) ->
+          state = {
+            x: 0
+            y: 0
+            scale: 1
+            metadata: {}
+          }
+          setupStateLink(state)
+          stateDeferred.resolve(state)
+        )
+
+        promises.push(stateDeferred.promise)
+
+        Q.all(promises).then(->
+          res.send( 200, representation )
+        ).fail( (err) ->
+          next( err )
+        )
+        return
       ).fail( ( err ) -> next( err ) )
     )
     .fail( ( err ) -> next( err ) )

@@ -5,9 +5,11 @@
 
 @module joukou-api/persona/graph/network/routes
  */
-var GraphModel, JoukouConductorExchange, JoukouConductorRoutingKey, RabbitMQClient, authn, env, self, _;
+var GraphModel, JoukouConductorExchange, JoukouConductorRoutingKey, RabbitMQClient, authn, authz, env, self, _;
 
 authn = require('../../../authn');
+
+authz = require('../../../authz');
 
 env = require('../../../env');
 
@@ -37,9 +39,9 @@ self = {
   @param {joukou-api/server} server
    */
   registerRoutes: function(server) {
-    server.get('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.index);
-    server.post('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.index);
-    return server.put('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.index);
+    server.get('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.retrieve);
+    server.post('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.update);
+    return server.put('/persona/:personaKey/graph/:graphKey/network', authn.authenticate, self.update);
   },
   retrieve: function(req, res, next) {
     return GraphModel.retrieve(req.params.graphKey).then(function(model) {
@@ -47,12 +49,13 @@ self = {
     }).fail(next);
   },
   update: function(req, res) {
-    return GraphModel.retrieve(req.params.graphKey).then(function(model) {
-      var value;
-      value = model.getValue();
+    return authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey).then(function(_arg) {
+      var graph, persona, value;
+      graph = _arg.graph, persona = _arg.persona;
+      value = graph.getValue();
       value.network = _.assign(value.network || {}, req.body);
-      model.setValue(value.network);
-      return model.save().then(function(model) {
+      graph.setValue(value.network);
+      return graph.save().then(function(graph) {
         var client, host, message;
         client = new RabbitMQClient(JoukouConductorExchange, JoukouConductorRoutingKey);
         host = env.getHost();
@@ -64,7 +67,7 @@ self = {
           }
         };
         return client.send(message).then(function() {
-          return res.send(200, model.getValue().network);
+          return res.send(200, graph.getValue().network);
         });
       });
     }).fail(next);

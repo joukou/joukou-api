@@ -225,7 +225,7 @@ module.exports = self = {
   @param {function(Error)} next
    */
   retrieve: function(req, res, next) {
-    return PersonaModel.retrieve(req.params.key).then(function(persona) {
+    return authz.hasPersona(req.user, req.params.key).then(function(persona) {
       var agent, _i, _len, _ref;
       _ref = persona.getValue().agents;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {

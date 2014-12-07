@@ -57,57 +57,54 @@ module.exports = self =
   @param {function(Error)} next
   ###
   index: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      # TODO associations and security model should be handled by the model layer
-      graph.getPersona().then( ( persona ) ->
-        graph.getConnections( ( connections ) ->
-          res.send( 200, connections.getRepresentation() )
-        )
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
+      graph.getConnections( ( connections ) ->
+        res.send( 200, connections.getRepresentation() )
       )
     ).fail( ( err ) -> next( err ) )
     return
 
   create: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        data = {}
-        data.data = req.body.data
-        data.metadata = req.body.metadata
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
+      data = {}
+      data.data = req.body.data
+      data.metadata = req.body.metadata
 
-        # TODO HyperSchema vs schemajs+hal
-        document = hal.parse( req.body,
-          links:
-            'joukou:process':
-              min: 2
-              max: 2
-              match: '/persona/:personaKey/graph/:graphKey/process/:key'
-              name:
+      # TODO HyperSchema vs schemajs+hal
+      document = hal.parse( req.body,
+        links:
+          'joukou:process':
+            min: 2
+            max: 2
+            match: '/persona/:personaKey/graph/:graphKey/process/:key'
+            name:
+              required: yes
+              type: 'enum'
+              values: [ 'src', 'tgt' ]
+            properties: {
+              port:
                 required: yes
-                type: 'enum'
-                values: [ 'src', 'tgt' ]
-              properties: {
-                port:
-                  required: yes
-                  type: 'string'
-                matadata:
-                  required: no
-                  type: 'object'
-              }
-        )
+                type: 'string'
+              matadata:
+                required: no
+                type: 'object'
+            }
+      )
 
-        for process in document.links[ 'joukou:process' ]
-          data[ process.name ] =
-            process: process.key
-            port: process.port
-            metadata: process.metadata or {}
+      for process in document.links[ 'joukou:process' ]
+        data[ process.name ] =
+          process: process.key
+          port: process.port
+          metadata: process.metadata or {}
 
-        graph.addConnection( data ).then( ( connection ) ->
-          graph.save().then( ->
-            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
-            res.link( self, 'joukou:connection' )
-            res.header( 'Location', self )
-            res.send( 201, {} )
-          )
+      graph.addConnection( data ).then( ( connection ) ->
+        graph.save().then( ->
+          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/connection/#{connection.key}"
+          res.link( self, 'joukou:connection' )
+          res.header( 'Location', self )
+          res.send( 201, {} )
         )
       )
     )
@@ -132,7 +129,8 @@ module.exports = self =
   @param {function(Error)} next
   ###
   remove: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
       value = graph.getValue()
       connections = value.connections or (value.connections = [])
       _.remove(connections, (connection) ->

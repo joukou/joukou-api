@@ -10,6 +10,7 @@ ability to inspect and create *Processes* for a *Graph*.
 ###
 
 authn      = require( '../../../authn' )
+authz      = require( '../../../authz' )
 hal        = require( '../../../hal' )
 GraphModel = require( '../model' )
 { UnauthorizedError, ForbiddenError, NotFoundError } = require( 'restify' )
@@ -68,31 +69,30 @@ self =
   @param {function(Error)} next
   ###
   index: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        graph.getProcesses( ( processes ) ->
-          personaHref = "/persona/#{persona.getKey()}"
-          res.link( personaHref, 'joukou:persona' )
-          graphHref = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
-          res.link( graphHref, 'joukou:graph' )
-          res.link( "#{graphHref}/process", 'joukou:process-create' )
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ( { graph, persona } ) ->
+      graph.getProcesses( ( processes ) ->
+        personaHref = "/persona/#{persona.getKey()}"
+        res.link( personaHref, 'joukou:persona' )
+        graphHref = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}"
+        res.link( graphHref, 'joukou:graph' )
+        res.link( "#{graphHref}/process", 'joukou:process-create' )
 
-          representation = {}
-          representation._embedded = _.reduce( processes, ( process, key ) ->
-            metadata: process.metadata
-            _links:
-              self:
-                href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
-              'joukou:circle':
-                href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
-              'joukou:persona':
-                href: personaHref
-              'joukou:graph':
-                href: graphHref
-          , { 'joukou:process': [] } )
+        representation = {}
+        representation._embedded = _.reduce( processes, ( process, key ) ->
+          metadata: process.metadata
+          _links:
+            self:
+              href: "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+            'joukou:circle':
+              href: "/persona/#{persona.getKey()}/circle/#{process.circle.key}"
+            'joukou:persona':
+              href: personaHref
+            'joukou:graph':
+              href: graphHref
+        , { 'joukou:process': [] } )
 
-          res.send( 200, representation )
-        )
+        res.send( 200, representation )
       )
     )
     .fail( ( err ) -> next( err ) )
@@ -110,34 +110,33 @@ self =
   @param {function(Error)} next
   ###
   create: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        data = {}
-        data.metadata = req.body.metadata
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
+      data = {}
+      data.metadata = req.body.metadata
 
-        document = hal.parse( req.body,
-          links:
-            'joukou:circle':
-              min: 1
-              max: 1
-              match: '/persona/:personaKey/circle/:key'
-        )
+      document = hal.parse( req.body,
+        links:
+          'joukou:circle':
+            min: 1
+            max: 1
+            match: '/persona/:personaKey/circle/:key'
+      )
 
-        unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
-          throw new ForbiddenError( 'attempt to use a circle from a different persona' )
+      unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
+        throw new ForbiddenError( 'attempt to use a circle from a different persona' )
 
-        data.circle =
-          key: document.links[ 'joukou:circle' ]?[ 0 ].key
-        #console.log(require('util').inspect(data, depth: 10))
+      data.circle =
+        key: document.links[ 'joukou:circle' ]?[ 0 ].key
+      #console.log(require('util').inspect(data, depth: 10))
 
-        graph.addProcess( data ).then( ( processKey ) ->
-          graph.save().then( ->
-            self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
-            res.link( self, 'joukou:process' )
-            res.link( "#{self}/position", 'joukou:process-update:position' )
-            res.header( 'Location', self )
-            res.send( 201, {} )
-          )
+      graph.addProcess( data ).then( ( processKey ) ->
+        graph.save().then( ->
+          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{processKey}"
+          res.link( self, 'joukou:process' )
+          res.link( "#{self}/position", 'joukou:process-update:position' )
+          res.header( 'Location', self )
+          res.send( 201, {} )
         )
       )
     )
@@ -157,17 +156,16 @@ self =
   @param {function(Error)} next
   ###
   retrieve: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        graph.getProcesses().then( ( processes ) ->
-          process = processes[ req.params.processKey ]
-          unless process
-            throw new NotFoundError()
-          representation = {}
-          representation.metadata = process.metadata
-          res.link( "/persona/#{persona.getKey()}/circle/#{process.circle.key}", 'joukou:circle' )
-          res.send( 200, representation )
-        )
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
+      graph.getProcesses().then( ( processes ) ->
+        process = processes[ req.params.processKey ]
+        unless process
+          throw new NotFoundError()
+        representation = {}
+        representation.metadata = process.metadata
+        res.link( "/persona/#{persona.getKey()}/circle/#{process.circle.key}", 'joukou:circle' )
+        res.send( 200, representation )
       )
     )
     .fail( ( err ) -> next( err ) )
@@ -186,37 +184,36 @@ self =
   @param {function(Error)} next
   ###
   update: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
-        data = {}
-        data.metadata = req.body.metadata
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
+      data = {}
+      data.metadata = req.body.metadata
 
-        document = hal.parse( req.body,
-          links:
-            'joukou:circle':
-              min: 1
-              max: 1
-              match: '/persona/:personaKey/circle/:key'
-        )
+      document = hal.parse( req.body,
+        links:
+          'joukou:circle':
+            min: 1
+            max: 1
+            match: '/persona/:personaKey/circle/:key'
+      )
 
-        unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
-          throw new ForbiddenError( 'attempt to use a circle from a different persona' )
+      unless document.links[ 'joukou:circle' ]?[ 0 ].personaKey is persona.getKey()
+        throw new ForbiddenError( 'attempt to use a circle from a different persona' )
 
-        data.circle =
-          key: document.links[ 'joukou:circle' ]?[ 0 ].key
-        #console.log(require('util').inspect(data, depth: 10))
+      data.circle =
+        key: document.links[ 'joukou:circle' ]?[ 0 ].key
+      #console.log(require('util').inspect(data, depth: 10))
 
-        value = graph.getValue()
-        value.processes[req.params.processKey] = data
-        graph.setValue(value)
+      value = graph.getValue()
+      value.processes[req.params.processKey] = data
+      graph.setValue(value)
 
-        graph.save().then( ->
-          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
-          res.link( self, 'joukou:process' )
-          res.link( "#{self}/position", 'joukou:process-update:position' )
-          res.header( 'Location', self )
-          res.send( 200, {} )
-        )
+      graph.save().then( ->
+        self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
+        res.link( self, 'joukou:process' )
+        res.link( "#{self}/position", 'joukou:process-update:position' )
+        res.header( 'Location', self )
+        res.send( 200, {} )
       )
     )
     .fail( ( err ) -> next( err ) )
@@ -235,22 +232,21 @@ self =
   @param {function(Error)} next
   ###
   updatePosition: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
 
-        value = graph.getValue()
-        process = value.processes[req.params.processKey]
-        process.metadata.x = req.body.x
-        process.metadata.y = req.body.y
-        graph.setValue(value)
+      value = graph.getValue()
+      process = value.processes[req.params.processKey]
+      process.metadata.x = req.body.x
+      process.metadata.y = req.body.y
+      graph.setValue(value)
 
-        graph.save().then( ->
-          self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
-          res.link( self, 'joukou:process' )
-          res.link( "#{self}/position", 'joukou:process-update:position' )
-          res.header( 'Location', self )
-          res.send( 200, {} )
-        )
+      graph.save().then( ->
+        self = "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{req.params.processKey}"
+        res.link( self, 'joukou:process' )
+        res.link( "#{self}/position", 'joukou:process-update:position' )
+        res.header( 'Location', self )
+        res.send( 200, {} )
       )
     )
     .fail( ( err ) -> next( err ) )
@@ -268,16 +264,14 @@ self =
   @param {function(Error)} next
   ###
   remove: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
+      value = graph.getValue()
+      value.processes[req.params.processKey] = undefined
+      graph.setValue(value)
 
-        value = graph.getValue()
-        value.processes[req.params.processKey] = undefined
-        graph.setValue(value)
-
-        graph.save().then( ->
-          res.send( 204, {} )
-        )
+      graph.save().then( ->
+        res.send( 204, {} )
       )
     )
     .fail( ( err ) -> next( err ) )
@@ -295,142 +289,141 @@ self =
   @param {function(Error)} next
   ###
   clone: ( req, res, next ) ->
-    GraphModel.retrieve( req.params.graphKey ).then( ( graph ) ->
-      graph.getPersona().then( ( persona ) ->
+    authz.hasGraph(req.user, req.params.graphKey, req.params.personaKey)
+    .then( ({ graph, persona }) ->
 
-        edges = req.body.edges or []
-        nodes = req.body.nodes or []
+      edges = req.body.edges or []
+      nodes = req.body.nodes or []
 
-        if nodes.length is 0
-          return res.send(400)
+      if nodes.length is 0
+        return res.send(400)
 
-        shouldReturn = no
+      shouldReturn = no
 
-        _.each(edges, (edge) ->
-          if (
-            not edge or
-            not edge.from or
-            not edge.from.node or
-            not edge.from.port or
-            not edge.to or
-            not edge.to.node or
-            not edge.to.port
-          )
-            res.send(400, "edge doesn't have the required values")
-            shouldReturn = yes
-            return false
+      _.each(edges, (edge) ->
+        if (
+          not edge or
+          not edge.from or
+          not edge.from.node or
+          not edge.from.port or
+          not edge.to or
+          not edge.to.node or
+          not edge.to.port
         )
+          res.send(400, "edge doesn't have the required values")
+          shouldReturn = yes
+          return false
+      )
 
-        if shouldReturn
-          return
+      if shouldReturn
+        return
 
-        _.each(nodes, (node) ->
-          if (
-            not node or
-            not node.component or
-            not node.id or
-            not node.metadata or
-            not node.metadata.key or
-            not node.metadata.circle or
-            not node.metadata.circle.key or
-            not node.metadata.circle.value
-          )
-            res.send(400, "node doesn't have the required values")
-            shouldReturn = yes
-            return false
+      _.each(nodes, (node) ->
+        if (
+          not node or
+          not node.component or
+          not node.id or
+          not node.metadata or
+          not node.metadata.key or
+          not node.metadata.circle or
+          not node.metadata.circle.key or
+          not node.metadata.circle.value
         )
+          res.send(400, "node doesn't have the required values")
+          shouldReturn = yes
+          return false
+      )
 
-        if shouldReturn
-          return
+      if shouldReturn
+        return
 
-        processes = {}
-        connections = []
+      processes = {}
+      connections = []
 
-        processMap = {}
+      processMap = {}
 
-        promises = _.map(nodes, (node) ->
+      promises = _.map(nodes, (node) ->
+        deferred = Q.defer()
+        circle = {
+          key: node.metadata.circle.key
+        }
+        metadata = {
+          x: node.metadata.x
+          y: node.metadata.y
+        }
+        graph.addProcess({circle: circle, metadata: metadata})
+        .then((key) ->
+          processMap[node.id] = key
+          processes[key] = {
+            id: processId(key)
+            component: circle.key
+            metadata:
+              nodeId: node.id
+              x: metadata.x
+              y: metadata.y
+              circle:
+                circle.key
+              key: key
+          }
+          deferred.resolve(key)
+        )
+        .fail(deferred.reject)
+        return deferred.promise
+      )
+
+      processId = (key) ->
+        return "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
+
+      processPort = (port) ->
+        port.process = processId(port.process)
+        return port
+
+      addConnections = ->
+        connectionPromises = _.map(edges, (edge) ->
+          data = {}
+          data.metadata = {}
+          data.src = {
+            process: processMap[edge.from.node] || edge.from.node
+            port: edge.from.port
+            metadata: {}
+          }
+          data.tgt = {
+            process: processMap[edge.to.node] || edge.to.node
+            port: edge.to.port
+            metadata: {}
+          }
           deferred = Q.defer()
-          circle = {
-            key: node.metadata.circle.key
-          }
-          metadata = {
-            x: node.metadata.x
-            y: node.metadata.y
-          }
-          graph.addProcess({circle: circle, metadata: metadata})
-          .then((key) ->
-            processMap[node.id] = key
-            processes[key] = {
-              id: processId(key)
-              component: circle.key
-              metadata:
-                nodeId: node.id
-                x: metadata.x
-                y: metadata.y
-                circle:
-                  circle.key
-                key: key
-            }
-            deferred.resolve(key)
+          graph.addConnection(data)
+          .then((connection) ->
+            data = _.cloneDeep(data)
+            data.metadata.key = connection.key
+            data.src = processPort(data.src)
+            data.tgt = processPort(data.tgt)
+            connections.push(data)
+            deferred.resolve(connection)
           )
           .fail(deferred.reject)
           return deferred.promise
         )
 
-        processId = (key) ->
-          return "/persona/#{persona.getKey()}/graph/#{graph.getKey()}/process/#{key}"
-
-        processPort = (port) ->
-          port.process = processId(port.process)
-          return port
-
-        addConnections = ->
-          connectionPromises = _.map(edges, (edge) ->
-            data = {}
-            data.metadata = {}
-            data.src = {
-              process: processMap[edge.from.node] || edge.from.node
-              port: edge.from.port
-              metadata: {}
-            }
-            data.tgt = {
-              process: processMap[edge.to.node] || edge.to.node
-              port: edge.to.port
-              metadata: {}
-            }
-            deferred = Q.defer()
-            graph.addConnection(data)
-            .then((connection) ->
-              data = _.cloneDeep(data)
-              data.metadata.key = connection.key
-              data.src = processPort(data.src)
-              data.tgt = processPort(data.tgt)
-              connections.push(data)
-              deferred.resolve(connection)
-            )
-            .fail(deferred.reject)
-            return deferred.promise
-          )
-
-          Q.all(
-            connectionPromises
-          )
-          .then( ->
-            graph.save().then( ->
-              res.send(200, {
-                processes: processes
-                connections: connections
-              })
-            )
-          )
-
         Q.all(
-          promises
+          connectionPromises
         )
-        .then(addConnections)
-        .fail((error) ->
-          res.send(400, error)
+        .then( ->
+          graph.save().then( ->
+            res.send(200, {
+              processes: processes
+              connections: connections
+            })
+          )
         )
+
+      Q.all(
+        promises
+      )
+      .then(addConnections)
+      .fail((error) ->
+        res.send(400, error)
       )
     )
     .fail( ( err ) -> next( err ) )

@@ -201,7 +201,8 @@ module.exports = self =
   @param {function(Error)} next
   ###
   retrieve: ( req, res, next ) ->
-    PersonaModel.retrieve( req.params.key ).then( ( persona ) ->
+    authz.hasPersona(req.user, req.params.key)
+    .then( ( persona ) ->
       for agent in persona.getValue().agents
         res.link( "/agent/#{agent.key}", 'joukou:agent', name: agent.role )
         res.link( "/persona/#{persona.getKey()}/graph", 'joukou:graphs', title: "List of Graphs owned by this Persona" )
